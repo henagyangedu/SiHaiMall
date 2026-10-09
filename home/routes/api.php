@@ -31,6 +31,9 @@ Route::prefix('auth')->group(function () {
     Route::post('sms-code', [AuthController::class, 'smsCode'])->middleware('throttle:10,1');
     Route::post('login-sms', [AuthController::class, 'loginSms'])->middleware('throttle:20,1');
     Route::post('reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:10,1');
+    // 邮箱验证码：获取（另有按邮箱、按 IP 的发送限制）、邮箱找回密码
+    Route::post('email-code', [AuthController::class, 'emailCode'])->middleware('throttle:10,1');
+    Route::post('reset-password-email', [AuthController::class, 'resetPasswordEmail'])->middleware('throttle:10,1');
 });
 
 // ---- 需要登录

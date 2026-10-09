@@ -27,6 +27,7 @@ class ConfigService
             'site_icp'      => ['label' => '备案号', 'type' => 'string', 'max' => 100],
             'site_closed'   => ['label' => '关闭站点', 'type' => 'bool', 'default' => 0],
             'close_notice'  => ['label' => '关闭提示', 'type' => 'text', 'lang' => true, 'max' => 500],
+            'email_verify_enabled' => ['label' => '邮箱注册需要验证码', 'type' => 'bool', 'default' => 0],
         ],
         'trade' => [
             'order_expire_minutes' => ['label' => '未支付订单自动关闭（分钟）', 'type' => 'int', 'min' => 1, 'max' => 10080, 'default' => 30],

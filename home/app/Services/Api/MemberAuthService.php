@@ -4,6 +4,7 @@ namespace App\Services\Api;
 
 use App\Models\Member;
 use App\Models\MemberToken;
+use App\Services\Common\EmailCodeService;
 use App\Services\Common\LocaleService;
 use App\Services\Common\SmsCodeService;
 use App\Support\Exceptions\BusinessException;
@@ -15,11 +16,12 @@ use Illuminate\Support\Str;
 /**
  * 会员注册 / 登录 / 令牌。
  * 手机号注册：后台启用短信驱动后必须带短信验证码（只支持中国大陆手机号，境外用户用邮箱注册）；
- * 未启用短信时不校验。邮箱注册目前没有邮箱验证码。
+ * 未启用短信时不校验。
+ * 邮箱注册：基础设置里开启“邮箱注册需要验证码”后必须带邮箱验证码；未开启时不校验。
  */
 class MemberAuthService
 {
-    public function __construct(private LocaleService $locale, private SmsCodeService $sms) {}
+    public function __construct(private LocaleService $locale, private SmsCodeService $sms, private EmailCodeService $emailCodes) {}
 
     /** @param array{account:string,password:string,nickname?:string,phone_area?:string,code?:string,lang?:string,currency?:string} $d */
     public function register(array $d, string $source, string $ip, string $ua): array
@@ -49,6 +51,12 @@ class MemberAuthService
                     throw new BusinessException('请输入短信验证码');
                 }
                 $this->sms->verify('register', $area, $account, (string) $d['code']);
+            }
+            if ($isEmail && $this->emailCodes->enabled()) {
+                if (trim((string) ($d['code'] ?? '')) === '') {
+                    throw new BusinessException('请输入邮箱验证码');
+                }
+                $this->emailCodes->verify('register', $account, (string) $d['code']);
             }
 
             $lang = in_array($d['lang'] ?? '', $this->locale->codes(), true) ? $d['lang'] : $this->locale->defaultLang();
@@ -108,6 +116,36 @@ class MemberAuthService
 
         $member->forceFill(['password' => Hash::make($password)])->save();
         MemberToken::query()->where('member_id', $member->id)->delete();
+    }
+
+    /** 获取邮箱验证码。注册要求邮箱未注册；找回密码要求邮箱已注册 */
+    public function sendEmailCode(string $purpose, string $email, string $ip, string $lang): void
+    {
+        $member = $this->findByEmail($email);
+        if ($purpose === 'register' && $member) {
+            throw new BusinessException('该邮箱已注册，请直接登录');
+        }
+        if ($purpose !== 'register' && !$member) {
+            throw new BusinessException('该邮箱尚未注册');
+        }
+        $this->emailCodes->send($purpose, $email, $ip, $lang);
+    }
+
+    /** 邮箱找回密码：重置后所有设备的登录全部失效 */
+    public function resetPasswordByEmail(string $email, string $code, string $password): void
+    {
+        $member = $this->findByEmail($email) ?? throw new BusinessException('该邮箱尚未注册');
+        $this->emailCodes->verify('reset', $email, $code);
+
+        $member->forceFill(['password' => Hash::make($password)])->save();
+        MemberToken::query()->where('member_id', $member->id)->delete();
+    }
+
+    private function findByEmail(string $email): ?Member
+    {
+        $email = trim($email);
+
+        return Member::query()->where(fn ($q) => $q->where('email', $email)->orWhere('account', $email))->first();
     }
 
     private function findByMobile(string $mobile): ?Member

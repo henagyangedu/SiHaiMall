@@ -12,7 +12,7 @@ const saving = ref(false)
 const form = reactive({
   site_name: {}, site_logo: '', site_favicon: '', site_desc: {}, site_keywords: {},
   company_name: '', service_email: '', service_phone: '', copyright: {}, site_icp: '',
-  site_closed: 0, close_notice: {},
+  site_closed: 0, close_notice: {}, email_verify_enabled: 0,
 })
 
 async function load() {
@@ -66,6 +66,12 @@ onMounted(load)
           <span style="margin-left: 12px; color: #909399">开启后 C 端会收到关闭状态和提示语（C 端接入后生效）</span>
         </el-form-item>
         <el-form-item label="关闭提示"><LangInput v-model="form.close_notice" :languages="languages" type="textarea" :maxlength="500" /></el-form-item>
+
+        <el-divider content-position="left">注册安全</el-divider>
+        <el-form-item label="邮箱注册验证">
+          <el-switch v-model="form.email_verify_enabled" :active-value="1" :inactive-value="0" />
+          <span style="margin-left: 12px; color: #909399">开启后邮箱注册必须填写邮箱验证码，并开放邮箱找回密码。需先在服务器 .env 里配好发信邮箱（MAIL_*）</span>
+        </el-form-item>
 
         <el-form-item>
           <el-button v-perm="'setting:base:edit'" type="primary" :loading="saving" @click="submit">保存设置</el-button>

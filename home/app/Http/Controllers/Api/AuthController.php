@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\Api\EmailCodeRequest;
+use App\Http\Requests\Api\EmailResetPasswordRequest;
 use App\Http\Requests\Api\LoginRequest;
 use App\Http\Requests\Api\PasswordRequest;
 use App\Http\Requests\Api\ProfileRequest;
@@ -56,6 +58,25 @@ class AuthController extends ApiController
     {
         $this->service->resetPasswordBySms(
             (string) $request->validated('mobile'), (string) $request->validated('code'), (string) $request->validated('password')
+        );
+
+        return ApiResponse::ok(null, '密码已重置，请重新登录');
+    }
+
+    /** 获取邮箱验证码：purpose = register 注册 / reset 找回密码 */
+    public function emailCode(EmailCodeRequest $request)
+    {
+        $this->service->sendEmailCode(
+            (string) $request->validated('purpose'), (string) $request->validated('email'), (string) $request->ip(), $this->lang($request)
+        );
+
+        return ApiResponse::ok(null, '验证码已发送，请查收邮件');
+    }
+
+    public function resetPasswordEmail(EmailResetPasswordRequest $request)
+    {
+        $this->service->resetPasswordByEmail(
+            (string) $request->validated('email'), (string) $request->validated('code'), (string) $request->validated('password')
         );
 
         return ApiResponse::ok(null, '密码已重置，请重新登录');

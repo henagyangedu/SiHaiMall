@@ -32,7 +32,7 @@ class OrderPointsService
 
     private const TYPE_CLAWBACK = 6;
 
-    public function __construct(private ConfigService $config) {}
+    public function __construct(private ConfigService $config, private MemberGrowthService $growth) {}
 
     /**
      * 本单最多可用多少积分、能抵多少钱。
@@ -144,6 +144,8 @@ class OrderPointsService
         $m = Member::query()->lockForUpdate()->find($order->member_id);
         if ($m) {
             $this->change($m, $points, $order->order_no, '订单完成赠送积分', self::TYPE_EARN);
+            // 消费得来的积分计入成长值，够门槛就升级
+            $this->growth->refresh($m);
         }
     }
 

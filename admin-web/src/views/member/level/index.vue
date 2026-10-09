@@ -82,7 +82,13 @@ onMounted(async () => {
       <el-form :model="form" label-width="110px">
         <el-form-item label="等级名称" required><LangInput v-model="form.name" :languages="languages" :maxlength="50" ai field-key="level_name" /></el-form-item>
         <el-form-item label="等级序号" required><el-input-number v-model="form.level_no" :min="1" :max="999" /></el-form-item>
-        <el-form-item label="升级所需积分"><el-input-number v-model="form.need_points" :min="0" :max="100000000" /></el-form-item>
+        <el-form-item label="升级所需积分">
+          <el-input-number v-model="form.need_points" :min="0" :max="100000000" />
+          <div style="color: #909399; font-size: 12px; line-height: 1.6; width: 100%">
+            会员累计获得的积分（消费获得、注册和签到奖励，扣除退款扣回的）达到这个数就自动升到这一级；下单抵扣花掉的积分和后台手工调整不影响。只升不降。
+            调低门槛或新增等级后，已有会员在每天凌晨的定时任务里升级。
+          </div>
+        </el-form-item>
         <el-form-item label="折扣（%）"><el-input-number v-model="form.discount" :min="1" :max="100" :precision="2" /></el-form-item>
         <el-form-item label="状态"><el-switch v-model="form.status" :active-value="1" :inactive-value="0" active-text="启用" inactive-text="禁用" /></el-form-item>
       </el-form>

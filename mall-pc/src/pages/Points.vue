@@ -31,7 +31,13 @@ onMounted(() => {
 <template>
   <div class="panel">
     <div class="panel-title">{{ t('points.title') }}</div>
-    <div class="balance">{{ t('points.balance') }}<span class="num">{{ state.member?.points ?? 0 }}</span></div>
+    <div class="balance">
+      {{ t('points.balance') }}<span class="num">{{ state.member?.points ?? 0 }}</span>
+      <div v-if="state.member?.level_name" class="sub level">
+        {{ state.member.level_name }}　{{ t('points.growth', { n: state.member.growth }) }}　{{ state.member.next_level
+          ? t('points.nextLevel', { n: state.member.next_level.remain, name: state.member.next_level.name }) : t('points.topLevel') }}
+      </div>
+    </div>
 
     <el-table v-loading="page.loading" :data="list" :empty-text="t('common.empty')">
       <el-table-column :label="t('pc.timeCol')" prop="created_at" width="180" />
@@ -51,4 +57,5 @@ onMounted(() => {
 <style scoped>
 .balance { background: #fcf5f5; border-radius: 8px; padding: 18px 20px; margin-bottom: 16px; }
 .num { font-size: 28px; font-weight: 600; color: var(--theme); margin-left: 14px; }
+.level { margin-top: 8px; }
 </style>

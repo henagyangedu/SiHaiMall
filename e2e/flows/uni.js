@@ -172,6 +172,8 @@ module.exports = async function uniFlow(browser, data) {
   await step('积分明细、收货地址、分销中心、帮助中心、协议、资讯都能打开', async () => {
     await go('/pages/user/points');
     await page.locator('.head .num').waitFor();
+    // 积分下面显示会员等级和成长值
+    await page.locator('.head .level', { hasText: '成长值' }).waitFor();
     for (const p of ['/pages/address/list', '/pages/distribution/index', '/pages/article/list?type=help', '/pages/protocol/index', '/pages/article/list?type=article']) {
       await go(p);
       await page.locator('uni-page-body').waitFor();

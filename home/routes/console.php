@@ -14,3 +14,4 @@ Schedule::command('mall:pay-compensate')->everyFiveMinutes()->withoutOverlapping
 Schedule::command('mall:refund-compensate')->everyTenMinutes()->withoutOverlapping();
 Schedule::command('mall:auto-receive')->hourly()->withoutOverlapping();
 Schedule::command('mall:distribution-settle')->hourly()->withoutOverlapping();
+Schedule::command('mall:member-level-refresh')->dailyAt('03:30')->withoutOverlapping();

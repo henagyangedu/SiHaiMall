@@ -8,6 +8,7 @@ use App\Models\MemberToken;
 use App\Services\Common\DistributionService;
 use App\Services\Common\EmailCodeService;
 use App\Services\Common\LocaleService;
+use App\Services\Common\MemberGrowthService;
 use App\Services\Common\SmsCodeService;
 use App\Services\Common\UploadService;
 use App\Support\Exceptions\BusinessException;
@@ -26,7 +27,8 @@ use Illuminate\Support\Str;
 class MemberAuthService
 {
     public function __construct(private LocaleService $locale, private SmsCodeService $sms, private EmailCodeService $emailCodes,
-        private DistributionService $distribution, private UploadService $uploads, private DriverManager $drivers) {}
+        private DistributionService $distribution, private UploadService $uploads, private DriverManager $drivers,
+        private MemberGrowthService $growth) {}
 
     /** @param array{account:string,password:string,nickname?:string,phone_area?:string,code?:string,invite_code?:string,lang?:string,currency?:string} $d */
     public function register(array $d, string $source, string $ip, string $ua): array
@@ -313,6 +315,8 @@ class MemberAuthService
             'gender' => (int) $m->gender, 'birthday' => $m->birthday?->format('Y-m-d'),
             'phone_area' => $m->phone_area, 'phone' => $m->phone, 'email' => $m->email,
             'level_id' => (int) $m->level_id, 'level_discount' => $level ? (string) $level->discount : '100',
+            // level_name 等级名称（按会员的语言）、growth 成长值、next_level 下一级的名称 / 门槛 / 还差多少（已是最高级时为 null）
+            ...$this->growth->summary($m, (string) $m->lang),
             'points' => (int) $m->points, 'balance' => (string) $m->balance,
             'lang' => $m->lang, 'currency' => $m->currency,
             // 微信一键登录注册的会员一开始没有密码

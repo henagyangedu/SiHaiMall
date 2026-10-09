@@ -43,6 +43,10 @@ onReachBottom(() => { if (list.value.length < page.total) load() })
     <view class="head">
       <view class="label">{{ t('points.balance') }}</view>
       <view class="num">{{ state.member?.points ?? 0 }}</view>
+      <view v-if="state.member?.level_name" class="level">
+        {{ state.member.level_name }}　{{ t('points.growth', { n: state.member.growth }) }}　{{ state.member.next_level
+          ? t('points.nextLevel', { n: state.member.next_level.remain, name: state.member.next_level.name }) : t('points.topLevel') }}
+      </view>
     </view>
 
     <view v-if="list.length" class="card rows">
@@ -73,4 +77,5 @@ onReachBottom(() => { if (list.value.length < page.total) load() })
 .chg { font-size: 32rpx; font-weight: 600; }
 .chg.plus { color: var(--theme); }
 .end { text-align: center; padding: 30rpx 0 40rpx; }
+.level { font-size: 24rpx; opacity: 0.9; margin-top: 16rpx; line-height: 1.6; }
 </style>

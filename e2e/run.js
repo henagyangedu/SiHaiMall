@@ -34,6 +34,25 @@ async function reachable(url) {
   }
 }
 
+/**
+ * 开发服务器给出的是不是磁盘上的最新代码。Windows 上 Vite 偶尔感知不到文件改动（切分支、合并时尤其容易），
+ * 这时页面还是旧的，测试会在莫名其妙的地方失败。这里拿接口函数文件做探针：磁盘上导出的函数，服务器给出的文件里都得有。
+ * 返回缺少的函数名；探测不了（比如指向的不是开发服务器）时返回空数组，不拦。
+ */
+async function staleExports(front) {
+  const src = { pc: ['mall-pc', 'src', 'api', 'index.js'], uni: ['mall-uni', 'src', 'api', 'index.js'] }[front];
+  if (!src) return [];
+  try {
+    const disk = fs.readFileSync(path.resolve(__dirname, '..', ...src), 'utf8');
+    const res = await fetch(config[front] + '/src/api/index.js', { signal: AbortSignal.timeout(8000) });
+    if (!res.ok) return [];
+    const served = await res.text();
+    return [...disk.matchAll(/^export (?:const|function|async function) (\w+)/gm)].map((m) => m[1]).filter((name) => !new RegExp('\\b' + name + '\\b').test(served));
+  } catch (e) {
+    return [];
+  }
+}
+
 (async () => {
   const args = process.argv.slice(2);
   const wanted = !args.length || args.includes('all') ? Object.keys(FLOWS) : args;
@@ -50,6 +69,17 @@ async function reachable(url) {
   if (down.length) {
     console.error('这些开发服务器没有启动或连不上：\n  ' + down.join('\n  ') + '\n请先启动它们，或用 E2E_ADMIN_URL / E2E_PC_URL / E2E_UNI_URL 指定地址。');
     process.exit(2);
+  }
+  const stale = [];
+  for (const f of fronts) {
+    const missing = await staleExports(f);
+    if (missing.length) stale.push(`${NAMES[f]}（${config[f]}）缺少：${missing.slice(0, 5).join('、')}`);
+  }
+  if (stale.length) {
+    console.error('这些开发服务器给出的不是最新代码（Vite 没有感知到文件改动）：\n  ' + stale.join('\n  ') + '\n请重启对应的开发服务器后再跑。');
+    // 不直接 process.exit：刚发过的探测请求还没收尾，Windows 上立刻退出会让 Node 报一个内部断言错误
+    process.exitCode = 2;
+    return;
   }
 
   let failed = 0;

@@ -52,7 +52,7 @@ onShow(async () => {
       <image v-if="state.member?.avatar" :src="state.member.avatar" mode="aspectFill" class="avatar" />
       <view v-else class="avatar">{{ (state.member?.nickname || '?').slice(0, 1) }}</view>
       <view v-if="state.member" class="who">
-        <view class="nick">{{ state.member.nickname }}</view>
+        <view class="nick">{{ state.member.nickname }}<text v-if="state.member.level_name" class="level">{{ state.member.level_name }}</text></view>
         <view class="meta" @click.stop="nav('/pages/user/points')">{{ t('user.points') }} {{ state.member.points }} ›</view>
       </view>
       <view v-else class="nick">{{ t('user.notLogin') }}</view>
@@ -98,6 +98,7 @@ onShow(async () => {
 .arrow { font-size: 40rpx; opacity: 0.8; }
 .nick { font-size: 36rpx; font-weight: 600; }
 .meta { font-size: 24rpx; opacity: 0.9; margin-top: 6rpx; }
+.level { font-size: 22rpx; font-weight: 400; margin-left: 16rpx; padding: 4rpx 16rpx; border-radius: 20rpx; background: rgba(255, 255, 255, 0.25); vertical-align: middle; }
 .title { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 24rpx; }
 .tabs { display: flex; }
 .tab { flex: 1; text-align: center; color: #606266; font-size: 26rpx; padding: 12rpx 0; }

@@ -45,7 +45,7 @@ onMounted(async () => {
       <img v-if="state.member.avatar" :src="state.member.avatar" alt="" class="avatar" />
       <div v-else class="avatar ph">{{ (state.member.nickname || '?').slice(0, 1) }}</div>
       <div class="who">
-        <div class="nick">{{ state.member.nickname }}</div>
+        <div class="nick">{{ state.member.nickname }}<span v-if="state.member.level_name" class="level">{{ state.member.level_name }}</span></div>
         <div class="sub">{{ t('pc.memberSince') }}：{{ state.member.account }}　<router-link :to="{ name: 'profile' }" class="link">{{ t('common.edit') }}</router-link></div>
       </div>
       <router-link :to="{ name: 'points' }" class="stat"><div class="num">{{ state.member.points }}</div><div class="sub">{{ t('pc.points') }}</div></router-link>
@@ -92,4 +92,5 @@ onMounted(async () => {
 .addr:last-child { border-bottom: none; }
 .body { flex: 1; min-width: 0; }
 .tag { margin-left: 8px; }
+.level { font-size: 12px; font-weight: 400; margin-left: 10px; padding: 2px 10px; border-radius: 10px; background: #fcf5f5; color: var(--theme); vertical-align: middle; }
 </style>

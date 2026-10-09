@@ -188,6 +188,10 @@ module.exports = async function pcFlow(browser, data) {
   await step('积分明细、分销中心、帮助中心、协议、找回密码页都能打开', async () => {
     await go('/points');
     await page.locator('.balance .num').waitFor();
+    // 积分下面显示会员等级和成长值，账户总览的昵称旁边有等级名称
+    await page.locator('.balance .level', { hasText: '成长值' }).waitFor();
+    await go('/user');
+    await page.locator('.nick .level').waitFor();
     await go('/distribution');
     await page.locator('.panel-title', { hasText: '分销中心' }).waitFor();
     await go('/articles?type=help');

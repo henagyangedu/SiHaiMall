@@ -164,6 +164,18 @@ class DriverRegistry
                         'desc'   => '调用 DeepSeek 的 OpenAI 兼容接口翻译商品文案。',
                         'fields' => self::llmFields('https://api.deepseek.com', '接口地址，DeepSeek 官方为 https://api.deepseek.com', '模型名称，以 DeepSeek 官方文档当前提供的为准'),
                     ],
+                    'claude' => [
+                        'name'   => 'Claude（Anthropic）',
+                        'desc'   => '调用 Anthropic 的 Messages 接口翻译。Claude 没有“强制输出 JSON”的开关，格式由提示词约束，不合格时系统会自动重试一次。',
+                        'fields' => self::llmFields('https://api.anthropic.com', '接口地址，Anthropic 官方为 https://api.anthropic.com（不要带 /v1）；若通过中转服务访问，改成中转地址', '模型名称，以 Anthropic 官方文档当前提供的为准，如 claude-sonnet-5-5') + [
+                            'max_tokens' => ['label' => '最大输出长度', 'type' => 'text', 'required' => false, 'default' => '8192', 'hint' => '单次回复最多多少 token。翻译长篇详情被截断时调大，上限以所选模型为准'],
+                        ],
+                    ],
+                    'qwen' => [
+                        'name'   => '通义千问（Qwen）',
+                        'desc'   => '调用阿里云百炼的 OpenAI 兼容接口翻译。',
+                        'fields' => self::llmFields('https://dashscope.aliyuncs.com/compatible-mode/v1', '接口地址。中国内地为 https://dashscope.aliyuncs.com/compatible-mode/v1，国际站为 https://dashscope-intl.aliyuncs.com/compatible-mode/v1（两边的 API Key 不通用）', '模型名称，以阿里云百炼文档当前提供的为准，如 qwen-plus'),
+                    ],
                 ],
             ],
         ];

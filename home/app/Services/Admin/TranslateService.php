@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
  */
 class TranslateService
 {
-    private const PROMPT_VERSION = 'v1';
+    private const PROMPT_VERSION = 'v2'; // 改了提示词就加一，让旧缓存失效
     private const HTML_FIELDS = ['description'];
     private const MAX_CHARS = 60000;
 
@@ -204,7 +204,8 @@ TXT;
                 throw new \UnexpectedValueException("模型没有返回字段「{$k}」的翻译");
             }
             $v = trim($v);
-            if (in_array($k, self::HTML_FIELDS, true) && $this->tagSequence($src) !== $this->tagSequence($v)) {
+            // 富文本（约定的字段名，或原文里带标签的任何字段）必须保持原文的标签结构
+            if ((in_array($k, self::HTML_FIELDS, true) || $src !== strip_tags($src)) && $this->tagSequence($src) !== $this->tagSequence($v)) {
                 throw new \UnexpectedValueException("字段「{$k}」的 HTML 结构与原文不一致");
             }
             $out[$k] = $v;

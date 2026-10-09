@@ -10,6 +10,7 @@ use App\Drivers\Contracts\TranslateDriver;
 use App\Drivers\Express\Kuaidi100Driver;
 use App\Drivers\Sms\GmSmsDriver;
 use App\Drivers\Storage\FlysystemStorageDriver;
+use App\Drivers\Translate\ClaudeDriver;
 use App\Drivers\Translate\OpenAiCompatibleDriver;
 use App\Models\DriverConfig;
 use App\Support\Exceptions\BusinessException;
@@ -80,7 +81,7 @@ class DriverManager
         return new FlysystemStorageDriver($driver, $config);
     }
 
-    /** 已启用的 AI 翻译驱动（openai / deepseek；第二期再加 claude、qwen） */
+    /** 已启用的 AI 翻译驱动（openai / deepseek / qwen 走 OpenAI 兼容接口，claude 走 Anthropic 的 Messages 接口） */
     public function translate(string $driver): TranslateDriver
     {
         $row = DriverConfig::enabled('translate', $driver);
@@ -93,7 +94,7 @@ class DriverManager
     {
         DriverRegistry::driver('translate', $driver); // 校验驱动编码
 
-        return new OpenAiCompatibleDriver($driver, $config);
+        return $driver === 'claude' ? new ClaudeDriver($config) : new OpenAiCompatibleDriver($driver, $config);
     }
 
     /** 已启用的短信驱动（有多个时取默认、排序靠前的） */

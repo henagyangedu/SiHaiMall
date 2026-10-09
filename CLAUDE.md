@@ -61,7 +61,8 @@
 - **物流查询**：只经 `Common\ExpressTrackService`（买家 `GET /api/orders/{订单号}/tracks`、后台 `GET /admin-api/order/ship/record/{发货记录ID}/track` 共用）。驱动类型 `express`，目前只有快递100（`Kuaidi100Driver`，实时查询接口，按次计费），后台“设置 → API 配置 → 物流查询”填 customer 和授权 key。结果缓存在发货记录上（`gm_shipping.track_status` 0 暂无 / 1 运输中 / 2 已签收 / 3 异常，`track_data` 存 `{queried_at, traces}`）：30 分钟内不重复查，已签收不再查，后台“刷新”同一包裹 5 分钟最多查一次，服务商出故障后 2 分钟内不重试。没启用、快递公司不支持（如“其它”）、服务商故障时都不报错，返回已有缓存并在 `message` 里说明。改物流单号会清掉缓存。快递公司编码在 `OrderShipService::EXPRESS`，新增快递公司要同时在驱动的 `COMPANY` 里登记对应编码。轨迹文字是快递公司的原文，不翻译。
 - **订单小票**：后台用浏览器打印，不对接云打印机。小票上印什么存在 `gm_config` 的 `receipt` 分组（抬头、页脚、纸宽 58 / 80 毫米、是否打印金额 / 收货信息 / 买家留言 / 商家备注），后台“设置 → 小票配置”维护并带实时预览。排版和打印都在 `admin-web/src/utils/receipt.js`：`receiptHtml(订单详情, 配置)` 生成完整的 HTML（所有内容都做了 HTML 转义），`printHtml` 把它放进隐藏的 iframe 调用浏览器打印。入口：订单列表的详情抽屉、发货管理的“打印小票”（权限点 `order:ship:print`）。读配置的接口对有打印权限的人也开放。
 - **驱动模式**：`DriverRegistry`（type→驱动→字段）、`DriverManager`、`DriverConfig`（`encrypted:array`）、`DriverConfigService`；后台用通用驱动配置页。
-- **后台权限**：`admin.auth` 令牌（sha256 哈希、滑动过期）；路由 `perm:` 中间件（逗号 = 任一）；敏感操作单独权限点；前端 `v-perm` 和 `hasPerm`。菜单和权限点在 `MenuSeeder`。
+- **后台权限**：`admin.auth` 令牌（sha256 哈希、滑动过期）；路由 `perm:` 中间件（逗号 = 任一）；敏感操作单独权限点；前端 `v-perm` 和 `hasPerm`。菜单和权限点在 `MenuSeeder`。`perm:super` 不是权限点，表示只有超级管理员能做（菜单规则的增删改）。**新增后台接口必须挂权限点，并且权限点要在 `MenuSeeder` 里登记**；`AdminRoutePermissionTest` 会检查：每个后台接口都有登录校验和权限点（只需登录的例外列在测试的 `LOGIN_ONLY` 里）、路由用到的权限点都登记过、登记的权限点都有接口在用。不再使用的权限点加到 `MenuSeeder::OBSOLETE`，下次同步时会从菜单和角色授权里删掉。
+- **买家接口的数据归属**：带 ID 或单号的买家接口（地址、购物车、订单、售后、支付单）一律按令牌对应的会员取数据，拿别人的 ID 一律当作“不存在”。`CrossMemberAccessTest` 用另一个会员的令牌把这些接口逐个打了一遍；**新增这类接口时在那里补一条**。
 - **C 端**：`api.token`（必须登录）/ `api.token:optional`；价格服务端算，客户端不传价；请求头 `X-Lang`、`X-Currency`、`X-Source`(h5/mp/app/pc)。
 - **运费**：只经 `ShippingFeeService::calc`（结算预览和下单共用）。商品 `shipping_template_id=0` 或模板“默认包邮”则免运费；同模板商品合并按件/重量/体积套首续费；地区匹配 省/州 > 国家 > `*`，无匹配规则则拒绝下单；模板金额为基准币种，汇总后折算下单币种。
 - 修改数据库结构前先向我确认。
@@ -109,7 +110,7 @@
 - `CORS_ALLOWED_ORIGINS`：前端和后端不同域名时，填前端地址（带协议），否则浏览器会拦掉请求。
 - `TRUSTED_PROXIES`：**站点前面有反向代理、负载均衡或 CDN 时必须填**（代理的 IP 或网段，逗号分隔；服务器不能被直接访问时可填 `*`）。不填的话后端看到的访客 IP 全是代理的 IP，限流、验证码的按 IP 限制、登录失败锁定会把所有访客算成同一个人，很快就全站报“操作过于频繁”。访客直连 Web 服务器时留空。配置在 `config/trustedproxy.php`，由框架自带的 TrustProxies 中间件读取。
 - `MAIL_*`：要发邮件（邮箱验证码、订单通知）就配真实的发信服务；默认的 `log` 只写日志不发信。
-- 应用时区在 `config/app.php` 里写死为 UTC（数据统计按 UTC 的自然日）。**上线前定好，上线后再改会让已有数据的时间整体偏移。**
+- `APP_TIMEZONE`：应用时区，默认 UTC（本机开发库目前就是 UTC）。数据库里的时间按它存，数据统计、每日签到的“一天”按它算。**上线前定好，上线后再改会让已有数据的时间整体偏移。**
 
 命令：
 - `composer install --no-dev`、`php artisan migrate --force`、首次部署 `php artisan db:seed --force`（创建超级管理员，密码只显示一次）、之后每次有新菜单或权限点时 `php artisan db:seed --class=MenuSeeder --force`。

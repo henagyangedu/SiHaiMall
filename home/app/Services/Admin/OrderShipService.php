@@ -5,6 +5,7 @@ namespace App\Services\Admin;
 use App\Models\Admin;
 use App\Models\Order;
 use App\Models\Shipping;
+use App\Services\Common\NotifyService;
 use App\Services\Common\OrderStatusService;
 use App\Support\Exceptions\BusinessException;
 use App\Support\OrderStatus;
@@ -19,7 +20,7 @@ class OrderShipService
         'JTEXPRESS' => '极兔速递', 'EMS' => '中国邮政 EMS', 'DHL' => 'DHL', 'FEDEX' => 'FedEx', 'UPS' => 'UPS', 'USPS' => 'USPS', 'OTHER' => '其它',
     ];
 
-    public function __construct(private OrderStatusService $status) {}
+    public function __construct(private OrderStatusService $status, private NotifyService $notify) {}
 
     public function expressOptions(): array
     {
@@ -51,6 +52,9 @@ class OrderShipService
                 'item_ids' => implode(',', $pick), 'shipped_at' => now(), 'created_at' => now(),
             ]);
             DB::table('order_item')->whereIn('id', $pick)->update(['ship_status' => 1]);
+            $this->notify->send('order_shipped', (int) $o->member_id, [
+                'order_no' => $o->order_no, 'express_name' => $name, 'express_no' => trim((string) $d['express_no']),
+            ]);
 
             if (count($pick) === count($pending)) {
                 $this->status->transit($o, [OrderStatus::TO_SHIP], OrderStatus::SHIPPED, OrderStatus::OP_ADMIN, (int) $op->id, "已发货：{$name} {$d['express_no']}", ['shipped_at' => now()]);

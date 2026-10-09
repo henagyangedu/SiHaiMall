@@ -39,6 +39,7 @@ class OrderRefundService
         private DriverManager $drivers,
         private OrderPointsService $points,
         private DistributionService $distribution,
+        private NotifyService $notify,
     ) {}
 
     // ------------------------------------------------------------------ 可退信息
@@ -185,6 +186,9 @@ class OrderRefundService
             [$refund, $order] = $this->lock($refundId);
             $this->move($refund, [OrderRefund::PENDING], OrderRefund::REJECTED, ['reject_reason' => mb_substr(trim($reason), 0, 255), 'finished_at' => now()]);
             $this->restoreOrder($order, OrderStatus::OP_ADMIN, $adminId, "拒绝售后 {$refund->refund_no}：{$reason}");
+            $this->notify->send('refund_rejected', (int) $refund->member_id, [
+                'refund_no' => $refund->refund_no, 'order_no' => $order->order_no, 'reject_reason' => trim($reason),
+            ]);
         });
     }
 
@@ -279,6 +283,10 @@ class OrderRefundService
 
             // 分销佣金按最新的已退金额重算（商品全部退完则作废）
             $this->distribution->onRefund($order);
+            $this->notify->send('refund_done', (int) $refund->member_id, [
+                'refund_no' => $refund->refund_no, 'order_no' => $order->order_no,
+                'refund_amount' => (string) $refund->refund_amount, 'currency' => $refund->currency,
+            ]);
 
             $this->restoreOrder($order, OrderStatus::OP_ADMIN, $adminId, "售后 {$refund->refund_no} 退款完成：{$refund->refund_amount} {$refund->currency}，{$remark}");
         });

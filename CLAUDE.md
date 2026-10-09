@@ -40,6 +40,7 @@
 - **数据统计**：只读，全部在 `AdminStatsService`。金额折基准币种（订单用 `base_pay_amount`，退款和商品金额按订单固化汇率折算）；支付口径按 `paid_at`、含之后退款的订单，退款金额按完成时间单独统计；日期按 `config(app.timezone)`（目前 UTC）的自然日。带表别名的原生 SQL 要自己拼表前缀（`DB::getTablePrefix()`），查询构造器不会替原生片段加前缀。趋势图用 `components/TrendChart.vue`（单序列折线，一张图一个指标，不做双轴）。
 - **协议与政策**：内容存 `gm_config` 的 `protocol` 分组（多语言富文本），后台“设置 → 协议管理”维护，C 端 `GET /api/protocols`（只返回已填写的）和 `GET /api/protocols/{key}`，当前语言没填时回退默认语言。注意 `gm_config.value` 是 TEXT：一个协议所有语言合计编码后不能超过 60000 字节（`ConfigService::save` 会拦截），语言多了或协议很长时需要把该列改成 MEDIUMTEXT。
 - **内容**：文章、公告、帮助中心共用 `gm_article`（`type` 1/2/3）和 `AdminArticleService`，后台三个菜单页共用 `views/content/ArticlePage.vue`；文章和帮助有一级分类（`gm_article_category`，按 type 各自一套），公告不分类。对外可见 = `status=1` 且 `published_at` 为空或已到（定时发布）。广告位 `gm_ad_position` 按编码取（预置 `home_banner`、`home_middle`、`category_top`，不能删、不能改编码），广告 `gm_ad` 的图片和标题在 `gm_ad_lang` 按语言存，缺当前语言的图时用默认语言的；跳转类型 none/goods/category/article/url。C 端接口都无需登录：`/api/articles`（`type=article|notice|help`）、`/api/articles/{id}`（浏览量 +1）、`/api/article-categories`、`/api/help`、`/api/ads?position=编码,编码`。
+- **消息通知**：业务节点只调 `NotifyService::send(场景, 会员ID, 变量)`，它在事务提交后、响应返回后（`defer`）才发信，失败只写日志。场景、变量和内置中英文模板登记在 `AppSupportMessageScenes`；是否发送和自定义文案在后台“设置 → 消息模板”（存 `gm_message_template` + `_lang`，目前只有 email 渠道，默认全部关闭）。取模板顺序：会员语言 → 默认语言 → 内置模板。模板变量写 `{变量名}`，未知变量原样保留，变量值不会被二次替换。新增场景：在 MessageScenes 登记 + 在业务节点调用 send。
 - **驱动模式**：`DriverRegistry`（type→驱动→字段）、`DriverManager`、`DriverConfig`（`encrypted:array`）、`DriverConfigService`；后台用通用驱动配置页。
 - **后台权限**：`admin.auth` 令牌（sha256 哈希、滑动过期）；路由 `perm:` 中间件（逗号 = 任一）；敏感操作单独权限点；前端 `v-perm` 和 `hasPerm`。菜单和权限点在 `MenuSeeder`。
 - **C 端**：`api.token`（必须登录）/ `api.token:optional`；价格服务端算，客户端不传价；请求头 `X-Lang`、`X-Currency`、`X-Source`(h5/mp/app/pc)。
@@ -51,7 +52,7 @@
 - 模板里不要在数据未填充时读取 `settings.x[code].y` 这类深层路径（会抛错并导致切换页面后内容区残留）。
 
 ## 已完成
-管理员/角色/菜单权限、系统设置、存储驱动、商品（分类/品牌/规格/SKU/分币种定价）、AI 翻译（GPT、DeepSeek，开关式启用）、会员（等级/积分/余额）、订单核心与后台管理（发货、超时关闭、自动收货）、支付框架（Stripe、PayPal，含回调/补偿/流水页面）、C 端 API v1（注册登录、商品、地址、购物车、结算、下单、订单、支付发起/确认）、运费模板（后台管理页、商品绑定、结算预览与下单计费）、区域定价（销售区域管理、商品区域价、按收货地址取价）、售后与退款（C 端申请/撤销/退货物流接口、后台售后订单页）、下单积分抵扣、订单导出 CSV、短信与邮箱验证码、分销（邀请关系、分销员审核、佣金、结算、提现）、数据中心（后台首页与数据概览页）、协议管理（用户协议、隐私政策等 5 种，多语言）、内容（文章、公告、帮助中心、轮播图与广告位）。
+管理员/角色/菜单权限、系统设置、存储驱动、商品（分类/品牌/规格/SKU/分币种定价）、AI 翻译（GPT、DeepSeek，开关式启用）、会员（等级/积分/余额）、订单核心与后台管理（发货、超时关闭、自动收货）、支付框架（Stripe、PayPal，含回调/补偿/流水页面）、C 端 API v1（注册登录、商品、地址、购物车、结算、下单、订单、支付发起/确认）、运费模板（后台管理页、商品绑定、结算预览与下单计费）、区域定价（销售区域管理、商品区域价、按收货地址取价）、售后与退款（C 端申请/撤销/退货物流接口、后台售后订单页）、下单积分抵扣、订单导出 CSV、短信与邮箱验证码、分销（邀请关系、分销员审核、佣金、结算、提现）、数据中心（后台首页与数据概览页）、协议管理（用户协议、隐私政策等 5 种，多语言）、内容（文章、公告、帮助中心、轮播图与广告位）、消息模板与邮件通知（支付成功、发货、退款完成、售后被拒、提现打款）。
 
 ## 待办（建议顺序）
 1. ~~运费模板~~（已完成，见“已完成”）。

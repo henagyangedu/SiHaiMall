@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\DB;
  */
 class DistributionService
 {
-    public function __construct(private ConfigService $config) {}
+    public function __construct(private ConfigService $config, private NotifyService $notify) {}
 
     /** @return array{enabled:bool,level:int,rate_1:string,rate_2:string,min_withdraw:string} */
     public function settings(): array
@@ -340,6 +340,7 @@ class DistributionService
                 'withdrawn_amount' => bcadd((string) $d->withdrawn_amount, (string) $w->amount, 2),
             ]);
             $w->update(['status' => DistributionWithdraw::PAID, 'pay_remark' => mb_substr(trim($payRemark), 0, 255), 'admin_id' => $adminId, 'paid_at' => now()]);
+            $this->notify->send('withdraw_paid', (int) $w->member_id, ['withdraw_no' => $w->withdraw_no, 'amount' => (string) $w->amount]);
         });
     }
 

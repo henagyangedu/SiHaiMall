@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\MemberLevelController;
 use App\Http\Controllers\Admin\MemberPointController;
 use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\MessageTemplateController;
 use App\Http\Controllers\Admin\OptionController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\OrderNotifyController;
@@ -109,6 +110,11 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::put('config/protocol', [ConfigController::class, 'save'])->defaults('group', 'protocol')->middleware('perm:setting:protocol:edit');
     Route::get('config/distribution', [ConfigController::class, 'show'])->defaults('group', 'distribution')->middleware('perm:distribution:setting:view');
     Route::put('config/distribution', [ConfigController::class, 'save'])->defaults('group', 'distribution')->middleware('perm:distribution:setting:edit');
+
+    // 消息模板（邮件通知）
+    Route::get('message/list', [MessageTemplateController::class, 'index'])->middleware('perm:setting:message:view');
+    Route::put('message/{scene}', [MessageTemplateController::class, 'save'])->where('scene', '[a-z_]+')->middleware('perm:setting:message:edit');
+    Route::post('message/{scene}/test', [MessageTemplateController::class, 'test'])->where('scene', '[a-z_]+')->middleware(['throttle:20,1', 'perm:setting:message:test']);
 
     // 接口配置：短信
     Route::get('driver/sms', [DriverController::class, 'index'])->defaults('type', 'sms')->middleware('perm:setting:api_sms:view');

@@ -18,6 +18,7 @@ class OrderPaidService
         private OrderStockService $stock,
         private ConfigService $config,
         private DistributionService $distribution,
+        private NotifyService $notify,
     ) {}
 
     /** @return bool true=本次完成了支付状态变更；false=订单已处理过 */
@@ -55,6 +56,9 @@ class OrderPaidService
 
             // 分销佣金：支付成功即生成“待结算”佣金
             $this->distribution->onOrderPaid($order);
+            $this->notify->send('order_paid', (int) $order->member_id, [
+                'order_no' => $order->order_no, 'pay_amount' => (string) $order->pay_amount, 'currency' => $order->currency,
+            ]);
 
             return true;
         });

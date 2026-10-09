@@ -115,7 +115,7 @@ onMounted(async () => {
 
     <el-dialog v-model="dialog" :title="isEdit ? '编辑品牌' : '新增品牌'" width="560px" destroy-on-close>
       <el-form :model="form" label-width="90px">
-        <el-form-item label="品牌名称" required><LangInput v-model="form.name" :languages="languages" :maxlength="100" /></el-form-item>
+        <el-form-item label="品牌名称" required><LangInput v-model="form.name" :languages="languages" :maxlength="100" ai field-key="brand_name" /></el-form-item>
         <el-form-item label="品牌 Logo"><ImageUpload v-model="form.logo" scene="goods" :width="120" :height="80" tip="可选，建议透明背景 PNG" /></el-form-item>
         <el-form-item label="排序"><el-input-number v-model="form.sort" :min="0" :max="9999" /><span style="margin-left: 8px; color: #909399">越小越靠前</span></el-form-item>
         <el-form-item label="状态"><el-switch v-model="form.status" :active-value="1" :inactive-value="0" active-text="启用" inactive-text="禁用" /></el-form-item>

@@ -102,7 +102,7 @@ onMounted(load)
         <el-form-item label="上级分类">
           <el-tree-select v-model="form.pid" :data="parentOptions" node-key="id" check-strictly default-expand-all :props="{ label: 'name_text', children: 'children' }" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="分类名称" required><LangInput v-model="form.name" :languages="languages" :maxlength="100" /></el-form-item>
+        <el-form-item label="分类名称" required><LangInput v-model="form.name" :languages="languages" :maxlength="100" ai field-key="category_name" /></el-form-item>
         <el-form-item label="分类图片"><ImageUpload v-model="form.image" scene="goods" :width="100" :height="100" tip="可选，建议正方形图片" /></el-form-item>
         <el-form-item label="排序"><el-input-number v-model="form.sort" :min="0" :max="9999" /></el-form-item>
         <el-form-item label="状态"><el-switch v-model="form.status" :active-value="1" :inactive-value="0" active-text="启用" inactive-text="禁用" /></el-form-item>

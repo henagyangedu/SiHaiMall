@@ -6,6 +6,12 @@ export default {
     // 启动配置和登录态；各页面不等它完成也能渲染，拿到后界面自动更新
     bootstrap()
   },
+  // 全局错误钩子。接口返回业务错误时，请求层已经弹过提示并以 {code, msg} 拒绝，
+  // 页面里不必每处都 catch；这里把它们接住，不当成程序错误，其余的照常输出
+  onError(err) {
+    if (err && typeof err === 'object' && 'code' in err && 'msg' in err) return
+    console.error(err)
+  },
 }
 </script>
 

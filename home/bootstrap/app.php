@@ -32,6 +32,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.token'  => \App\Http\Middleware\ApiToken::class,
             'perm'       => \App\Http\Middleware\AdminPerm::class,
             'oplog'      => \App\Http\Middleware\OperationLog::class,
+            // 按“接口 + IP”各自计数，见类里的说明
+            'throttle'   => \App\Http\Middleware\ThrottlePerRoute::class,
         ]);
         $middleware->appendToGroup('api', \App\Http\Middleware\SetLocale::class);
         // 放在 SetLocale 之后：它的后半段（处理响应）会最后执行，此时语言已经确定

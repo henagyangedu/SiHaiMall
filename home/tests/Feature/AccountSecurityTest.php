@@ -138,6 +138,30 @@ class AccountSecurityTest extends FeatureTestCase
             ->assertOk()->assertJsonPath('code', 429)->assertJsonPath('msg', '操作过于频繁，请稍后再试');
         $limited = $this->api('PUT', '/member/password', ['old_password' => 'guess', 'password' => 'Another#123'], $token, ['X-Lang' => 'en']);
         $limited->assertJsonPath('code', 429)->assertJsonPath('msg', 'Too many attempts. Please try again later.');
+
+        // 每个接口各自计数：改密码被限流不影响同一个 IP 上的登录、绑定等其他接口
+        $this->api('POST', '/auth/login', ['account' => 'nobody@example.com', 'password' => 'whatever'])->assertJsonPath('msg', '账号或密码错误');
+        $this->assertNotSame(429, $this->api('POST', '/member/bind', ['type' => 'phone', 'mobile' => '13800000009'], $token)->json('code'));
+        // 另一个 IP 上的人不受影响
+        $this->withServerVariables(['REMOTE_ADDR' => '10.9.8.7'])
+            ->api('PUT', '/member/password', ['old_password' => 'guess', 'password' => 'Another#123'], $token)->assertJsonPath('msg', '原密码不正确');
+    }
+
+    public function test_visitor_ip_comes_from_the_proxy_header_only_when_the_proxy_is_trusted(): void
+    {
+        [, $token] = $this->makeMember();
+        $hit = fn (string $forwardedFor) => $this->api('PUT', '/member/password', ['old_password' => 'guess', 'password' => 'Another#123'], $token, ['X-Forwarded-For' => $forwardedFor])->json('code');
+
+        // 没有配置可信代理：请求头里自称的 IP 不算数，换着花样写也还是同一个计数器（防伪造绕过）
+        for ($i = 0; $i < 10; $i++) {
+            $this->assertSame(1, $hit("203.0.113.{$i}"));
+        }
+        $this->assertSame(429, $hit('203.0.113.99'));
+
+        // 配置了可信代理（测试请求来自 127.0.0.1）：按代理转交的访客 IP 各自计数
+        config(['trustedproxy.proxies' => ['127.0.0.1']]);
+        $this->assertSame(1, $hit('198.51.100.1'));
+        $this->assertSame(1, $hit('198.51.100.2'));
     }
 
     public function test_binding_requires_login_and_messages_follow_the_buyers_language(): void

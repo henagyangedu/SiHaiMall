@@ -12,7 +12,7 @@ usePageTitle('order.list')
 // 页签与后端的 tab 参数一致
 const TABS = [
   { key: 'all', label: 'order.tabAll' }, { key: 'unpaid', label: 'order.tabUnpaid' }, { key: 'to_ship', label: 'order.tabToShip' },
-  { key: 'shipped', label: 'order.tabShipped' }, { key: 'finished', label: 'order.tabFinished' },
+  { key: 'shipped', label: 'order.tabShipped' }, { key: 'to_review', label: 'order.tabToReview' }, { key: 'finished', label: 'order.tabFinished' },
 ]
 const tab = ref('all')
 const list = ref([])

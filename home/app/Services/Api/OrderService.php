@@ -161,6 +161,11 @@ class OrderService
         $q = Order::query()->where('member_id', $memberId)->orderByDesc('id');
         if (isset(self::TABS[$tab])) {
             $q->whereIn('status', self::TABS[$tab]);
+        } elseif ($tab === 'to_review') {
+            // 待评价：已完成，且还有没评价、也没有全部退款的商品行（和订单详情里 can_review 的判断一致）
+            $q->where('status', OrderStatus::FINISHED)->whereExists(fn ($w) => $w->selectRaw('1')->from('order_item as i')
+                ->whereColumn('i.order_id', 'order.id')->whereColumn('i.refund_qty', '<', 'i.qty')
+                ->whereNotExists(fn ($r) => $r->selectRaw('1')->from('goods_review as r')->whereColumn('r.order_item_id', 'i.id')));
         }
         $p = $q->paginate(min(max($size, 1), 50), ['*'], 'page', max($page, 1));
 

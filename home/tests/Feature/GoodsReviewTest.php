@@ -91,6 +91,34 @@ class GoodsReviewTest extends FeatureTestCase
         $this->assertSame(1, GoodsReview::query()->count());
     }
 
+    public function test_order_list_has_a_to_review_tab(): void
+    {
+        $tab = fn (?string $token = null) => array_column($this->api('GET', '/orders?tab=to_review', [], $token ?? $this->token)->json('data.list'), 'order_no');
+
+        // 没完成的订单不算
+        $this->pay($this->placeOrder($this->token, $this->sku, 1, $this->addressId));
+        $this->assertSame([], $tab());
+
+        [$a, $itemA] = $this->finishedOrder();
+        [$b, $itemB] = $this->finishedOrder();
+        $this->assertSame([$b->order_no, $a->order_no], $tab());
+
+        // 评过的不再出现；别人看不到我的
+        $this->review($a, $itemA)->assertJsonPath('code', 0);
+        $this->assertSame([$b->order_no], $tab());
+        [, $otherToken] = $this->makeMember();
+        $this->assertSame([], $tab($otherToken));
+
+        // 完成后全部退款的商品不能评，这张订单也就不在待评价里（它已经不是“已完成”了）
+        $r = $this->api('POST', "/orders/{$b->order_no}/refunds", ['order_item_id' => $itemB, 'qty' => 1, 'type' => 1, 'reason' => '测试'], $this->token);
+        $id = (int) OrderRefund::query()->where('refund_no', $r->json('data.refund_no'))->value('id');
+        app(OrderRefundService::class)->approve($id, 1, null);
+        app(OrderRefundService::class)->pay($id, 1, true);
+        $this->assertSame([], $tab());
+        // “已完成”页签不受影响
+        $this->assertSame([$a->order_no], array_column($this->api('GET', '/orders?tab=finished', [], $this->token)->json('data.list'), 'order_no'));
+    }
+
     public function test_fully_refunded_items_and_other_peoples_orders_cannot_be_reviewed(): void
     {
         [$order, $itemId] = $this->finishedOrder();

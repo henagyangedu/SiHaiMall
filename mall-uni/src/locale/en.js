@@ -26,7 +26,7 @@ export default {
     needAddress: 'Please choose a shipping address', free: 'Free',
   },
   order: {
-    list: 'My orders', detail: 'Order details', tabAll: 'All', tabUnpaid: 'Unpaid', tabToShip: 'Processing', tabShipped: 'Shipped', tabFinished: 'Completed',
+    list: 'My orders', detail: 'Order details', tabAll: 'All', tabUnpaid: 'Unpaid', tabToShip: 'Processing', tabShipped: 'Shipped', tabToReview: 'To review', tabFinished: 'Completed',
     no: 'Order no.', createdAt: 'Placed on', payNow: 'Pay now', cancel: 'Cancel order', receive: 'Confirm receipt', cancelConfirm: 'Cancel this order?',
     receiveConfirm: 'Have you received your items?', cancelled: 'Order cancelled', received: 'Receipt confirmed', count: '{n} item(s)', payAmount: 'Paid',
     address: 'Shipping address', express: 'Tracking', viewTrack: 'Track package', trackFailed: 'Could not load tracking. Please try again later.', payChannel: 'Choose a payment method', noChannel: 'No payment method is available right now. Please contact support.', expireAt: 'Please pay before {time}',

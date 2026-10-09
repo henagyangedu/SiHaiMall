@@ -26,7 +26,7 @@ export default {
     needAddress: '请先选择收货地址', free: '免运费', earnPoints: '订单完成后预计获得 {n} 积分',
   },
   order: {
-    list: '我的订单', detail: '订单详情', tabAll: '全部', tabUnpaid: '待支付', tabToShip: '待发货', tabShipped: '待收货', tabFinished: '已完成',
+    list: '我的订单', detail: '订单详情', tabAll: '全部', tabUnpaid: '待支付', tabToShip: '待发货', tabShipped: '待收货', tabToReview: '待评价', tabFinished: '已完成',
     no: '订单号', createdAt: '下单时间', payNow: '去支付', cancel: '取消订单', receive: '确认收货', cancelConfirm: '确定取消这个订单吗？',
     receiveConfirm: '确认已经收到商品？', cancelled: '订单已取消', received: '已确认收货', count: '共 {n} 件', payAmount: '实付',
     address: '收货信息', express: '物流信息', viewTrack: '查看物流', trackFailed: '物流信息加载失败，请稍后再试', payChannel: '选择支付方式', noChannel: '暂时没有可用的支付方式，请联系客服', expireAt: '请在 {time} 前支付',

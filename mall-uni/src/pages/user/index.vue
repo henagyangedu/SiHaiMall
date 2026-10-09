@@ -14,7 +14,7 @@ usePageTitle('user.title')
 
 const ORDER_TABS = [
   { key: 'unpaid', label: 'order.tabUnpaid' }, { key: 'to_ship', label: 'order.tabToShip' },
-  { key: 'shipped', label: 'order.tabShipped' }, { key: 'finished', label: 'order.tabFinished' },
+  { key: 'shipped', label: 'order.tabShipped' }, { key: 'to_review', label: 'order.tabToReview' },
 ]
 const langIndex = computed(() => Math.max(0, state.config.languages.findIndex((l) => l.code === state.lang)))
 const curIndex = computed(() => Math.max(0, state.config.currencies.findIndex((c) => c.code === state.currency)))

@@ -47,7 +47,12 @@ module.exports = async function reviewsFlow(browser) {
   try {
     await flow.step('PC：已完成订单的商品行有“评价”按钮，写一条 4 星、带图的匿名评价', pc, async () => {
       await pcLogin(pc);
-      await pc.goto(`${config.pc}/#/orders/${orderA}`);
+      // 订单列表的“待评价”页签里有这两张刚完成的订单，从那里进详情
+      await pc.goto(`${config.pc}/#/orders`);
+      await pc.getByRole('tab', { name: '待评价' }).click();
+      await pc.locator('.order', { hasText: orderB }).waitFor();
+      await pc.locator('.order', { hasText: orderA }).getByRole('button', { name: '查看详情' }).click();
+      await pc.waitForURL(new RegExp(orderA));
       await pc.locator('.item').getByRole('button', { name: '评价' }).click();
       const d = el.dialog(pc);
       await d.locator('.el-rate__item').nth(3).click();
@@ -129,6 +134,11 @@ module.exports = async function reviewsFlow(browser) {
       // 买家自己的订单里仍然是“已评价”，不能重新评
       await pc.goto(`${config.pc}/#/orders/${orderB}`);
       await pc.locator('.item .rv', { hasText: '已评价' }).waitFor();
+      // 两张都评过了，不再出现在“待评价”里
+      await pc.goto(`${config.pc}/#/orders?tab=to_review`);
+      await pc.getByRole('tab', { name: '待评价', selected: true }).waitFor();
+      await pc.waitForLoadState('networkidle').catch(() => {});
+      if (await pc.locator('.order', { hasText: orderA }).count() || await pc.locator('.order', { hasText: orderB }).count()) throw new Error('评过的订单还在待评价里');
     });
   } finally {
     await pc.context().close();

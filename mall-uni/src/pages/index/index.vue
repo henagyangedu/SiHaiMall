@@ -4,7 +4,7 @@ import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 import { state } from '@/store'
 import { getAds, getArticles, getGoodsList } from '@/api'
-import { usePageTitle } from '@/utils/page'
+import { usePageTitle, nav } from '@/utils/page'
 import GoodsGrid from '@/components/GoodsGrid.vue'
 
 const { t } = useI18n()
@@ -38,6 +38,7 @@ const refresh = () => Promise.all([loadTop(), loadGoods(true)])
 // 轮播图点击：按后台配置的跳转类型处理
 function onBanner(b) {
   if (b.link_type === 'goods') uni.navigateTo({ url: `/pages/goods/detail?id=${b.link_value}` })
+  else if (b.link_type === 'article') uni.navigateTo({ url: `/pages/article/detail?id=${b.link_value}` })
   else if (b.link_type === 'category') { state.pendingCategoryId = Number(b.link_value); uni.switchTab({ url: '/pages/category/index' }) }
   else if (b.link_type === 'url') {
     // #ifdef H5
@@ -65,7 +66,7 @@ watch(() => [state.lang, state.currency], refresh)
       </swiper-item>
     </swiper>
 
-    <view v-if="notice" class="notice">
+    <view v-if="notice" class="notice" @click="nav('/pages/article/list?type=notice')">
       <text class="tag">{{ t('home.notice') }}</text>
       <text class="ellipsis" style="flex: 1">{{ notice.title }}</text>
     </view>

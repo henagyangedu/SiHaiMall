@@ -65,7 +65,7 @@ onReachBottom(() => { if (list.value.length < page.total) load() })
     </view>
 
     <view v-for="o in list" :key="o.order_no" class="card" @click="open(o)">
-      <view class="head"><text class="sub">{{ o.order_no }}</text><text class="status">{{ o.status_text }}</text></view>
+      <view class="head"><text class="sub">{{ o.order_no }}</text><text class="status">{{ t(`orderStatus.${o.status}`) }}</text></view>
       <view v-for="(i, k) in o.items" :key="k" class="item">
         <image :src="i.image" mode="aspectFill" class="thumb" />
         <view class="body">

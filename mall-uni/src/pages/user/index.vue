@@ -65,7 +65,15 @@ onShow(async () => {
     </view>
 
     <view class="card list">
+      <view class="cell" @click="needLogin(() => nav('/pages/refund/list'))"><text>{{ t('userMenu.refunds') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="needLogin(() => nav('/pages/address/list'))"><text>{{ t('user.address') }}</text><text class="sub">›</text></view>
+      <view class="cell" @click="needLogin(() => nav('/pages/distribution/index'))"><text>{{ t('userMenu.distribution') }}</text><text class="sub">›</text></view>
+    </view>
+
+    <view class="card list">
+      <view class="cell" @click="nav('/pages/article/list?type=notice')"><text>{{ t('userMenu.notices') }}</text><text class="sub">›</text></view>
+      <view class="cell" @click="nav('/pages/article/list?type=help')"><text>{{ t('userMenu.help') }}</text><text class="sub">›</text></view>
+      <view class="cell" @click="nav('/pages/protocol/index')"><text>{{ t('userMenu.protocols') }}</text><text class="sub">›</text></view>
       <picker v-if="state.config.languages.length" :range="state.config.languages" range-key="name" :value="langIndex" @change="onLang">
         <view class="cell"><text>{{ t('user.language') }}</text><text class="sub">{{ state.config.languages[langIndex]?.name }} ›</text></view>
       </picker>

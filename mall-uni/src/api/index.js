@@ -47,3 +47,27 @@ export const receiveOrder = (orderNo) => post(`/orders/${orderNo}/receive`)
 export const getPayChannels = (orderNo) => get(`/orders/${orderNo}/pay/channels`)
 export const startPay = (orderNo, data) => post(`/orders/${orderNo}/pay`, data)
 export const confirmPay = (tradeNo) => get(`/pay/${tradeNo}/confirm`)
+
+// ---- 短信登录、找回密码
+export const loginBySms = (data) => post('/auth/login-sms', data, { auth: false })
+export const resetPasswordBySms = (data) => post('/auth/reset-password', data, { auth: false })
+export const resetPasswordByEmail = (data) => post('/auth/reset-password-email', data, { auth: false })
+
+// ---- 售后
+export const getRefundable = (orderNo) => get(`/orders/${orderNo}/refundable`)
+export const applyRefund = (orderNo, data) => post(`/orders/${orderNo}/refunds`, data)
+export const getRefunds = (params) => get('/refunds', params)
+export const getRefund = (refundNo) => get(`/refunds/${refundNo}`)
+export const cancelRefund = (refundNo) => post(`/refunds/${refundNo}/cancel`)
+export const submitRefundReturn = (refundNo, data) => post(`/refunds/${refundNo}/return`, data)
+
+// ---- 分销中心
+export const getDistSummary = () => get('/distribution/summary')
+export const applyDistributor = (data) => post('/distribution/apply', data)
+export const getCommissions = (params) => get('/distribution/commissions', params)
+export const getTeam = (params) => get('/distribution/team', params)
+export const getWithdraws = (params) => get('/distribution/withdraws', params)
+export const applyWithdraw = (data) => post('/distribution/withdraws', data)
+
+// ---- 帮助中心
+export const getHelp = () => get('/help', {}, { auth: false })

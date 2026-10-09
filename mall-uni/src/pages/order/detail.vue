@@ -4,7 +4,7 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 import { getOrder, cancelOrder, receiveOrder, getPayChannels, startPay, confirmPay } from '@/api'
 import { money } from '@/utils/app'
-import { usePageTitle, confirm, toast } from '@/utils/page'
+import { usePageTitle, confirm, toast, nav } from '@/utils/page'
 
 const { t } = useI18n()
 usePageTitle('order.detail')
@@ -76,7 +76,7 @@ onShow(async () => {
 <template>
   <view v-if="order" class="page">
     <view class="status">
-      <view class="st">{{ order.status_text }}</view>
+      <view class="st">{{ t(`orderStatus.${order.status}`) }}</view>
       <view v-if="order.can_pay && order.expire_at" class="tip">{{ t('order.expireAt', { time: order.expire_at }) }}</view>
       <view v-if="order.cancel_reason" class="tip">{{ order.cancel_reason }}</view>
     </view>
@@ -114,7 +114,8 @@ onShow(async () => {
       <view v-if="order.remark" class="kv"><text class="sub">{{ t('order.remark') }}</text><text>{{ order.remark }}</text></view>
     </view>
 
-    <view v-if="order.can_pay || order.can_cancel || order.can_receive" class="bar safe-bottom">
+    <view v-if="order.can_pay || order.can_cancel || order.can_receive || order.can_refund" class="bar safe-bottom">
+      <view v-if="order.can_refund" class="btn small gray" @click="nav(`/pages/refund/apply?order_no=${order.order_no}&currency=${order.currency}`)">{{ t('refund.apply') }}</view>
       <view v-if="order.can_cancel" class="btn small gray" @click="onCancel">{{ t('order.cancel') }}</view>
       <view v-if="order.can_pay" class="btn small" @click="onPay">{{ t('order.payNow') }}</view>
       <view v-if="order.can_receive" class="btn small" @click="onReceive">{{ t('order.receive') }}</view>

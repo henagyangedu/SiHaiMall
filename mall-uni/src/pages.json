@@ -10,7 +10,17 @@
     { "path": "pages/order/list", "style": { "navigationBarTitleText": "", "enablePullDownRefresh": true } },
     { "path": "pages/order/detail", "style": { "navigationBarTitleText": "" } },
     { "path": "pages/address/list", "style": { "navigationBarTitleText": "" } },
-    { "path": "pages/address/edit", "style": { "navigationBarTitleText": "" } }
+    { "path": "pages/address/edit", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/login/reset", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/refund/apply", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/refund/list", "style": { "navigationBarTitleText": "", "enablePullDownRefresh": true } },
+    { "path": "pages/refund/detail", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/distribution/index", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/distribution/records", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/distribution/withdraw", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/article/list", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/article/detail", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/protocol/index", "style": { "navigationBarTitleText": "" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

@@ -59,6 +59,8 @@ Route::middleware('api.token')->group(function () {
     Route::put('member/profile', [AuthController::class, 'updateProfile']);
     Route::get('member/points', [PointController::class, 'index']);
     Route::put('member/password', [AuthController::class, 'password'])->middleware('throttle:10,1');
+    // 绑定邮箱或手机号（验证码用 auth/email-code、auth/sms-code 以 register 用途获取）
+    Route::post('member/bind', [AuthController::class, 'bind'])->middleware('throttle:10,1');
 
     // 买家上传图片（售后凭证、头像），另有每人每天的张数上限
     Route::post('upload/image', [UploadController::class, 'image'])->middleware('throttle:30,1');

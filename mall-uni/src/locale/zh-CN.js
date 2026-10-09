@@ -79,6 +79,11 @@ export default {
     title: '个人资料', avatar: '头像', nickname: '昵称', gender: '性别', gender0: '保密', gender1: '男', gender2: '女', birthday: '生日', notSet: '未设置',
     account: '账号', phone: '手机号', email: '邮箱', needNickname: '请填写昵称',
   },
+  security: {
+    title: '账号与安全', tip: '绑定邮箱或手机号并设置密码后，就可以在网页上用它登录。', password: '登录密码', pwdSet: '已设置', pwdUnset: '未设置',
+    set: '设置', change: '修改', bind: '绑定', unbound: '未绑定', oldPwd: '原密码', againPwd: '再输入一次新密码', needOld: '请输入原密码',
+    pwdMismatch: '两次输入的密码不一致', pwdSaved: '密码已保存', emailPh: '邮箱地址', needEmail: '请输入正确的邮箱', needPhone: '请输入正确的手机号', bound: '绑定成功',
+  },
   points: { title: '我的积分', balance: '当前积分', after: '余 {n}', other: '其他' },
   pointType: { 1: '注册奖励', 2: '签到', 3: '消费获得', 4: '下单抵扣', 5: '系统调整', 6: '退款扣回' },
   userMenu: { articles: '资讯', points: '我的积分', refunds: '我的售后', distribution: '分销中心', help: '帮助中心', notices: '公告', protocols: '协议与政策' },

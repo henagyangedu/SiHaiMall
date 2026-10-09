@@ -10,6 +10,7 @@ const MENU = [
   { name: 'points', label: 'userMenu.points', match: ['points'] },
   { name: 'distribution', label: 'userMenu.distribution', match: ['distribution'] },
   { name: 'profile', label: 'profile.title', match: ['profile'] },
+  { name: 'security', label: 'security.title', match: ['security'] },
 ]
 </script>
 

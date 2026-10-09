@@ -4,7 +4,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 import { state } from '@/store'
 import { getProfile, updateProfile, uploadImage } from '@/api'
-import { usePageTitle, toast } from '@/utils/page'
+import { usePageTitle, toast, nav } from '@/utils/page'
 
 const { t } = useI18n()
 usePageTitle('profile.title')
@@ -91,6 +91,7 @@ onLoad(async () => {
       <view class="cell"><text>{{ t('profile.account') }}</text><text class="sub">{{ member.account }}</text></view>
       <view v-if="member.phone" class="cell"><text>{{ t('profile.phone') }}</text><text class="sub">+{{ member.phone_area }} {{ member.phone }}</text></view>
       <view v-if="member.email" class="cell"><text>{{ t('profile.email') }}</text><text class="sub">{{ member.email }}</text></view>
+      <view class="cell" @click="nav('/pages/user/security')"><text>{{ t('security.title') }}</text><text class="sub">›</text></view>
     </view>
 
     <view class="btn save" :class="{ disabled: saving }" @click="save">{{ t('common.save') }}</view>

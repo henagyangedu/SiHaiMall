@@ -315,6 +315,8 @@ class MemberAuthService
             'level_id' => (int) $m->level_id, 'level_discount' => $level ? (string) $level->discount : '100',
             'points' => (int) $m->points, 'balance' => (string) $m->balance,
             'lang' => $m->lang, 'currency' => $m->currency,
+            // 微信一键登录注册的会员一开始没有密码
+            'has_password' => (string) $m->password !== '',
         ];
     }
 
@@ -356,18 +358,78 @@ class MemberAuthService
         return $this->profile($m->refresh());
     }
 
+    /** 修改密码；还没有密码的会员（微信一键登录注册的）是第一次设置，不用原密码 */
     public function changePassword(Member $m, string $old, string $new, string $currentPlain): void
     {
-        if (!Hash::check($old, $m->password)) {
-            throw new BusinessException('原密码不正确');
-        }
-        if (Hash::check($new, $m->password)) {
-            throw new BusinessException('新密码不能与原密码相同');
+        if ((string) $m->password !== '') {
+            if ($old === '') {
+                throw new BusinessException('请输入原密码');
+            }
+            if (!Hash::check($old, $m->password)) {
+                throw new BusinessException('原密码不正确');
+            }
+            if (Hash::check($new, $m->password)) {
+                throw new BusinessException('新密码不能与原密码相同');
+            }
         }
         $m->forceFill(['password' => Hash::make($new)])->save();
 
         // 其它设备登录全部失效，当前设备保留
         MemberToken::query()->where('member_id', $m->id)->where('token_hash', '!=', hash('sha256', $currentPlain))->delete();
+    }
+
+    /**
+     * 绑定邮箱或手机号：绑定后可以用它登录、找回密码。每种只能绑一次，换绑要找客服（后台改）。
+     * 验证规则和注册一致：开了邮箱验证 / 启用了短信就必须带验证码（客户端以 register 用途获取），没开就不校验。
+     * @param array{type:string,email?:?string,mobile?:?string,phone_area?:?string,code?:?string} $d
+     */
+    public function bindContact(Member $m, array $d): array
+    {
+        $isEmail = $d['type'] === 'email';
+        $value = trim((string) ($isEmail ? ($d['email'] ?? '') : ($d['mobile'] ?? '')));
+        if ((string) ($isEmail ? $m->email : $m->phone) !== '') {
+            throw new BusinessException($isEmail ? '已绑定邮箱，如需更换请联系客服' : '已绑定手机号，如需更换请联系客服');
+        }
+
+        // 和注册用同一把锁：同一个邮箱 / 手机号不会同时被注册和绑定
+        $lock = Cache::lock('member_register:' . strtolower($value), 10);
+        if (!$lock->get()) {
+            throw new BusinessException('操作过于频繁，请稍后再试');
+        }
+        try {
+            $taken = Member::query()->where('id', '!=', $m->id)->where(function ($q) use ($value) {
+                $q->where('account', $value)->orWhere('email', $value)->orWhere('phone', $value);
+            })->exists();
+            if ($taken) {
+                throw new BusinessException($isEmail ? '该邮箱已被其他账号使用' : '该手机号已被其他账号使用');
+            }
+            $code = trim((string) ($d['code'] ?? ''));
+            if ($isEmail) {
+                if ($this->emailCodes->enabled()) {
+                    if ($code === '') {
+                        throw new BusinessException('请输入邮箱验证码');
+                    }
+                    $this->emailCodes->verify('register', $value, $code);
+                }
+                $m->forceFill(['email' => $value])->save();
+            } else {
+                $area = preg_replace('/\D/', '', (string) ($d['phone_area'] ?? '86')) ?: '86';
+                if ($this->sms->enabled()) {
+                    if (!SmsCodeService::isCnMobile($area, $value)) {
+                        throw new BusinessException('目前只支持绑定中国大陆手机号');
+                    }
+                    if ($code === '') {
+                        throw new BusinessException('请输入短信验证码');
+                    }
+                    $this->sms->verify('register', $area, $value, $code);
+                }
+                $m->forceFill(['phone_area' => $area, 'phone' => $value])->save();
+            }
+        } finally {
+            $lock->release();
+        }
+
+        return $this->profile($m->refresh());
     }
 
     private function issue(Member $m, string $source, string $ip, string $ua): array

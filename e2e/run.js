@@ -1,4 +1,4 @@
-// 浏览器点击测试入口。用法：node run.js [all|pc|uni|admin|dist|returns ...]
+// 浏览器点击测试入口。用法：node run.js [all|pc|uni|admin|dist|returns|security ...]
 //
 // 用本机已安装的 Edge 真实操作三个前端（后台、PC 端、手机端 H5），检查主流程能不能走通。
 // 运行前要求：后端可用；要测的前端开发服务器已经启动（地址见 lib/config.js，可用环境变量覆盖）；
@@ -11,10 +11,12 @@ const { chromium } = require('playwright-core');
 const config = require('./lib/config');
 const { backend } = require('./lib/backend');
 
-const FLOWS = { pc: require('./flows/pc'), uni: require('./flows/uni'), admin: require('./flows/admin'), dist: require('./flows/dist'), returns: require('./flows/returns') };
+const FLOWS = { pc: require('./flows/pc'), uni: require('./flows/uni'), admin: require('./flows/admin'), dist: require('./flows/dist'), returns: require('./flows/returns'), security: require('./flows/security') };
 // 每个流程用到哪些前端
-const NEEDS = { pc: ['pc'], uni: ['uni'], admin: ['admin'], dist: ['pc', 'admin', 'uni'], returns: ['pc', 'admin', 'uni'] };
+const NEEDS = { pc: ['pc'], uni: ['uni'], admin: ['admin'], dist: ['pc', 'admin', 'uni'], returns: ['pc', 'admin', 'uni'], security: ['pc', 'uni'] };
 const NAMES = { pc: 'PC 端', uni: '手机端 H5', admin: '后台' };
+// 自己造数据、不需要公共准备步骤（造订单、发管理员令牌）的流程
+const SELF_CONTAINED = ['security'];
 
 /** 一张 1×1 的 PNG：上传凭证、头像用 */
 function testImage() {
@@ -55,7 +57,7 @@ async function reachable(url) {
   try {
     for (const name of wanted) {
       // 每个流程各自准备一份测试数据（售后、退款会把订单用掉）
-      const data = { ...backend('prepare'), image: testImage() };
+      const data = SELF_CONTAINED.includes(name) ? {} : { ...backend('prepare'), image: testImage() };
       browser = browser || await chromium.launch({ channel: config.browserChannel, headless: !config.headed });
       const flow = await FLOWS[name](browser, data);
       flow.report();

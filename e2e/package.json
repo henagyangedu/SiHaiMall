@@ -9,7 +9,8 @@
     "uni": "node run.js uni",
     "admin": "node run.js admin",
     "dist": "node run.js dist",
-    "returns": "node run.js returns"
+    "returns": "node run.js returns",
+    "security": "node run.js security"
   },
   "devDependencies": {
     "playwright-core": "^1.48.0"

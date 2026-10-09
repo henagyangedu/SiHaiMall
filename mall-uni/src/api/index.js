@@ -22,6 +22,8 @@ export const sendEmailCode = (data) => post('/auth/email-code', data, { auth: fa
 export const logoutApi = () => post('/auth/logout', {}, { auth: false, silent: true })
 export const getProfile = () => get('/member/profile', {}, { auth: false, silent: true })
 export const updateProfile = (data) => put('/member/profile', data)
+export const changePassword = (data) => put('/member/password', data)
+export const bindContact = (data) => post('/member/bind', data)
 export const getPointLogs = (params) => get('/member/points', params)
 
 // ---- 购物车

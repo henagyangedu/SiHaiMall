@@ -28,6 +28,7 @@ const routes = [
       { path: 'refunds/:refundNo', name: 'refund-detail', component: () => import('@/pages/RefundDetail.vue') },
       { path: 'points', name: 'points', component: () => import('@/pages/Points.vue') },
       { path: 'profile', name: 'profile', component: () => import('@/pages/Profile.vue') },
+      { path: 'security', name: 'security', component: () => import('@/pages/Security.vue') },
       { path: 'distribution', name: 'distribution', component: () => import('@/pages/Distribution.vue') },
     ],
   },

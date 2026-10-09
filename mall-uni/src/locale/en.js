@@ -79,6 +79,11 @@ export default {
     title: 'Profile', avatar: 'Photo', nickname: 'Nickname', gender: 'Gender', gender0: 'Prefer not to say', gender1: 'Male', gender2: 'Female', birthday: 'Birthday', notSet: 'Not set',
     account: 'Account', phone: 'Phone', email: 'Email', needNickname: 'Please enter a nickname',
   },
+  security: {
+    title: 'Account & security', tip: 'Link an email or phone number and set a password to sign in on the web.', password: 'Password', pwdSet: 'Set', pwdUnset: 'Not set',
+    set: 'Set', change: 'Change', bind: 'Link', unbound: 'Not linked', oldPwd: 'Current password', againPwd: 'Repeat the new password', needOld: 'Please enter your current password',
+    pwdMismatch: 'The two passwords do not match', pwdSaved: 'Password saved', emailPh: 'Email address', needEmail: 'Please enter a valid email', needPhone: 'Please enter a valid phone number', bound: 'Linked',
+  },
   points: { title: 'My points', balance: 'Points balance', after: 'Balance {n}', other: 'Other' },
   pointType: { 1: 'Sign-up bonus', 2: 'Check-in', 3: 'Earned from order', 4: 'Used on order', 5: 'Adjustment', 6: 'Refund deduction' },
   userMenu: { articles: 'News', points: 'My points',  refunds: 'My refunds', distribution: 'Affiliate center', help: 'Help center', notices: 'Notices', protocols: 'Terms & policies' },

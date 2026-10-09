@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\Api\BindContactRequest;
 use App\Http\Requests\Api\EmailCodeRequest;
 use App\Http\Requests\Api\EmailResetPasswordRequest;
 use App\Http\Requests\Api\LoginRequest;
@@ -112,8 +113,14 @@ class AuthController extends ApiController
 
     public function password(PasswordRequest $request)
     {
-        $this->service->changePassword($this->member($request), $request->validated('old_password'), $request->validated('password'), (string) $request->bearerToken());
+        $this->service->changePassword($this->member($request), (string) ($request->validated('old_password') ?? ''), $request->validated('password'), (string) $request->bearerToken());
 
         return ApiResponse::ok();
+    }
+
+    /** 绑定邮箱或手机号，返回最新的个人资料 */
+    public function bind(BindContactRequest $request)
+    {
+        return ApiResponse::ok($this->service->bindContact($this->member($request), $request->validated()));
     }
 }

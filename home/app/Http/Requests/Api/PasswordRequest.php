@@ -14,7 +14,8 @@ class PasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'old_password' => ['required', 'string', 'max:64'],
+            // 还没有设置过密码的会员（如微信一键登录注册的）不用填；有密码时由服务层要求必填
+            'old_password' => ['nullable', 'string', 'max:64'],
             'password'     => ['required', 'string', 'min:6', 'max:64'],
         ];
     }

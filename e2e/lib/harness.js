@@ -34,6 +34,8 @@ class Flow {
         this.results.push({ ok: true, skipped: true, name, note: e.message });
         return;
       }
+      // E2E_DEBUG=1 时打印完整的报错（含 Playwright 的等待日志），方便定位是哪一个操作卡住了
+      if (process.env.E2E_DEBUG === '1') console.error(`[${name}]\n${e.message}\n`);
       const file = path.join(config.shots, `${this.name}_${this.n}.png`);
       await page.screenshot({ path: file }).catch(() => {});
       this.results.push({ ok: false, name, note: String(e.message).split('\n')[0].slice(0, 240), shot: file });

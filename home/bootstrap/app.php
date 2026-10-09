@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\ApiMessageTranslator;
 use App\Support\ApiResponse;
 use App\Support\Exceptions\BusinessException;
 use Illuminate\Auth\AuthenticationException;
@@ -7,6 +8,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
@@ -55,6 +57,21 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->render(function (ModelNotFoundException|NotFoundHttpException $e, Request $request) use ($isApi) {
             if ($isApi($request)) {
                 return ApiResponse::fail('资源不存在', 404);
+            }
+        });
+
+        // 接口限流（路由上的 throttle）：和业务错误一样返回 {code,msg}，否则前端拿到的是框架默认的英文报错、弹不出提示。
+        // 第三方回调（notify/*）不在此列，保持标准的 HTTP 429 让渠道稍后重试
+        $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
+            if ($request->is('api/*', 'admin-api/*')) {
+                $msg = '操作过于频繁，请稍后再试';
+                // 限流中间件排在语言识别和提示翻译之前，这里的应答不会经过 TranslateApiMessages，所以自己按请求头翻译
+                $lang = (string) ($request->attributes->get('lang') ?: $request->header('X-Lang', ''));
+                if ($request->is('api/*') && $lang !== '' && !str_starts_with(strtolower($lang), 'zh')) {
+                    $msg = ApiMessageTranslator::translate($msg, $lang);
+                }
+
+                return ApiResponse::fail($msg, 429);
             }
         });
 

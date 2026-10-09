@@ -22,6 +22,7 @@
     { "path": "pages/article/detail", "style": { "navigationBarTitleText": "" } },
     { "path": "pages/protocol/index", "style": { "navigationBarTitleText": "" } },
     { "path": "pages/user/profile", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/user/security", "style": { "navigationBarTitleText": "" } },
     { "path": "pages/user/points", "style": { "navigationBarTitleText": "", "enablePullDownRefresh": true } }
   ],
   "globalStyle": {

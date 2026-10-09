@@ -39,6 +39,14 @@ class ConfigService
             'points_per_unit'      => ['label' => '多少积分抵 1 元（基准币种）', 'type' => 'int', 'min' => 1, 'max' => 1000000, 'default' => 100],
             'points_max_percent'   => ['label' => '积分最多抵扣商品金额的百分比', 'type' => 'int', 'min' => 1, 'max' => 99, 'default' => 50],
         ],
+        // 协议与政策：多语言富文本。键名同时是 C 端接口 /api/protocols/{key} 的 key
+        'protocol' => [
+            'user_agreement'         => ['label' => '用户协议', 'type' => 'text', 'lang' => true, 'max' => 30000],
+            'privacy_policy'         => ['label' => '隐私政策', 'type' => 'text', 'lang' => true, 'max' => 30000],
+            'refund_policy'          => ['label' => '退换货政策', 'type' => 'text', 'lang' => true, 'max' => 30000],
+            'shipping_policy'        => ['label' => '配送政策', 'type' => 'text', 'lang' => true, 'max' => 30000],
+            'distribution_agreement' => ['label' => '分销员协议', 'type' => 'text', 'lang' => true, 'max' => 30000],
+        ],
         'distribution' => [
             'enabled'      => ['label' => '开启分销', 'type' => 'bool', 'default' => 0],
             'level'        => ['label' => '分销层级', 'type' => 'int', 'min' => 1, 'max' => 2, 'default' => 1],
@@ -47,6 +55,9 @@ class ConfigService
             'min_withdraw' => ['label' => '最低提现金额', 'type' => 'decimal', 'min' => 0, 'default' => '100'],
         ],
     ];
+
+    /** 单个配置值编码后的最大字节数（gm_config.value 为 TEXT） */
+    private const MAX_VALUE_BYTES = 60000;
 
     /** 可公开给 C 端的配置项 */
     public const PUBLIC_KEYS = [
@@ -107,7 +118,18 @@ class ConfigService
     {
         $defs = $this->defs($group);
 
-        DB::transaction(function () use ($group, $defs, $data) {
+        // gm_config.value 是 TEXT（约 64KB），所有语言的内容存在同一行里；超出时明确报错，避免被数据库截断或拒绝
+        $encoded = [];
+        foreach ($defs as $key => $def) {
+            if (array_key_exists($key, $data)) {
+                $encoded[$key] = $this->encode($def, $data[$key]);
+                if (strlen($encoded[$key]) > self::MAX_VALUE_BYTES) {
+                    throw new BusinessException("「{$def['label']}」各语言的内容合计过长，请精简后再保存");
+                }
+            }
+        }
+
+        DB::transaction(function () use ($group, $defs, $data, $encoded) {
             foreach ($defs as $key => $def) {
                 if (!array_key_exists($key, $data)) {
                     continue;
@@ -115,7 +137,7 @@ class ConfigService
                 DB::table('config')->updateOrInsert(
                     ['group' => $group, 'key' => $key],
                     [
-                        'value'      => $this->encode($def, $data[$key]),
+                        'value'      => $encoded[$key],
                         'is_lang'    => !empty($def['lang']) ? 1 : 0,
                         'remark'     => $def['label'],
                         'updated_at' => now(),

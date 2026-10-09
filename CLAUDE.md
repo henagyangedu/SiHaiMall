@@ -38,6 +38,7 @@
 - **邮箱验证码**：只经 `EmailCodeService`（`send` / `verify`），用途 register / reset。验证码由商城生成，缓存里只存 HMAC 哈希，10 分钟有效、校验通过即失效、按用途隔离；限流与防爆破规则同短信。开关是基础设置的 `email_verify_enabled`（默认关）：开启后邮箱注册必须带验证码，并开放邮箱找回密码。发信走 Laravel 邮件配置，邮件模板 `App\Mail\VerifyCodeMail`（中文语言发中文，其余发英文）。C 端用 `config/init` 的 `email_verify_enabled` 判断。
 - **分销**：规则只在 `Common\DistributionService`。关系：注册时凭邀请码（`inviteCode`，会员 ID + 校验位，不占字段）绑定 `member.parent_id`，之后只能后台改（防成环）。资格：会员申请、后台审核（`gm_distributor`，同时是佣金账户），后台也可直接指定。层级 1 或 2 级：一级 = 买家的直接上级，二级 = 上级的上级；上级不是正常状态的分销员就跳过、不顺延，自购不返佣。计佣：`OrderPaidService::markPaid` 里调 `onOrderPaid` 生成待结算佣金，基数 = 商品 - 会员折扣 - 积分抵扣（不含运费）折基准币种，`(order_id, level)` 唯一保证幂等。退款：`OrderRefundService::finish` 里调 `onRefund` 按已退商品款占比重算，全部退完作废，已结算的也扣回。结算：`mall:distribution-settle`（订单完成且过售后期、无进行中售后）转为可提现并写 `gm_distribution_log`。提现：申请时可提现 → 提现中，后台审核、线下打款后登记；收款信息加密存储。配置在 `distribution` 分组（默认关闭）。
 - **数据统计**：只读，全部在 `AdminStatsService`。金额折基准币种（订单用 `base_pay_amount`，退款和商品金额按订单固化汇率折算）；支付口径按 `paid_at`、含之后退款的订单，退款金额按完成时间单独统计；日期按 `config(app.timezone)`（目前 UTC）的自然日。带表别名的原生 SQL 要自己拼表前缀（`DB::getTablePrefix()`），查询构造器不会替原生片段加前缀。趋势图用 `components/TrendChart.vue`（单序列折线，一张图一个指标，不做双轴）。
+- **协议与政策**：内容存 `gm_config` 的 `protocol` 分组（多语言富文本），后台“设置 → 协议管理”维护，C 端 `GET /api/protocols`（只返回已填写的）和 `GET /api/protocols/{key}`，当前语言没填时回退默认语言。注意 `gm_config.value` 是 TEXT：一个协议所有语言合计编码后不能超过 60000 字节（`ConfigService::save` 会拦截），语言多了或协议很长时需要把该列改成 MEDIUMTEXT。
 - **驱动模式**：`DriverRegistry`（type→驱动→字段）、`DriverManager`、`DriverConfig`（`encrypted:array`）、`DriverConfigService`；后台用通用驱动配置页。
 - **后台权限**：`admin.auth` 令牌（sha256 哈希、滑动过期）；路由 `perm:` 中间件（逗号 = 任一）；敏感操作单独权限点；前端 `v-perm` 和 `hasPerm`。菜单和权限点在 `MenuSeeder`。
 - **C 端**：`api.token`（必须登录）/ `api.token:optional`；价格服务端算，客户端不传价；请求头 `X-Lang`、`X-Currency`、`X-Source`(h5/mp/app/pc)。
@@ -49,7 +50,7 @@
 - 模板里不要在数据未填充时读取 `settings.x[code].y` 这类深层路径（会抛错并导致切换页面后内容区残留）。
 
 ## 已完成
-管理员/角色/菜单权限、系统设置、存储驱动、商品（分类/品牌/规格/SKU/分币种定价）、AI 翻译（GPT、DeepSeek，开关式启用）、会员（等级/积分/余额）、订单核心与后台管理（发货、超时关闭、自动收货）、支付框架（Stripe、PayPal，含回调/补偿/流水页面）、C 端 API v1（注册登录、商品、地址、购物车、结算、下单、订单、支付发起/确认）、运费模板（后台管理页、商品绑定、结算预览与下单计费）、区域定价（销售区域管理、商品区域价、按收货地址取价）、售后与退款（C 端申请/撤销/退货物流接口、后台售后订单页）、下单积分抵扣、订单导出 CSV、短信与邮箱验证码、分销（邀请关系、分销员审核、佣金、结算、提现）、数据中心（后台首页与数据概览页）。
+管理员/角色/菜单权限、系统设置、存储驱动、商品（分类/品牌/规格/SKU/分币种定价）、AI 翻译（GPT、DeepSeek，开关式启用）、会员（等级/积分/余额）、订单核心与后台管理（发货、超时关闭、自动收货）、支付框架（Stripe、PayPal，含回调/补偿/流水页面）、C 端 API v1（注册登录、商品、地址、购物车、结算、下单、订单、支付发起/确认）、运费模板（后台管理页、商品绑定、结算预览与下单计费）、区域定价（销售区域管理、商品区域价、按收货地址取价）、售后与退款（C 端申请/撤销/退货物流接口、后台售后订单页）、下单积分抵扣、订单导出 CSV、短信与邮箱验证码、分销（邀请关系、分销员审核、佣金、结算、提现）、数据中心（后台首页与数据概览页）、协议管理（用户协议、隐私政策等 5 种，多语言）。
 
 ## 待办（建议顺序）
 1. ~~运费模板~~（已完成，见“已完成”）。

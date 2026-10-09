@@ -103,6 +103,8 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::put('config/base', [ConfigController::class, 'save'])->defaults('group', 'base')->middleware('perm:setting:base:edit');
     Route::get('config/trade', [ConfigController::class, 'show'])->defaults('group', 'trade')->middleware('perm:setting:trade:view');
     Route::put('config/trade', [ConfigController::class, 'save'])->defaults('group', 'trade')->middleware('perm:setting:trade:edit');
+    Route::get('config/protocol', [ConfigController::class, 'show'])->defaults('group', 'protocol')->middleware('perm:setting:protocol:view');
+    Route::put('config/protocol', [ConfigController::class, 'save'])->defaults('group', 'protocol')->middleware('perm:setting:protocol:edit');
     Route::get('config/distribution', [ConfigController::class, 'show'])->defaults('group', 'distribution')->middleware('perm:distribution:setting:view');
     Route::put('config/distribution', [ConfigController::class, 'save'])->defaults('group', 'distribution')->middleware('perm:distribution:setting:edit');
 

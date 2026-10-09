@@ -34,6 +34,12 @@ class OrderShipController extends BaseAdminController
         return ApiResponse::ok(null, '发货成功');
     }
 
+    /** 物流轨迹：refresh=1 时重新查询 */
+    public function track(Request $request)
+    {
+        return ApiResponse::ok($this->shipper->track((int) $request->route('shippingId'), (int) $request->query('refresh', 0) === 1));
+    }
+
     public function editExpress(OrderShipRequest $request, int $shippingId)
     {
         $this->shipper->editExpress($shippingId, $request->validated(), $this->admin($request));

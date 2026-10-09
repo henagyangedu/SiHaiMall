@@ -32,4 +32,5 @@ export async function exportOrders(params) {
 export const listShipOrder = (params) => http.get('/order/ship/list', { params })
 export const expressOptions = () => http.get('/order/ship/express')
 export const shipOrder = (id, data) => http.post(`/order/ship/${id}`, data)
+export const shippingTrack = (shippingId, refresh = false) => http.get(`/order/ship/record/${shippingId}/track`, { params: refresh ? { refresh: 1 } : {} })
 export const editExpress = (shippingId, data) => http.put(`/order/ship/record/${shippingId}`, data)

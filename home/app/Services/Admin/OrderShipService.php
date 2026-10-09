@@ -5,6 +5,7 @@ namespace App\Services\Admin;
 use App\Models\Admin;
 use App\Models\Order;
 use App\Models\Shipping;
+use App\Services\Common\ExpressTrackService;
 use App\Services\Common\NotifyService;
 use App\Services\Common\OrderStatusService;
 use App\Support\Exceptions\BusinessException;
@@ -20,7 +21,15 @@ class OrderShipService
         'JTEXPRESS' => '极兔速递', 'EMS' => '中国邮政 EMS', 'DHL' => 'DHL', 'FEDEX' => 'FedEx', 'UPS' => 'UPS', 'USPS' => 'USPS', 'OTHER' => '其它',
     ];
 
-    public function __construct(private OrderStatusService $status, private NotifyService $notify) {}
+    public function __construct(private OrderStatusService $status, private NotifyService $notify, private ExpressTrackService $tracks) {}
+
+    /** 一个包裹的物流轨迹；$refresh 为 true 时重新向服务商查询（有最短间隔限制） */
+    public function track(int $shippingId, bool $refresh): array
+    {
+        $s = Shipping::query()->find($shippingId) ?? throw new BusinessException('发货记录不存在');
+
+        return $this->tracks->track($s, $refresh);
+    }
 
     public function expressOptions(): array
     {
@@ -72,7 +81,8 @@ class OrderShipService
             throw new BusinessException('当前订单状态不能修改物流信息');
         }
         [$code, $name] = $this->express($d);
-        $s->update(['express_code' => $code, 'express_name' => $name, 'express_no' => trim((string) $d['express_no'])]);
+        // 换了单号或快递公司，之前缓存的物流轨迹就不对了，一并清掉
+        $s->update(['express_code' => $code, 'express_name' => $name, 'express_no' => trim((string) $d['express_no']), 'track_status' => 0, 'track_data' => null]);
         $this->status->note($o, OrderStatus::OP_ADMIN, (int) $op->id, "修改物流单号：{$name} {$d['express_no']}");
     }
 

@@ -121,7 +121,12 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::put('driver/sms/{driver}', [DriverController::class, 'save'])->defaults('type', 'sms')->middleware('perm:setting:api_sms:edit');
     Route::post('driver/sms/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'sms')->middleware('perm:setting:api_sms:test');
 
-    // 接口配置：系统存储（物流查询后续按同样方式加）
+    // 接口配置：物流查询
+    Route::get('driver/express', [DriverController::class, 'index'])->defaults('type', 'express')->middleware('perm:setting:api_express:view');
+    Route::put('driver/express/{driver}', [DriverController::class, 'save'])->defaults('type', 'express')->middleware('perm:setting:api_express:edit');
+    Route::post('driver/express/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'express')->middleware('perm:setting:api_express:test');
+
+    // 接口配置：系统存储
     Route::get('driver/storage', [DriverController::class, 'index'])->defaults('type', 'storage')->middleware('perm:setting:api_storage:view');
     Route::put('driver/storage/{driver}', [DriverController::class, 'save'])->defaults('type', 'storage')->middleware('perm:setting:api_storage:edit');
     Route::post('driver/storage/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'storage')->middleware('perm:setting:api_storage:test');
@@ -310,5 +315,7 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::get('ship/express', [OrderShipController::class, 'express'])->middleware('perm:order:ship:view,order:ship:do,order:ship:edit');
         Route::post('ship/{id}', [OrderShipController::class, 'ship'])->middleware('perm:order:ship:do');
         Route::put('ship/record/{shippingId}', [OrderShipController::class, 'editExpress'])->middleware('perm:order:ship:edit');
+        // 物流轨迹：带 refresh=1 时重新向服务商查询（同一个包裹 5 分钟内最多查一次）
+        Route::get('ship/record/{shippingId}/track', [OrderShipController::class, 'track'])->middleware(['throttle:60,1', 'perm:order:list:detail,order:ship:view']);
     });
 });

@@ -29,7 +29,7 @@ export default {
     list: '我的订单', detail: '订单详情', tabAll: '全部', tabUnpaid: '待支付', tabToShip: '待发货', tabShipped: '待收货', tabFinished: '已完成',
     no: '订单号', createdAt: '下单时间', payNow: '去支付', cancel: '取消订单', receive: '确认收货', cancelConfirm: '确定取消这个订单吗？',
     receiveConfirm: '确认已经收到商品？', cancelled: '订单已取消', received: '已确认收货', count: '共 {n} 件', payAmount: '实付',
-    address: '收货信息', express: '物流信息', payChannel: '选择支付方式', noChannel: '暂时没有可用的支付方式，请联系客服', expireAt: '请在 {time} 前支付',
+    address: '收货信息', express: '物流信息', viewTrack: '查看物流', trackFailed: '物流信息加载失败，请稍后再试', payChannel: '选择支付方式', noChannel: '暂时没有可用的支付方式，请联系客服', expireAt: '请在 {time} 前支付',
     paidSuccess: '支付成功', payPending: '支付处理中，请稍后在订单里查看', remark: '备注',
   },
   address: {
@@ -43,6 +43,7 @@ export default {
   },
   // 状态文字由前端按状态码翻译（后端返回的 status_text 只有中文）
   orderStatus: { 0: '待支付', 1: '待发货', 2: '待收货', 3: '已完成', 4: '已取消', 5: '售后中', 6: '已关闭' },
+  trackStatus: { 0: '暂无物流信息', 1: '运输中', 2: '已签收', 3: '异常' },
   refundStatus: { 0: '待审核', 1: '待寄回商品', 2: '待商家收货', 3: '退款中', 4: '已完成', 5: '已拒绝', 6: '已撤销' },
   refundType: { 1: '仅退款', 2: '退货退款' },
   commissionStatus: { 0: '待结算', 1: '已结算', 2: '已作废' },

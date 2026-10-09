@@ -75,6 +75,22 @@ class DriverRegistry
                     ],
                 ],
             ],
+            'express' => [
+                'label'   => '物流查询',
+                'drivers' => [
+                    'kuaidi100' => [
+                        'name'   => '快递100',
+                        'desc'   => '快递100 企业版“实时查询”接口，按次计费。支持顺丰、中通、圆通、申通、韵达、极兔、EMS、DHL、FedEx、UPS、USPS。商城会把查询结果缓存 30 分钟，已签收的包裹不再查询。',
+                        'fields' => [
+                            'customer' => ['label' => 'customer（授权码）', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => '快递100 企业管理后台 → 我的信息 里的 customer'],
+                            'key'      => ['label' => '授权 key', 'type' => 'secret', 'required' => true, 'default' => '', 'hint' => '加密保存，页面不再显示；不修改请保持原样'],
+                            'base_url' => ['label' => '接口地址', 'type' => 'text', 'required' => false, 'default' => 'https://poll.kuaidi100.com', 'hint' => '一般不用改'],
+                            'timeout'  => ['label' => '超时（秒）', 'type' => 'text', 'required' => false, 'default' => '10', 'hint' => ''],
+                            'proxy'    => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。服务器在境外、直连快递100 不通时填写，如 http://127.0.0.1:7890'],
+                        ],
+                    ],
+                ],
+            ],
             'pay' => [
                 'label'   => '商城支付',
                 'drivers' => [

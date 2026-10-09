@@ -80,6 +80,8 @@ Route::middleware('api.token')->group(function () {
     Route::get('orders/{orderNo}', [OrderController::class, 'show'])->where('orderNo', '[A-Za-z0-9]+');
     Route::post('orders/{orderNo}/cancel', [OrderController::class, 'cancel'])->where('orderNo', '[A-Za-z0-9]+');
     Route::post('orders/{orderNo}/receive', [OrderController::class, 'receive'])->where('orderNo', '[A-Za-z0-9]+');
+    // 物流轨迹（每个包裹一条；结果有缓存，不会每次都向服务商查询）
+    Route::get('orders/{orderNo}/tracks', [OrderController::class, 'tracks'])->where('orderNo', '[A-Za-z0-9]+')->middleware('throttle:30,1');
 
     // 售后
     Route::get('orders/{orderNo}/refundable', [RefundController::class, 'refundable'])->where('orderNo', '[A-Za-z0-9]+');

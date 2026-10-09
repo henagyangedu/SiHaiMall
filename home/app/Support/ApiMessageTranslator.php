@@ -21,6 +21,13 @@ final class ApiMessageTranslator
         '服务器繁忙，请稍后再试' => 'Something went wrong. Please try again later.',
         '系统繁忙，请重试' => 'The system is busy. Please try again.',
         '操作过于频繁，请稍后再试' => 'Too many attempts. Please try again later.',
+        // 物流
+        '商家还没有开通物流查询，可以复制单号到快递公司官网查询' => 'Online tracking is not available. Please copy the tracking number and check it on the carrier\'s website.',
+        '这家快递公司暂不支持在线查询，可以复制单号到快递公司官网查询' => 'Online tracking is not available for this carrier. Please copy the tracking number and check it on the carrier\'s website.',
+        '这家快递公司暂不支持在线查询' => 'Online tracking is not available for this carrier',
+        '物流查询服务暂时不可用，请稍后再试' => 'Tracking is temporarily unavailable. Please try again later.',
+        '物流查询还没有配置完整' => 'Tracking is temporarily unavailable. Please try again later.',
+        '暂时还没有物流信息，请稍后再看' => 'No tracking updates yet. Please check back later.',
         // 上传
         '不支持的图片格式' => 'Unsupported image format',
         '图片文件无效' => 'This file is not a valid image',

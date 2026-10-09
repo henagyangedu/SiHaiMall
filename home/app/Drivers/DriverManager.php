@@ -2,10 +2,12 @@
 
 namespace App\Drivers;
 
+use App\Drivers\Contracts\ExpressDriver;
 use App\Drivers\Contracts\PayDriver;
 use App\Drivers\Contracts\SmsDriver;
 use App\Drivers\Contracts\StorageDriver;
 use App\Drivers\Contracts\TranslateDriver;
+use App\Drivers\Express\Kuaidi100Driver;
 use App\Drivers\Sms\GmSmsDriver;
 use App\Drivers\Storage\FlysystemStorageDriver;
 use App\Drivers\Translate\OpenAiCompatibleDriver;
@@ -114,5 +116,24 @@ class DriverManager
         return new GmSmsDriver($config);
     }
 
-    // 后续按同样方式补充：express() / waybill()
+    /** 已启用的物流查询驱动 */
+    public function express(): ExpressDriver
+    {
+        $row = DriverConfig::enabled('express');
+
+        return $this->expressFromConfig($row->driver, $row->config ?? []);
+    }
+
+    /** 按指定配置创建物流查询驱动（后台“测试连接”用） */
+    public function expressFromConfig(string $driver, array $config): ExpressDriver
+    {
+        $def = DriverRegistry::driver('express', $driver); // 校验驱动编码
+        foreach ($def['fields'] as $key => $f) {
+            $config[$key] ??= $f['default'];
+        }
+
+        return new Kuaidi100Driver($config);
+    }
+
+    // 后续按同样方式补充：waybill()
 }

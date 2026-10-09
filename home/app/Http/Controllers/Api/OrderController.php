@@ -44,6 +44,12 @@ class OrderController extends ApiController
         return ApiResponse::ok();
     }
 
+    /** 订单每个包裹的物流轨迹 */
+    public function tracks(Request $request)
+    {
+        return ApiResponse::ok($this->service->tracks($this->memberId($request), (string) $request->route('orderNo'), $this->lang($request)));
+    }
+
     public function receive(Request $request)
     {
         $this->service->receive($this->memberId($request), (string) $request->route('orderNo'));

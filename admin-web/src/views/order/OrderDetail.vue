@@ -1,6 +1,26 @@
 <script setup>
 // 订单详情内容（抽屉里用）：基本信息、商品、收货信息、物流、支付流水、状态日志
+import { ref } from 'vue'
+import { shippingTrack } from '@/api/order'
+
 defineProps({ d: { type: Object, required: true } })
+
+// 物流轨迹：点开才查；“刷新”会重新向服务商查询（后端限制同一个包裹 5 分钟最多查一次）
+const track = ref(null)
+const trackShow = ref(false)
+const trackLoading = ref(false)
+const TRACK_STATUS = { 0: ['暂无轨迹', 'info'], 1: ['运输中', 'primary'], 2: ['已签收', 'success'], 3: ['异常', 'danger'] }
+async function openTrack(row, refresh = false) {
+  trackShow.value = true
+  trackLoading.value = true
+  try {
+    track.value = await shippingTrack(row.id, refresh)
+  } catch (e) {
+    if (!refresh) trackShow.value = false
+  } finally {
+    trackLoading.value = false
+  }
+}
 const statusType = (s) => ({ 0: 'warning', 1: 'primary', 2: 'primary', 3: 'success', 4: 'info', 5: 'danger', 6: 'info' })[s] || 'info'
 </script>
 
@@ -57,7 +77,24 @@ const statusType = (s) => ({ 0: 'warning', 1: 'primary', 2: 'primary', 3: 'succe
       <el-table-column prop="express_name" label="快递公司" width="140" />
       <el-table-column prop="express_no" label="单号" min-width="160" />
       <el-table-column prop="shipped_at" label="发货时间" width="165" />
+      <el-table-column label="轨迹" width="100"><template #default="{ row }"><el-button link type="primary" @click="openTrack(row)">查看物流</el-button></template></el-table-column>
     </el-table>
+
+    <el-dialog v-model="trackShow" :title="track ? `${track.express_name} ${track.express_no}` : '物流轨迹'" width="560px" append-to-body>
+      <div v-loading="trackLoading" style="min-height: 100px">
+        <template v-if="track">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px">
+            <el-tag :type="TRACK_STATUS[track.status]?.[1] || 'info'">{{ TRACK_STATUS[track.status]?.[0] || '未知' }}</el-tag>
+            <span v-if="track.queried_at" style="color: #909399; font-size: 12px">更新于 {{ track.queried_at }}</span>
+            <el-button v-if="track.status !== 2" link type="primary" style="margin-left: auto" @click="openTrack(track, true)">刷新</el-button>
+          </div>
+          <el-alert v-if="track.message" type="info" :closable="false" :title="track.message" style="margin-bottom: 12px" />
+          <el-timeline v-if="track.traces.length">
+            <el-timeline-item v-for="(x, i) in track.traces" :key="i" :timestamp="x.time" placement="top" :type="i === 0 ? 'primary' : ''">{{ x.context }}</el-timeline-item>
+          </el-timeline>
+        </template>
+      </div>
+    </el-dialog>
   </template>
 
   <template v-if="d.trades.length">

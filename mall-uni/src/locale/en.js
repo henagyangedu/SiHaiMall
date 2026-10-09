@@ -29,7 +29,7 @@ export default {
     list: 'My orders', detail: 'Order details', tabAll: 'All', tabUnpaid: 'Unpaid', tabToShip: 'Processing', tabShipped: 'Shipped', tabFinished: 'Completed',
     no: 'Order no.', createdAt: 'Placed on', payNow: 'Pay now', cancel: 'Cancel order', receive: 'Confirm receipt', cancelConfirm: 'Cancel this order?',
     receiveConfirm: 'Have you received your items?', cancelled: 'Order cancelled', received: 'Receipt confirmed', count: '{n} item(s)', payAmount: 'Paid',
-    address: 'Shipping address', express: 'Tracking', payChannel: 'Choose a payment method', noChannel: 'No payment method is available right now. Please contact support.', expireAt: 'Please pay before {time}',
+    address: 'Shipping address', express: 'Tracking', viewTrack: 'Track package', trackFailed: 'Could not load tracking. Please try again later.', payChannel: 'Choose a payment method', noChannel: 'No payment method is available right now. Please contact support.', expireAt: 'Please pay before {time}',
     paidSuccess: 'Payment successful', payPending: 'Payment is processing. Please check your order later.', remark: 'Note',
   },
   address: {
@@ -43,6 +43,7 @@ export default {
   },
   // Status labels are translated on the client by status code
   orderStatus: { 0: 'Unpaid', 1: 'Processing', 2: 'Shipped', 3: 'Completed', 4: 'Cancelled', 5: 'After-sales', 6: 'Closed' },
+  trackStatus: { 0: 'No updates yet', 1: 'In transit', 2: 'Delivered', 3: 'Exception' },
   refundStatus: { 0: 'Under review', 1: 'Return required', 2: 'Awaiting receipt', 3: 'Refunding', 4: 'Completed', 5: 'Declined', 6: 'Withdrawn' },
   refundType: { 1: 'Refund only', 2: 'Return & refund' },
   commissionStatus: { 0: 'Pending', 1: 'Settled', 2: 'Void' },

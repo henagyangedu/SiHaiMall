@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
-import { getOrder, cancelOrder, receiveOrder, getPayChannels, startPay, confirmPay } from '@/api'
+import { getOrder, getOrderTracks, cancelOrder, receiveOrder, getPayChannels, startPay, confirmPay } from '@/api'
 import { money } from '@/utils/app'
 import { usePageTitle, confirm, toast, nav } from '@/utils/page'
 
@@ -11,6 +11,20 @@ usePageTitle('order.detail')
 
 const orderNo = ref('')
 const order = ref(null)
+// 物流轨迹：点“查看物流”才加载（按包裹顺序，和 order.shippings 一一对应）
+const tracks = ref(null)
+const tracksLoading = ref(false)
+async function loadTracks() {
+  if (tracksLoading.value) return
+  tracksLoading.value = true
+  try {
+    tracks.value = await getOrderTracks(orderNo.value)
+  } catch (e) {
+    toast(t('order.trackFailed'))
+  } finally {
+    tracksLoading.value = false
+  }
+}
 let autoPay = false
 
 // 发起支付后把支付单号记在本地：买家从收银台回来时用它向后端确认是否到账
@@ -89,7 +103,20 @@ onShow(async () => {
 
     <view v-if="order.shippings.length" class="card">
       <view class="section">{{ t('order.express') }}</view>
-      <view v-for="(s, i) in order.shippings" :key="i" class="kv"><text>{{ s.express_name }}</text><text selectable>{{ s.express_no }}</text></view>
+      <view v-for="(s, i) in order.shippings" :key="i" class="parcel">
+        <view class="kv">
+          <text>{{ s.express_name }}<text v-if="tracks && tracks[i]" class="tstatus">　{{ t(`trackStatus.${tracks[i].status}`) }}</text></text>
+          <text selectable>{{ s.express_no }}</text>
+        </view>
+        <template v-if="tracks && tracks[i]">
+          <view v-if="tracks[i].message" class="sub">{{ tracks[i].message }}</view>
+          <view v-for="(x, k) in tracks[i].traces" :key="k" class="trace" :class="{ first: k === 0 }">
+            <view class="dot" />
+            <view class="tbody"><view>{{ x.context }}</view><view class="sub">{{ x.time }}</view></view>
+          </view>
+        </template>
+      </view>
+      <view v-if="!tracks" class="track-btn" @click="loadTracks">{{ tracksLoading ? t('common.loading') : t('order.viewTrack') }}</view>
     </view>
 
     <view class="card">
@@ -129,6 +156,14 @@ onShow(async () => {
 .st { font-size: 36rpx; font-weight: 600; }
 .tip { font-size: 24rpx; opacity: 0.9; margin-top: 8rpx; }
 .section { font-weight: 600; margin-bottom: 12rpx; }
+.parcel + .parcel { border-top: 2rpx solid var(--line); margin-top: 12rpx; padding-top: 12rpx; }
+.tstatus { color: var(--theme); font-size: 24rpx; }
+.trace { display: flex; padding: 12rpx 0 0; color: #909399; font-size: 26rpx; }
+.trace.first { color: #303133; }
+.dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: #dcdfe6; margin: 12rpx 18rpx 0 6rpx; flex: none; }
+.trace.first .dot { background: var(--theme); }
+.tbody { flex: 1; min-width: 0; }
+.track-btn { text-align: center; color: var(--theme); padding: 16rpx 0 4rpx; }
 .item { display: flex; margin-bottom: 16rpx; }
 .thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #f0f1f3; flex: none; }
 .body { flex: 1; min-width: 0; margin: 0 20rpx; }

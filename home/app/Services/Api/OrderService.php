@@ -4,6 +4,7 @@ namespace App\Services\Api;
 
 use App\Models\Member;
 use App\Models\Order;
+use App\Services\Common\ExpressTrackService;
 use App\Services\Common\OrderCloseService;
 use App\Services\Common\OrderCreateService;
 use App\Services\Common\OrderPointsService;
@@ -11,6 +12,7 @@ use App\Services\Common\OrderStatusService;
 use App\Services\Common\PriceService;
 use App\Services\Common\SaleRegionService;
 use App\Services\Common\ShippingFeeService;
+use App\Support\ApiMessageTranslator;
 use App\Support\Exceptions\BusinessException;
 use App\Support\Money;
 use App\Support\OrderStatus;
@@ -37,6 +39,7 @@ class OrderService
         private ShippingFeeService $shippingFee,
         private SaleRegionService $regions,
         private OrderPointsService $points,
+        private ExpressTrackService $expressTracks,
     ) {}
 
     /**
@@ -164,6 +167,20 @@ class OrderService
         $p->setCollection(collect($p->items())->map(fn (Order $o) => $this->brief($o, $items->get($o->id, collect()))));
 
         return Paginate::format($p);
+    }
+
+    /**
+     * 订单每个包裹的物流轨迹。轨迹内容是快递公司给的原文，不翻译；说明性的 message 按买家语言给。
+     * @return array<int,array<string,mixed>>
+     */
+    public function tracks(int $memberId, string $orderNo, string $lang): array
+    {
+        $o = $this->own($memberId, $orderNo);
+
+        return array_map(fn (array $t) => [
+            'express_name' => $t['express_name'], 'express_no' => $t['express_no'], 'shipped_at' => $t['shipped_at'],
+            'status' => $t['status'], 'traces' => $t['traces'], 'message' => ApiMessageTranslator::translate($t['message'], $lang),
+        ], $this->expressTracks->forOrder((int) $o->id));
     }
 
     public function detail(int $memberId, string $orderNo): array

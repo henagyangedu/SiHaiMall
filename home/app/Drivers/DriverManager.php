@@ -3,8 +3,10 @@
 namespace App\Drivers;
 
 use App\Drivers\Contracts\PayDriver;
+use App\Drivers\Contracts\SmsDriver;
 use App\Drivers\Contracts\StorageDriver;
 use App\Drivers\Contracts\TranslateDriver;
+use App\Drivers\Sms\GmSmsDriver;
 use App\Drivers\Storage\FlysystemStorageDriver;
 use App\Drivers\Translate\OpenAiCompatibleDriver;
 use App\Models\DriverConfig;
@@ -92,5 +94,25 @@ class DriverManager
         return new OpenAiCompatibleDriver($driver, $config);
     }
 
-    // 后续按同样方式补充：sms() / express() / waybill()
+    /** 已启用的短信驱动（有多个时取默认、排序靠前的） */
+    public function sms(): SmsDriver
+    {
+        $row = DriverConfig::enabled('sms');
+
+        return $this->smsFromConfig($row->driver, $row->config ?? []);
+    }
+
+    /** 按指定配置创建短信驱动（后台“测试连接”用） */
+    public function smsFromConfig(string $driver, array $config): SmsDriver
+    {
+        $def = DriverRegistry::driver('sms', $driver); // 校验驱动编码
+        // 没保存过的字段用登记表里的默认值（如接口地址、场景标识）
+        foreach ($def['fields'] as $key => $f) {
+            $config[$key] ??= $f['default'];
+        }
+
+        return new GmSmsDriver($config);
+    }
+
+    // 后续按同样方式补充：express() / waybill()
 }

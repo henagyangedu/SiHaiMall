@@ -56,6 +56,25 @@ class DriverRegistry
                     ],
                 ],
             ],
+            'sms' => [
+                'label'   => '短信',
+                'drivers' => [
+                    'gmsms' => [
+                        'name'   => 'GM 短信平台',
+                        'desc'   => '用于注册、短信登录、找回密码的验证码。验证码由平台生成并校验，发送频次和有效期由平台控制；目前只支持中国大陆手机号。场景标识以平台分配的为准，服务器出口 IP 如需加白名单请联系平台。',
+                        'fields' => [
+                            'base_url'       => ['label' => '接口地址', 'type' => 'text', 'required' => true, 'default' => 'https://sms.gmwang.com.cn/api/v1', 'hint' => '一般不用改'],
+                            'app_key'        => ['label' => 'AppKey', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => '平台分配的项目 AppKey；联调请用测试项目的凭证'],
+                            'app_secret'     => ['label' => 'AppSecret', 'type' => 'secret', 'required' => true, 'default' => '', 'hint' => '加密保存，页面不再显示；不修改请保持原样'],
+                            'scene_register' => ['label' => '注册场景标识', 'type' => 'text', 'required' => true, 'default' => 'register', 'hint' => '平台为“注册验证码”分配的 scene'],
+                            'scene_login'    => ['label' => '登录场景标识', 'type' => 'text', 'required' => true, 'default' => 'login', 'hint' => '平台为“短信登录”分配的 scene'],
+                            'scene_reset'    => ['label' => '找回密码场景标识', 'type' => 'text', 'required' => true, 'default' => 'reset_password', 'hint' => '平台为“找回密码”分配的 scene'],
+                            'timeout'        => ['label' => '超时（秒）', 'type' => 'text', 'required' => false, 'default' => '15', 'hint' => ''],
+                            'proxy'          => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。服务器在境外、直连平台不通时填写，如 http://127.0.0.1:7890'],
+                        ],
+                    ],
+                ],
+            ],
             'pay' => [
                 'label'   => '商城支付',
                 'drivers' => [

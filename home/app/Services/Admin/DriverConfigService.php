@@ -106,7 +106,7 @@ class DriverConfigService
     /** 存储类型的连通性测试：写入一个小文件、确认存在、再删除。使用已保存的配置。 */
     public function test(string $type, string $driver): array
     {
-        if (!in_array($type, ['storage', 'translate', 'pay'], true)) {
+        if (!in_array($type, ['storage', 'translate', 'pay', 'sms'], true)) {
             throw new BusinessException('该类型暂不支持测试');
         }
         $def = DriverRegistry::driver($type, $driver);
@@ -126,6 +126,9 @@ class DriverConfigService
         }
         if ($type === 'pay') {
             return $this->testPay($driver, $merged);
+        }
+        if ($type === 'sms') {
+            return $this->testSms($driver, $merged);
         }
 
         $drv = $this->drivers->storageFromConfig($driver, $merged);
@@ -153,6 +156,18 @@ class DriverConfigService
     {
         try {
             return $this->drivers->payFromConfig($driver, $config)->ping();
+        } catch (BusinessException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            throw new BusinessException('测试失败：' . Str::limit($e->getMessage(), 300));
+        }
+    }
+
+    /** 短信平台连通性测试：查询余额，验证接口地址、密钥、IP 白名单都可用，不会发短信 */
+    private function testSms(string $driver, array $config): array
+    {
+        try {
+            return $this->drivers->smsFromConfig($driver, $config)->ping();
         } catch (BusinessException $e) {
             throw $e;
         } catch (\Throwable $e) {

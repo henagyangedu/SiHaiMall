@@ -102,7 +102,12 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::get('config/trade', [ConfigController::class, 'show'])->defaults('group', 'trade')->middleware('perm:setting:trade:view');
     Route::put('config/trade', [ConfigController::class, 'save'])->defaults('group', 'trade')->middleware('perm:setting:trade:edit');
 
-    // 接口配置：系统存储（短信、支付、物流查询后续按同样方式加）
+    // 接口配置：短信
+    Route::get('driver/sms', [DriverController::class, 'index'])->defaults('type', 'sms')->middleware('perm:setting:api_sms:view');
+    Route::put('driver/sms/{driver}', [DriverController::class, 'save'])->defaults('type', 'sms')->middleware('perm:setting:api_sms:edit');
+    Route::post('driver/sms/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'sms')->middleware('perm:setting:api_sms:test');
+
+    // 接口配置：系统存储（物流查询后续按同样方式加）
     Route::get('driver/storage', [DriverController::class, 'index'])->defaults('type', 'storage')->middleware('perm:setting:api_storage:view');
     Route::put('driver/storage/{driver}', [DriverController::class, 'save'])->defaults('type', 'storage')->middleware('perm:setting:api_storage:edit');
     Route::post('driver/storage/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'storage')->middleware('perm:setting:api_storage:test');

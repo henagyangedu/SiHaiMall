@@ -5,6 +5,7 @@ namespace App\Services\Api;
 use App\Models\Member;
 use App\Models\MemberToken;
 use App\Services\Common\LocaleService;
+use App\Services\Common\SmsCodeService;
 use App\Support\Exceptions\BusinessException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -13,13 +14,14 @@ use Illuminate\Support\Str;
 
 /**
  * 会员注册 / 登录 / 令牌。
- * 注意：当前注册无需短信或邮箱验证码（短信驱动完成后接入，入口见 register()）。
+ * 手机号注册：后台启用短信驱动后必须带短信验证码（只支持中国大陆手机号，境外用户用邮箱注册）；
+ * 未启用短信时不校验。邮箱注册目前没有邮箱验证码。
  */
 class MemberAuthService
 {
-    public function __construct(private LocaleService $locale) {}
+    public function __construct(private LocaleService $locale, private SmsCodeService $sms) {}
 
-    /** @param array{account:string,password:string,nickname?:string,phone_area?:string,lang?:string,currency?:string} $d */
+    /** @param array{account:string,password:string,nickname?:string,phone_area?:string,code?:string,lang?:string,currency?:string} $d */
     public function register(array $d, string $source, string $ip, string $ua): array
     {
         $account = trim($d['account']);
@@ -37,6 +39,16 @@ class MemberAuthService
             })->exists();
             if ($exists) {
                 throw new BusinessException('该账号已注册');
+            }
+            if ($isPhone && $this->sms->enabled()) {
+                $area = (string) ($d['phone_area'] ?? '86');
+                if (!SmsCodeService::isCnMobile($area, $account)) {
+                    throw new BusinessException('目前只支持中国大陆手机号注册，其他地区请使用邮箱注册');
+                }
+                if (trim((string) ($d['code'] ?? '')) === '') {
+                    throw new BusinessException('请输入短信验证码');
+                }
+                $this->sms->verify('register', $area, $account, (string) $d['code']);
             }
 
             $lang = in_array($d['lang'] ?? '', $this->locale->codes(), true) ? $d['lang'] : $this->locale->defaultLang();
@@ -60,6 +72,49 @@ class MemberAuthService
         }
 
         return $this->issue($member, $source, $ip, $ua);
+    }
+
+    /** 获取短信验证码。注册要求号码未注册；登录、找回密码要求号码已注册 */
+    public function sendSmsCode(string $purpose, string $phoneArea, string $mobile, string $ip): void
+    {
+        $member = $this->findByMobile($mobile);
+        if ($purpose === 'register' && $member) {
+            throw new BusinessException('该手机号已注册，请直接登录');
+        }
+        if ($purpose !== 'register' && !$member) {
+            throw new BusinessException('该手机号尚未注册');
+        }
+        $this->sms->send($purpose, $phoneArea, $mobile, $ip);
+    }
+
+    public function loginBySms(string $mobile, string $code, string $source, string $ip, string $ua): array
+    {
+        $member = $this->findByMobile($mobile) ?? throw new BusinessException('该手机号尚未注册');
+        if ((int) $member->status !== 1) {
+            throw new BusinessException('账号已被禁用，请联系客服');
+        }
+        $this->sms->verify('login', (string) $member->phone_area, $mobile, $code);
+
+        $member->forceFill(['last_login_at' => now(), 'last_login_ip' => $ip])->save();
+
+        return $this->issue($member, $source, $ip, $ua);
+    }
+
+    /** 短信找回密码：重置后所有设备的登录全部失效 */
+    public function resetPasswordBySms(string $mobile, string $code, string $password): void
+    {
+        $member = $this->findByMobile($mobile) ?? throw new BusinessException('该手机号尚未注册');
+        $this->sms->verify('reset', (string) $member->phone_area, $mobile, $code);
+
+        $member->forceFill(['password' => Hash::make($password)])->save();
+        MemberToken::query()->where('member_id', $member->id)->delete();
+    }
+
+    private function findByMobile(string $mobile): ?Member
+    {
+        $mobile = trim($mobile);
+
+        return Member::query()->where(fn ($q) => $q->where('phone', $mobile)->orWhere('account', $mobile))->first();
     }
 
     public function login(string $account, string $password, string $source, string $ip, string $ua): array

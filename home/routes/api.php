@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\ConfigController;
+use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\DistributionController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PayController;
@@ -17,6 +18,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('ping', fn () => ApiResponse::ok(['time' => now()->toDateTimeString()]));
 Route::get('config/init', [ConfigController::class, 'init']);
 Route::get('config/cn-divisions', [ConfigController::class, 'cnDivisions']);
+// 内容：文章 / 公告 / 帮助中心、广告位（轮播图），无需登录
+Route::get('articles', [ContentController::class, 'articles']);
+Route::get('articles/{id}', [ContentController::class, 'article'])->where('id', '[0-9]+');
+Route::get('article-categories', [ContentController::class, 'categories']);
+Route::get('help', [ContentController::class, 'help']);
+Route::get('ads', [ContentController::class, 'ads']);
 // 协议与政策（用户协议、隐私政策等），无需登录
 Route::get('protocols', [ProtocolController::class, 'index']);
 Route::get('protocols/{key}', [ProtocolController::class, 'show'])->where('key', '[a-z_]+');

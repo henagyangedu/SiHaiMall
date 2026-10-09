@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\AdController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -77,7 +79,7 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::get('list', [LanguageController::class, 'index'])->middleware('perm:setting:language:view');
         // 各多语言表单的页签数据：拥有任一相关页面权限即可读取（新增多语言页面时把它的 view 权限加到这里）
         Route::get('options', [LanguageController::class, 'options'])
-            ->middleware('perm:setting:language:view,setting:base:view,setting:message:view,setting:protocol:view,setting:receipt:view,goods:category:view,goods:brand:view,goods:list:view,member:level:view,member:list:view,setting:api_translate:view');
+            ->middleware('perm:setting:language:view,setting:base:view,setting:message:view,setting:protocol:view,setting:receipt:view,goods:category:view,goods:brand:view,goods:list:view,member:level:view,member:list:view,setting:api_translate:view,content:article:view,content:notice:view,content:help:view,content:ad:view');
         Route::post('/', [LanguageController::class, 'store'])->middleware('perm:setting:language:add');
         Route::put('{id}', [LanguageController::class, 'update'])->middleware('perm:setting:language:edit');
         Route::post('{id}/default', [LanguageController::class, 'setDefault'])->middleware('perm:setting:language:edit');
@@ -183,6 +185,39 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::put('{id}', [SaleRegionController::class, 'update'])->middleware('perm:goods:region:edit');
         Route::post('{id}/status', [SaleRegionController::class, 'status'])->middleware('perm:goods:region:edit');
         Route::delete('{id}', [SaleRegionController::class, 'destroy'])->middleware('perm:goods:region:del');
+    });
+
+    // 内容：文章 / 公告 / 帮助中心共用一个控制器，类型由 defaults 指定；公告没有分类
+    foreach (['article' => 1, 'notice' => 2, 'help' => 3] as $slug => $type) {
+        Route::prefix("content/{$slug}")->group(function () use ($slug, $type) {
+            $perm = "perm:content:{$slug}";
+            if ($type !== 2) {
+                Route::get('category/list', [ArticleController::class, 'categories'])->defaults('type', $type)->middleware("{$perm}:view");
+                Route::post('category', [ArticleController::class, 'storeCategory'])->defaults('type', $type)->middleware("{$perm}:add");
+                Route::put('category/{id}', [ArticleController::class, 'updateCategory'])->defaults('type', $type)->middleware("{$perm}:edit");
+                Route::delete('category/{id}', [ArticleController::class, 'destroyCategory'])->defaults('type', $type)->middleware("{$perm}:del");
+            }
+            Route::get('list', [ArticleController::class, 'index'])->defaults('type', $type)->middleware("{$perm}:view");
+            Route::get('{id}', [ArticleController::class, 'show'])->defaults('type', $type)->middleware("{$perm}:view");
+            Route::post('/', [ArticleController::class, 'store'])->defaults('type', $type)->middleware("{$perm}:add");
+            Route::put('{id}', [ArticleController::class, 'update'])->defaults('type', $type)->middleware("{$perm}:edit");
+            Route::post('{id}/status', [ArticleController::class, 'status'])->defaults('type', $type)->middleware("{$perm}:edit");
+            Route::post('{id}/top', [ArticleController::class, 'top'])->defaults('type', $type)->middleware("{$perm}:edit");
+            Route::delete('{id}', [ArticleController::class, 'destroy'])->defaults('type', $type)->middleware("{$perm}:del");
+        });
+    }
+
+    // 内容：广告位与广告（轮播图）
+    Route::prefix('content/ad')->group(function () {
+        Route::get('position/list', [AdController::class, 'positions'])->middleware('perm:content:ad:view');
+        Route::post('position', [AdController::class, 'storePosition'])->middleware('perm:content:ad:add');
+        Route::put('position/{id}', [AdController::class, 'updatePosition'])->middleware('perm:content:ad:edit');
+        Route::delete('position/{id}', [AdController::class, 'destroyPosition'])->middleware('perm:content:ad:del');
+        Route::get('list', [AdController::class, 'index'])->middleware('perm:content:ad:view');
+        Route::post('/', [AdController::class, 'store'])->middleware('perm:content:ad:add');
+        Route::put('{id}', [AdController::class, 'update'])->middleware('perm:content:ad:edit');
+        Route::post('{id}/status', [AdController::class, 'status'])->middleware('perm:content:ad:edit');
+        Route::delete('{id}', [AdController::class, 'destroy'])->middleware('perm:content:ad:del');
     });
 
     // 数据中心（只读统计）

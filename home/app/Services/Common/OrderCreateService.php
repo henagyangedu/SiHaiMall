@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * 下单核心（C 端接口、后台代下单、测试命令共用）。
  * 价格、汇率、标题、规格、重量全部固化到订单快照，之后商品改价/改名不影响历史订单。
- * 运费暂按 0 计算（运费模板下一步接入，入口见 calcShipping）。
+ * 运费按商品的运费模板计算，规则见 ShippingFeeService。
  */
 class OrderCreateService
 {
@@ -24,6 +24,7 @@ class OrderCreateService
         private TranslationService $trans,
         private OrderStockService $stock,
         private OrderStatusService $status,
+        private ShippingFeeService $shippingFee,
     ) {}
 
     /**
@@ -71,7 +72,7 @@ class OrderCreateService
             }
 
             $address = $needShip ? $this->cleanAddress($address) : [];
-            $shipping = $needShip ? $this->calcShipping($rows, $address, $currency) : '0.00';
+            $shipping = $needShip ? $this->calcShipping($rows, $address, $cur) : '0.00';
             $discount = $this->levelDiscount($member, $goodsAmount);
             $pay = bcsub(bcadd($goodsAmount, $shipping, 2), $discount, 2);
             if (bccomp($pay, '0.01', 2) < 0) {
@@ -118,10 +119,19 @@ class OrderCreateService
         });
     }
 
-    /** 运费入口：运费模板模块接入后在这里按商品、地址、币种计算；返回下单币种金额 */
-    protected function calcShipping(array $rows, array $address, string $currency): string
+    /**
+     * 运费（下单币种）。
+     * @param array<int,array{sku:object,qty:int,unit:string}> $rows
+     * @param array{rate:string,decimals:int} $cur
+     */
+    protected function calcShipping(array $rows, array $address, array $cur): string
     {
-        return '0.00';
+        $lines = [];
+        foreach ($rows as $skuId => $r) {
+            $lines[$skuId] = ['qty' => $r['qty'], 'amount' => Money::mul($r['unit'], $r['qty'])];
+        }
+
+        return $this->shippingFee->calc($lines, $address, $cur['rate'], $cur['decimals']);
     }
 
     public function levelDiscount(Member $member, string $goodsAmount): string

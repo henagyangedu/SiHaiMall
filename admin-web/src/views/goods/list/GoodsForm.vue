@@ -4,6 +4,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { getGoods, createGoods, updateGoods } from '@/api/goods'
 import { categoryTree } from '@/api/category'
 import { brandOptions } from '@/api/brand'
+import { shippingTemplateOptions } from '@/api/shipping'
 import { currencyOptions } from '@/api/option'
 import { languageOptions } from '@/api/language'
 import { translateText } from '@/api/translate'
@@ -31,6 +32,7 @@ const tab = ref('base')
 const languages = ref([])
 const categories = ref([])
 const brands = ref([])
+const shippingTemplates = ref([])
 const currencies = ref([])
 const baseCurrency = computed(() => currencies.value.find((c) => c.is_base === 1))
 const otherCurrencies = computed(() => currencies.value.filter((c) => c.is_base !== 1))
@@ -41,7 +43,7 @@ const newSku = (keys) => ({
   stock: 0, warn_stock: 0, weight: 0, volume: 0, status: 1, prices: {},
 })
 const emptyForm = () => ({
-  id: 0, category_id: null, brand_id: 0, goods_sn: '',
+  id: 0, category_id: null, brand_id: 0, shipping_template_id: 0, goods_sn: '',
   title: {}, subtitle: {}, keywords: {}, description: {}, seo_title: {}, seo_desc: {},
   images: [], video: '', unit: '', is_virtual: 0, is_on_sale: 0, sort: 0, spec_type: 1,
   sku: { sku_sn: '', price: 0, market_price: 0, cost_price: 0, stock: 0, warn_stock: 0, weight: 0, volume: 0 },
@@ -61,10 +63,11 @@ async function loadAll() {
   loading.value = true
   tab.value = props.initTab || 'base'
   try {
-    const [langs, cats, bs, curs] = await Promise.all([languageOptions(), categoryTree(), brandOptions(), currencyOptions()])
+    const [langs, cats, bs, curs, tpls] = await Promise.all([languageOptions(), categoryTree(), brandOptions(), currencyOptions(), shippingTemplateOptions()])
     languages.value = langs
     categories.value = cats
     brands.value = bs
+    shippingTemplates.value = tpls
     currencies.value = curs
 
     Object.assign(form, emptyForm())
@@ -116,7 +119,7 @@ async function submit() {
   saving.value = true
   try {
     const payload = {
-      category_id: form.category_id, brand_id: form.brand_id || 0, goods_sn: form.goods_sn,
+      category_id: form.category_id, brand_id: form.brand_id || 0, shipping_template_id: form.shipping_template_id || 0, goods_sn: form.goods_sn,
       title: form.title, subtitle: form.subtitle, keywords: form.keywords, description: form.description,
       seo_title: form.seo_title, seo_desc: form.seo_desc,
       images: form.images, video: form.video, unit: form.unit,
@@ -264,6 +267,13 @@ async function onStockDone() {
           <el-form-item label="商品编码"><el-input v-model="form.goods_sn" maxlength="60" placeholder="留空自动生成" style="width: 320px" /></el-form-item>
           <el-form-item label="计量单位"><el-input v-model="form.unit" maxlength="20" placeholder="如 件、套、kg" style="width: 200px" /></el-form-item>
           <el-form-item label="虚拟商品"><el-switch v-model="form.is_virtual" :active-value="1" :inactive-value="0" /><span class="hint-inline">虚拟商品无需发货</span></el-form-item>
+          <el-form-item v-if="!form.is_virtual" label="运费模板">
+            <el-select v-model="form.shipping_template_id" style="width: 320px">
+              <el-option label="包邮（不使用运费模板）" :value="0" />
+              <el-option v-for="t in shippingTemplates" :key="t.id" :label="t.name" :value="t.id" />
+            </el-select>
+            <span class="hint-inline">在 设置 → 发货设置 → 运费模板 里维护</span>
+          </el-form-item>
           <el-form-item label="排序"><el-input-number v-model="form.sort" :min="0" :max="9999" /><span class="hint-inline">越小越靠前</span></el-form-item>
           <el-form-item label="立即上架"><el-switch v-model="form.is_on_sale" :active-value="1" :inactive-value="0" /><span class="hint-inline">上架商品必须有图片和至少一个启用的规格</span></el-form-item>
         </el-tab-pane>

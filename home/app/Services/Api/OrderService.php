@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Services\Common\OrderCloseService;
 use App\Services\Common\OrderCreateService;
 use App\Services\Common\OrderStatusService;
+use App\Services\Common\PriceService;
+use App\Services\Common\ShippingFeeService;
 use App\Support\Exceptions\BusinessException;
 use App\Support\Money;
 use App\Support\OrderStatus;
@@ -29,10 +31,13 @@ class OrderService
         private CartService $cart,
         private CatalogService $catalog,
         private AddressService $addresses,
+        private PriceService $price,
+        private ShippingFeeService $shippingFee,
     ) {}
 
     /**
-     * 结算预览（不占库存、不落库）。运费模板模块接入前运费恒为 0，shipping_pending=true 供前端提示。
+     * 结算预览（不占库存、不落库）。运费按所选地址（未选则默认地址）计算；还没有收货地址时运费为 0，
+     * 以 need_address=true 且 address=null 提示前端先填地址；地址不在配送范围时写入 problems。
      * @param array{cart_ids?:int[],items?:array<int,array{sku_id:int,qty:int}>,address_id?:int} $d
      */
     public function checkout(Member $m, array $d, string $lang, string $currency): array
@@ -44,6 +49,7 @@ class OrderService
         $goods = '0.00';
         $problems = [];
         $needShip = false;
+        $feeLines = [];
         foreach ($lines as $l) {
             $b = $briefs[$l['sku_id']] ?? null;
             if (!$b || !$b['valid']) {
@@ -56,6 +62,10 @@ class OrderService
             $line = Money::mul($b['price'], $l['qty']);
             $goods = bcadd($goods, $line, 2);
             $needShip = $needShip || !$b['is_virtual'];
+            $feeLines[$b['sku_id']] = [
+                'qty' => ($feeLines[$b['sku_id']]['qty'] ?? 0) + $l['qty'],
+                'amount' => bcadd($feeLines[$b['sku_id']]['amount'] ?? '0.00', $line, 2),
+            ];
             $items[] = ['sku_id' => $b['sku_id'], 'goods_id' => $b['goods_id'], 'title' => $b['title'], 'spec_text' => $b['spec_text'],
                 'image' => $b['image'], 'price' => $b['price'], 'qty' => $l['qty'], 'line_amount' => $line];
         }
@@ -68,9 +78,19 @@ class OrderService
                 : collect($this->addresses->list($m->id))->first();
         }
 
+        $shipping = '0.00';
+        if ($address) {
+            $cur = $this->price->currency($currency);
+            try {
+                $shipping = $this->shippingFee->calc($feeLines, $address->only(['country_code', 'province']), $cur['rate'], $cur['decimals']);
+            } catch (BusinessException $e) {
+                $problems[] = ['sku_id' => 0, 'msg' => $e->getMessage()];
+            }
+        }
+
         return [
-            'items' => $items, 'currency' => $currency, 'goods_amount' => $goods, 'shipping_fee' => '0.00', 'shipping_pending' => $needShip,
-            'discount_amount' => $discount, 'pay_amount' => bcsub($goods, $discount, 2),
+            'items' => $items, 'currency' => $currency, 'goods_amount' => $goods, 'shipping_fee' => $shipping,
+            'discount_amount' => $discount, 'pay_amount' => bcsub(bcadd($goods, $shipping, 2), $discount, 2),
             'need_address' => $needShip, 'address' => $address, 'problems' => $problems,
         ];
     }

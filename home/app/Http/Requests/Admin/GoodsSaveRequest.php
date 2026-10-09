@@ -20,6 +20,7 @@ class GoodsSaveRequest extends FormRequest
         $rules = [
             'category_id'   => ['required', 'integer', 'min:1'],
             'brand_id'      => ['nullable', 'integer', 'min:0'],
+            'shipping_template_id' => ['nullable', 'integer', 'min:0'],
             'goods_sn'      => ['nullable', 'string', 'max:60'],
             'spec_type'     => ['required', 'in:1,2'],
 
@@ -95,7 +96,7 @@ class GoodsSaveRequest extends FormRequest
             'stock' => '库存', 'warn_stock' => '库存预警值', 'weight' => '重量', 'volume' => '体积',
         ];
         $out = [
-            'category_id' => '商品分类', 'brand_id' => '品牌', 'goods_sn' => '商品编码', 'spec_type' => '规格类型',
+            'category_id' => '商品分类', 'brand_id' => '品牌', 'shipping_template_id' => '运费模板', 'goods_sn' => '商品编码', 'spec_type' => '规格类型',
             'title' => '商品标题', 'title.*' => '商品标题', 'subtitle.*' => '副标题', 'keywords.*' => '关键词',
             'description.*' => '商品详情', 'seo_title.*' => 'SEO 标题', 'seo_desc.*' => 'SEO 描述',
             'images' => '商品图片', 'images.*' => '商品图片', 'video' => '视频地址', 'unit' => '单位', 'sort' => '排序',

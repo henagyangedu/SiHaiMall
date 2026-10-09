@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\OrderNotifyController;
 use App\Http\Controllers\Admin\OrderTradeController;
 use App\Http\Controllers\Admin\OrderShipController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\ShippingTemplateController;
 use App\Http\Controllers\Admin\StockLogController;
 use App\Http\Controllers\Admin\TranslateController;
 use App\Http\Controllers\Admin\UploadController;
@@ -158,6 +159,16 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::post('{id}/sale', [GoodsController::class, 'sale'])->middleware('perm:goods:list:sale');
         Route::post('{id}/stock', [GoodsController::class, 'stock'])->middleware('perm:goods:list:stock');
         Route::delete('{id}', [GoodsController::class, 'destroy'])->middleware('perm:goods:list:del');
+    });
+
+    // 运费模板（商品表单的下拉：有商品查看权限即可读取）
+    Route::prefix('shipping-template')->group(function () {
+        Route::get('list', [ShippingTemplateController::class, 'index'])->middleware('perm:setting:shipping:view');
+        Route::get('options', [ShippingTemplateController::class, 'options'])->middleware('perm:setting:shipping:view,goods:list:view');
+        Route::get('{id}', [ShippingTemplateController::class, 'show'])->middleware('perm:setting:shipping:view');
+        Route::post('/', [ShippingTemplateController::class, 'store'])->middleware('perm:setting:shipping:add');
+        Route::put('{id}', [ShippingTemplateController::class, 'update'])->middleware('perm:setting:shipping:edit');
+        Route::delete('{id}', [ShippingTemplateController::class, 'destroy'])->middleware('perm:setting:shipping:del');
     });
 
     // 会员：列表与详情、等级、积分记录（敏感操作各自独立权限点：改资料、禁用、调余额、调积分、导出）

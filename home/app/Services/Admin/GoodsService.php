@@ -7,6 +7,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Goods;
 use App\Models\GoodsSku;
+use App\Models\ShippingTemplate;
 use App\Services\Common\LocaleService;
 use App\Services\Common\TranslationService;
 use App\Support\Exceptions\BusinessException;
@@ -99,6 +100,7 @@ class GoodsService
             'id'          => (int) $g->id,
             'category_id' => (int) $g->category_id,
             'brand_id'    => (int) $g->brand_id,
+            'shipping_template_id' => (int) $g->shipping_template_id,
             'goods_sn'    => $g->goods_sn,
             'images'      => json_decode((string) ($g->images ?: '[]'), true) ?: [],
             'video'       => $g->video,
@@ -127,6 +129,7 @@ class GoodsService
             $goods = Goods::query()->create([
                 'category_id' => (int) $d['category_id'],
                 'brand_id'    => (int) ($d['brand_id'] ?? 0),
+                'shipping_template_id' => (int) ($d['shipping_template_id'] ?? 0),
                 'goods_sn'    => trim((string) ($d['goods_sn'] ?? '')) ?: $this->generateSn(),
                 'cover'       => $images[0] ?? '',
                 'images'      => json_encode($images, JSON_UNESCAPED_SLASHES),
@@ -159,6 +162,7 @@ class GoodsService
             $goods->update([
                 'category_id' => (int) $d['category_id'],
                 'brand_id'    => (int) ($d['brand_id'] ?? 0),
+                'shipping_template_id' => (int) ($d['shipping_template_id'] ?? 0),
                 'goods_sn'    => trim((string) ($d['goods_sn'] ?? '')) ?: $goods->goods_sn,
                 'cover'       => $images[0] ?? '',
                 'images'      => json_encode($images, JSON_UNESCAPED_SLASHES),
@@ -260,6 +264,10 @@ class GoodsService
         $brandId = (int) ($d['brand_id'] ?? 0);
         if ($brandId > 0 && !Brand::query()->where('id', $brandId)->exists()) {
             throw new BusinessException('所选品牌不存在');
+        }
+        $templateId = (int) ($d['shipping_template_id'] ?? 0);
+        if ($templateId > 0 && !ShippingTemplate::query()->where('id', $templateId)->exists()) {
+            throw new BusinessException('所选运费模板不存在');
         }
 
         $images = $this->cleanImages($d['images'] ?? []);

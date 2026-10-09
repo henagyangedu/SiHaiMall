@@ -5,7 +5,8 @@ return [
     'locales'        => ['zh-CN', 'en'],
     'base_currency'  => env('MALL_BASE_CURRENCY', 'CNY'),
     'currencies'     => ['CNY', 'USD'],
-    'order_expire_minutes' => 30,
+    // 会员登录后多少天内免重新登录（每次使用会顺延）
+    'member_token_days' => (int) env('MEMBER_TOKEN_DAYS', 30),
 
     /*
      * 支付完成后允许跳回的域名（逗号分隔，只写域名或 IP，不带协议和端口）。

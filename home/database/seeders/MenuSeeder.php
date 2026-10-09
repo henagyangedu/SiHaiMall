@@ -93,6 +93,9 @@ class MenuSeeder extends Seeder
             ['t' => '数据', 'path' => '/data', 'icon' => 'DataLine', 'children' => [
                 ['t' => '数据概览', 'path' => '/data/overview', 'perm' => 'data:overview'],
             ]],
+            ['t' => '应用', 'path' => '/app', 'icon' => 'Iphone', 'children' => [
+                ['t' => '小程序', 'path' => '/app/mini', 'perm' => 'app:mini', 'acts' => ['edit', 'test']],
+            ]],
             ['t' => '设置', 'path' => '/setting', 'icon' => 'Setting', 'children' => [
                 ['t' => '系统设置', 'path' => '/setting/system', 'children' => [
                     ['t' => '基础信息', 'path' => '/setting/base', 'perm' => 'setting:base', 'acts' => ['edit']],

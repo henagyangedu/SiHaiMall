@@ -5,7 +5,7 @@ namespace App\Drivers;
 use App\Support\Exceptions\BusinessException;
 
 /**
- * 第三方接口驱动注册表：每种类型（storage / sms / pay / express / waybill）有哪些驱动、各需要哪些配置项。
+ * 第三方接口驱动注册表：每种类型（storage / sms / pay / express / waybill / app）有哪些驱动、各需要哪些配置项。
  * 后台“接口配置”页面按这里的 fields 自动生成表单。新增驱动只需在这里登记 + 写实现类。
  * 字段 type：text 文本 / secret 密钥（加密存储，页面脱敏） / switch 开关
  */
@@ -147,6 +147,22 @@ class DriverRegistry
                             'currencies'    => ['label' => '限定币种', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选，逗号分隔，如 USD,EUR；留空则按 PayPal 支持的币种自动判断'],
                             'timeout'       => ['label' => '超时（秒）', 'type' => 'text', 'required' => false, 'default' => '30', 'hint' => ''],
                             'proxy'         => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。测试服务器在中国大陆时通常需要代理才能访问 PayPal；是否合规请以服务商条款和当地法规为准'],
+                        ],
+                    ],
+                ],
+            ],
+            'app' => [
+                'label'   => '应用',
+                'drivers' => [
+                    'wechat_mini' => [
+                        'name'   => '微信小程序',
+                        'desc'   => '启用后，买家在小程序里可以用微信一键登录（第一次登录自动注册会员）。AppID 和 AppSecret 在微信公众平台 → 小程序后台 → 开发管理 里查看。这里的配置只用于登录；小程序里收款用的 AppID / AppSecret 在“商城支付 → 微信支付”里另外填写。',
+                        'fields' => [
+                            'app_id'     => ['label' => '小程序 AppID', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => '以 wx 开头的 18 位字符'],
+                            'app_secret' => ['label' => '小程序 AppSecret', 'type' => 'secret', 'required' => true, 'default' => '', 'hint' => '加密保存，页面不再显示；不修改请保持原样'],
+                            'api_base'   => ['label' => '接口地址', 'type' => 'text', 'required' => false, 'default' => 'https://api.weixin.qq.com', 'hint' => '一般不用改'],
+                            'timeout'    => ['label' => '超时（秒）', 'type' => 'text', 'required' => false, 'default' => '10', 'hint' => ''],
+                            'proxy'      => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。服务器在境外、直连微信接口不通时填写，如 http://127.0.0.1:7890'],
                         ],
                     ],
                 ],

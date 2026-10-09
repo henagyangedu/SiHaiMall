@@ -52,6 +52,7 @@ export const confirmPay = (tradeNo) => get(`/pay/${tradeNo}/confirm`)
 
 // ---- 短信登录、找回密码
 export const loginBySms = (data) => post('/auth/login-sms', data, { auth: false })
+export const loginByWechatMini = (data) => post('/auth/login-wechat-mini', data, { auth: false })
 export const resetPasswordBySms = (data) => post('/auth/reset-password', data, { auth: false })
 export const resetPasswordByEmail = (data) => post('/auth/reset-password-email', data, { auth: false })
 

@@ -10,8 +10,8 @@ export const state = reactive({
   member: null,
   lang: saved('gm_lang', 'zh-CN'),
   currency: saved('gm_currency', ''),
-  // 启动配置（/config/init）：语言、币种、站点信息、短信和邮箱验证开关
-  config: { languages: [], currencies: [], site: {}, sms_enabled: false, email_verify_enabled: false, base_currency: '' },
+  // 启动配置（/config/init）：语言、币种、站点信息、短信和邮箱验证开关、微信登录开关
+  config: { languages: [], currencies: [], site: {}, sms_enabled: false, email_verify_enabled: false, wechat_login_enabled: false, base_currency: '' },
   cartCount: 0,
   // 页面之间传递的一次性数据：结算页从地址列表选中的地址、首页跳分类时要选中的分类
   pickedAddressId: 0,

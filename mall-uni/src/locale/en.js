@@ -71,7 +71,7 @@ export default {
   article: { articles: 'News', notices: 'Notices', help: 'Help center', views: '{n} views', offline: 'This content is unavailable' },
   protocol: { title: 'Terms & policies' },
   auth: {
-    smsLogin: 'Sign in with code', pwdLogin: 'Sign in with password', mobile: 'Phone number', forgot: 'Forgot password?', resetTitle: 'Reset password', resetAccount: 'The email or phone you signed up with',
+    wechatLogin: 'Continue with WeChat', wechatFail: 'Could not get a WeChat sign-in code. Please try again.', orAccount: 'or sign in with an account', smsLogin: 'Sign in with code', pwdLogin: 'Sign in with password', mobile: 'Phone number', forgot: 'Forgot password?', resetTitle: 'Reset password', resetAccount: 'The email or phone you signed up with',
     newPassword: 'New password (6+ characters)', resetSubmit: 'Reset password', resetDone: 'Password reset. Please sign in again.', needMobile: 'Enter your phone number', needCode: 'Enter the verification code',
     resetUnavailable: 'Self-service reset is not available for this account. Please contact support.',
   },

@@ -3,7 +3,7 @@ import { ref, reactive, computed, onUnmounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 import { state, setToken } from '@/store'
-import { login, register, loginBySms, sendSmsCode, sendEmailCode, getProtocols } from '@/api'
+import { login, register, loginBySms, loginByWechatMini, sendSmsCode, sendEmailCode, getProtocols } from '@/api'
 import { refreshCartCount } from '@/utils/app'
 import { usePageTitle, toast, nav } from '@/utils/page'
 
@@ -64,15 +64,34 @@ async function submit() {
         ...(form.invite_code.trim() ? { invite_code: form.invite_code.trim() } : {}),
       })
     }
-    setToken(data.token, data.info)
-    refreshCartCount()
-    toast(t('login.welcome'))
-    // 回到进入登录页之前的页面；直接打开登录页时回首页
-    setTimeout(() => (getCurrentPages().length > 1 ? uni.navigateBack() : uni.switchTab({ url: '/pages/index/index' })), 400)
+    afterLogin(data)
   } finally {
     submitting.value = false
   }
 }
+
+function afterLogin(data) {
+  setToken(data.token, data.info)
+  refreshCartCount()
+  toast(t('login.welcome'))
+  // 回到进入登录页之前的页面；直接打开登录页时回首页
+  setTimeout(() => (getCurrentPages().length > 1 ? uni.navigateBack() : uni.switchTab({ url: '/pages/index/index' })), 400)
+}
+
+// #ifdef MP-WEIXIN
+// 微信一键登录：向微信要一个一次性的登录凭证交给后端，第一次登录时后端会自动注册
+async function wechatLogin() {
+  if (submitting.value) return
+  submitting.value = true
+  try {
+    const code = await new Promise((resolve) => uni.login({ provider: 'weixin', success: (x) => resolve(x.code || ''), fail: () => resolve('') }))
+    if (!code) return toast(t('auth.wechatFail'))
+    afterLogin(await loginByWechatMini({ code, ...(form.invite_code.trim() ? { invite_code: form.invite_code.trim() } : {}) }))
+  } finally {
+    submitting.value = false
+  }
+}
+// #endif
 
 onLoad(async (q) => {
   // 通过邀请链接进来：直接进注册并带上邀请码
@@ -85,6 +104,12 @@ onLoad(async (q) => {
 
 <template>
   <view class="page">
+    <!-- #ifdef MP-WEIXIN -->
+    <view v-if="state.config.wechat_login_enabled" class="wx">
+      <view class="btn wx-btn" :class="{ disabled: submitting }" @click="wechatLogin">{{ t('auth.wechatLogin') }}</view>
+      <view class="wx-or">{{ t('auth.orAccount') }}</view>
+    </view>
+    <!-- #endif -->
     <view class="tabs">
       <text class="tab" :class="{ on: mode === 'login' }" @click="switchMode('login')">{{ t('login.title') }}</text>
       <text class="tab" :class="{ on: mode === 'register' }" @click="switchMode('register')">{{ t('login.register') }}</text>
@@ -122,6 +147,9 @@ onLoad(async (q) => {
 
 <style lang="scss" scoped>
 .page { background: #fff; min-height: 100vh; padding: 60rpx 48rpx; box-sizing: border-box; }
+.wx { margin-bottom: 56rpx; }
+.wx-btn { background: #07c160; }
+.wx-or { text-align: center; color: var(--sub); font-size: 24rpx; margin-top: 28rpx; }
 .tabs { display: flex; gap: 48rpx; margin-bottom: 48rpx; }
 .tab { font-size: 34rpx; color: var(--sub); padding-bottom: 12rpx; border-bottom: 6rpx solid transparent; }
 .tab.on { color: var(--text); font-weight: 600; border-bottom-color: var(--theme); font-size: 40rpx; }

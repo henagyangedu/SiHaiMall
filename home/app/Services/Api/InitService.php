@@ -2,6 +2,7 @@
 
 namespace App\Services\Api;
 
+use App\Models\DriverConfig;
 use App\Services\Common\ConfigService;
 use App\Services\Common\EmailCodeService;
 use App\Services\Common\LocaleService;
@@ -25,6 +26,8 @@ class InitService
             'sms_enabled'   => $this->sms->enabled(),
             // 为 true 时：邮箱注册必须带邮箱验证码，并可使用邮箱找回密码
             'email_verify_enabled' => $this->emailCodes->enabled(),
+            // 为 true 时：小程序里可以用微信一键登录
+            'wechat_login_enabled' => DriverConfig::query()->where('type', 'app')->where('driver', 'wechat_mini')->where('is_enabled', 1)->exists(),
         ];
     }
 }

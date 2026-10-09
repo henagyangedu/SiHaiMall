@@ -117,6 +117,29 @@ module.exports = async function adminFlow(browser, data) {
     await d.getByRole('button', { name: '取消' }).click();
   });
 
+  await step('应用 → 小程序：侧边菜单能进入，能保存配置，AppSecret 不回显', async () => {
+    await go('/dashboard');
+    await page.locator('.el-sub-menu__title', { hasText: '应用' }).click();
+    await page.locator('.el-menu-item', { hasText: '小程序' }).click();
+    await page.waitForURL(/\/app\/mini$/);
+    const r = el.row(page, '微信小程序');
+    await r.waitFor();
+    // 已经填过真实的小程序就不动它
+    if (await r.getByText('已配置').count()) throw new Skip('微信小程序已有配置，不覆盖');
+    await r.getByRole('button', { name: '配置' }).click();
+    let d = el.dialog(page);
+    await d.locator('.el-form-item', { hasText: '小程序 AppID' }).locator('input').fill('wxe2e0000000000000');
+    await d.locator('.el-form-item', { hasText: '小程序 AppSecret' }).locator('input').fill('E2E-APP-SECRET');
+    await d.getByRole('button', { name: '保存' }).click();
+    await el.message(page, '保存成功');
+    await el.row(page, '微信小程序').getByText('已配置').waitFor();
+    await el.row(page, '微信小程序').getByRole('button', { name: '配置' }).click();
+    d = el.dialog(page);
+    const shown = await d.locator('.el-form-item', { hasText: '小程序 AppSecret' }).locator('input').inputValue();
+    if (shown.includes('E2E-APP-SECRET')) throw new Error('AppSecret 被原样回显了');
+    await d.getByRole('button', { name: '取消' }).click();
+  });
+
   await step('商品编辑：单独设置佣金比例并保存，重新打开仍在，再改回原样', async () => {
     await go('/goods/list');
     // 后台按默认语言显示商品名，和测试会员当前用什么语言无关

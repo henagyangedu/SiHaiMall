@@ -2,6 +2,7 @@
 
 namespace App\Drivers;
 
+use App\Drivers\App\WechatMiniDriver;
 use App\Drivers\Contracts\ExpressDriver;
 use App\Drivers\Contracts\PayDriver;
 use App\Drivers\Contracts\SmsDriver;
@@ -134,6 +135,25 @@ class DriverManager
         }
 
         return new Kuaidi100Driver($config);
+    }
+
+    /** 已启用的微信小程序配置；没启用时返回 null */
+    public function wechatMini(): ?WechatMiniDriver
+    {
+        $row = DriverConfig::query()->where('type', 'app')->where('driver', 'wechat_mini')->where('is_enabled', 1)->first();
+
+        return $row ? $this->wechatMiniFromConfig($row->config ?? []) : null;
+    }
+
+    /** 按指定配置创建微信小程序驱动（后台“测试连接”用） */
+    public function wechatMiniFromConfig(array $config): WechatMiniDriver
+    {
+        $def = DriverRegistry::driver('app', 'wechat_mini');
+        foreach ($def['fields'] as $key => $f) {
+            $config[$key] ??= $f['default'];
+        }
+
+        return new WechatMiniDriver($config);
     }
 
     // 后续按同样方式补充：waybill()

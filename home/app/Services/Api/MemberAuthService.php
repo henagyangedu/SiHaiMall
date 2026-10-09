@@ -2,6 +2,7 @@
 
 namespace App\Services\Api;
 
+use App\Drivers\DriverManager;
 use App\Models\Member;
 use App\Models\MemberToken;
 use App\Services\Common\DistributionService;
@@ -20,11 +21,12 @@ use Illuminate\Support\Str;
  * 手机号注册：后台启用短信驱动后必须带短信验证码（只支持中国大陆手机号，境外用户用邮箱注册）；
  * 未启用短信时不校验。
  * 邮箱注册：基础设置里开启“邮箱注册需要验证码”后必须带邮箱验证码；未开启时不校验。
+ * 微信小程序登录：后台“应用 → 小程序”启用后可用，绑定关系存 gm_member_auth（platform = wechat_mini）。
  */
 class MemberAuthService
 {
     public function __construct(private LocaleService $locale, private SmsCodeService $sms, private EmailCodeService $emailCodes,
-        private DistributionService $distribution, private UploadService $uploads) {}
+        private DistributionService $distribution, private UploadService $uploads, private DriverManager $drivers) {}
 
     /** @param array{account:string,password:string,nickname?:string,phone_area?:string,code?:string,invite_code?:string,lang?:string,currency?:string} $d */
     public function register(array $d, string $source, string $ip, string $ua): array
@@ -113,6 +115,91 @@ class MemberAuthService
         $member->forceFill(['last_login_at' => now(), 'last_login_ip' => $ip])->save();
 
         return $this->issue($member, $source, $ip, $ua);
+    }
+
+    /**
+     * 微信小程序一键登录。这个微信号登录过就直接登录；没登录过就自动注册一个会员并绑定。
+     * 自动注册的会员没有密码（账号是随机的 wx_ 开头），只能用微信登录。
+     * @param array{invite_code?:string,lang?:string,currency?:string} $d
+     */
+    public function loginByWechatMini(string $code, array $d, string $source, string $ip, string $ua): array
+    {
+        $driver = $this->drivers->wechatMini() ?? throw new BusinessException('暂未开通微信登录');
+        $session = $driver->session($code);
+        $appId = $driver->appId();
+
+        // 同一个微信号并发登录：串行化，避免第一次登录时注册出两个会员
+        $lock = Cache::lock('member_wechat_login:' . sha1($appId . '|' . $session['openid']), 10);
+        if (!$lock->get()) {
+            throw new BusinessException('操作过于频繁，请稍后再试');
+        }
+        try {
+            [$member, $isNew] = DB::transaction(fn () => $this->memberForWechat('wechat_mini', $appId, $session['openid'], $session['unionid'], $d, $source));
+        } finally {
+            $lock->release();
+        }
+        if ((int) $member->status !== 1) {
+            throw new BusinessException('账号已被禁用，请联系客服');
+        }
+        $member->forceFill(['last_login_at' => now(), 'last_login_ip' => $ip])->save();
+
+        return $this->issue($member, $source, $ip, $ua) + ['is_new' => $isNew];
+    }
+
+    /**
+     * 找到这个微信身份对应的会员，没有就新建。
+     * 顺序：这个应用下的 openid → 同一个 unionid 在其他微信应用下绑定过的会员 → 新建。
+     * @return array{0:Member,1:bool} 会员、是否新注册
+     */
+    private function memberForWechat(string $platform, string $appId, string $openid, string $unionid, array $d, string $source): array
+    {
+        $bind = DB::table('member_auth')->where('platform', $platform)->where('app_id', $appId)->where('openid', $openid)->first();
+        if ($bind) {
+            if ($member = Member::query()->find($bind->member_id)) {
+                if ($unionid !== '' && (string) $bind->unionid === '') {
+                    DB::table('member_auth')->where('id', $bind->id)->update(['unionid' => $unionid]);
+                }
+
+                return [$member, false];
+            }
+            // 原来绑定的会员已经注销：解除旧绑定，当成新用户
+            DB::table('member_auth')->where('id', $bind->id)->delete();
+        }
+
+        $member = null;
+        if ($unionid !== '') {
+            $ids = DB::table('member_auth')->where('unionid', $unionid)->where('platform', 'like', 'wechat%')->orderBy('id')->pluck('member_id');
+            $member = $ids->isEmpty() ? null : Member::query()->whereIn('id', $ids)->orderBy('id')->first();
+        }
+        $isNew = $member === null;
+        if ($isNew) {
+            // 邀请码只在注册时生效；一键登录是静默的，邀请码无效时不拦登录，只是不绑定
+            $parentId = 0;
+            if (trim((string) ($d['invite_code'] ?? '')) !== '') {
+                try {
+                    $parentId = $this->distribution->parentIdFromInvite((string) $d['invite_code']);
+                } catch (BusinessException $e) {
+                    $parentId = 0;
+                }
+            }
+            $lang = in_array($d['lang'] ?? '', $this->locale->codes(), true) ? $d['lang'] : $this->locale->defaultLang();
+            $member = Member::query()->create([
+                'account'         => 'wx_' . Str::lower(Str::random(12)),
+                'password'        => '',
+                'nickname'        => (str_starts_with($lang, 'zh') ? '微信用户' : 'WeChat User ') . Str::lower(Str::random(4)),
+                'lang'            => $lang,
+                'currency'        => in_array($d['currency'] ?? '', $this->locale->currencyCodes(), true) ? $d['currency'] : $this->locale->baseCurrency(),
+                'register_source' => $source,
+                'parent_id'       => $parentId,
+                'level_id'        => 1,
+                'status'          => 1,
+            ]);
+        }
+        DB::table('member_auth')->insert([
+            'member_id' => $member->id, 'platform' => $platform, 'app_id' => $appId, 'openid' => $openid, 'unionid' => $unionid, 'created_at' => now(),
+        ]);
+
+        return [$member, $isNew];
     }
 
     /** 短信找回密码：重置后所有设备的登录全部失效 */

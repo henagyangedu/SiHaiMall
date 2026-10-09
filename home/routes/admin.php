@@ -125,6 +125,11 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::post('driver/sms/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'sms')->middleware('perm:setting:api_sms:test');
 
     // 接口配置：物流查询
+    // 应用 → 小程序（目前只有微信小程序，用于微信一键登录）
+    Route::get('driver/app', [DriverController::class, 'index'])->defaults('type', 'app')->middleware('perm:app:mini:view');
+    Route::put('driver/app/{driver}', [DriverController::class, 'save'])->defaults('type', 'app')->middleware('perm:app:mini:edit');
+    Route::post('driver/app/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'app')->middleware('perm:app:mini:test');
+
     Route::get('driver/express', [DriverController::class, 'index'])->defaults('type', 'express')->middleware('perm:setting:api_express:view');
     Route::put('driver/express/{driver}', [DriverController::class, 'save'])->defaults('type', 'express')->middleware('perm:setting:api_express:edit');
     Route::post('driver/express/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'express')->middleware('perm:setting:api_express:test');

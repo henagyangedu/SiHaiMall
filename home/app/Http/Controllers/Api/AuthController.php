@@ -11,6 +11,7 @@ use App\Http\Requests\Api\RegisterRequest;
 use App\Http\Requests\Api\ResetPasswordRequest;
 use App\Http\Requests\Api\SmsCodeRequest;
 use App\Http\Requests\Api\SmsLoginRequest;
+use App\Http\Requests\Api\WechatMiniLoginRequest;
 use App\Services\Api\MemberAuthService;
 use App\Support\ApiResponse;
 use Illuminate\Http\Request;
@@ -50,6 +51,16 @@ class AuthController extends ApiController
     {
         return ApiResponse::ok($this->service->loginBySms(
             (string) $request->validated('mobile'), (string) $request->validated('code'),
+            $this->source($request), (string) $request->ip(), (string) $request->userAgent()
+        ));
+    }
+
+    /** 微信小程序一键登录：code 是小程序 wx.login 拿到的登录凭证 */
+    public function loginWechatMini(WechatMiniLoginRequest $request)
+    {
+        return ApiResponse::ok($this->service->loginByWechatMini(
+            (string) $request->validated('code'),
+            ['invite_code' => (string) ($request->validated('invite_code') ?? ''), 'lang' => $this->lang($request), 'currency' => $this->currency($request)],
             $this->source($request), (string) $request->ip(), (string) $request->userAgent()
         ));
     }

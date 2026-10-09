@@ -52,6 +52,9 @@ final class ApiMessageTranslator
         // 账号
         '账号或密码错误' => 'Incorrect account or password',
         '账号已被禁用，请联系客服' => 'This account has been disabled. Please contact support.',
+        '暂未开通微信登录' => 'WeChat sign-in is not available yet',
+        '微信登录凭证已失效，请重试' => 'Your WeChat sign-in has expired. Please try again.',
+        '微信登录暂时不可用，请稍后再试' => 'WeChat sign-in is temporarily unavailable. Please try again later.',
         '账号已被禁用，无法下单' => 'This account has been disabled and cannot place orders.',
         '该账号已注册' => 'This account is already registered',
         '该手机号已注册，请直接登录' => 'This phone number is already registered. Please sign in.',
@@ -155,7 +158,7 @@ final class ApiMessageTranslator
         '收件人' => 'recipient', '电话' => 'phone', '手机号' => 'phone number', '区号' => 'country code', '国家' => 'country', '详细地址' => 'street address',
         '邮编' => 'postal code', '收货地址' => 'shipping address', '账号' => 'account', '原密码' => 'current password', '新密码' => 'new password',
         '密码' => 'password', '昵称' => 'nickname', '头像' => 'avatar', '性别' => 'gender', '生日' => 'birthday', '邮箱' => 'email',
-        '图片用途' => 'image purpose', '图片' => 'image', '验证码用途' => 'verification purpose', '验证码' => 'verification code', '邀请码' => 'invite code',
+        '图片用途' => 'image purpose', '图片' => 'image', '验证码用途' => 'verification purpose', '验证码' => 'verification code', '邀请码' => 'invite code', '微信登录凭证' => 'WeChat sign-in code',
         '购物车商品' => 'cart items', '商品规格' => 'product option', '商品' => 'items', '数量' => 'quantity', '留言' => 'note', '使用积分' => 'use points',
         '支付方式' => 'payment method', '取消原因' => 'reason', '售后商品' => 'item', '售后类型' => 'refund type', '申请原因' => 'reason',
         '凭证图片' => 'photos', '退款金额' => 'refund amount', '快递公司' => 'carrier', '快递单号' => 'tracking number',

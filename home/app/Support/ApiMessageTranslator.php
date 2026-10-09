@@ -21,6 +21,7 @@ final class ApiMessageTranslator
         '服务器繁忙，请稍后再试' => 'Something went wrong. Please try again later.',
         '系统繁忙，请重试' => 'The system is busy. Please try again.',
         '操作过于频繁，请稍后再试' => 'Too many attempts. Please try again later.',
+        '支付完成跳转地址不在允许范围内' => 'The return address for this payment is not allowed. Please contact support.',
         // 支付宝
         '支付宝只支持人民币订单' => 'Alipay is only available for orders in CNY',
         '支付宝暂不支持当前终端' => 'Alipay is not available on this device',

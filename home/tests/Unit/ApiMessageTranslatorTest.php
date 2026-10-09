@@ -63,11 +63,11 @@ class ApiMessageTranslatorTest extends TestCase
      */
     public function test_every_buyer_facing_message_is_registered(): void
     {
-        $root = dirname(__DIR__, 2) . '/app/';
-        $files = array_merge(glob($root . 'Services/Api/*.php'), array_map(fn ($f) => $root . 'Services/Common/' . $f, [
+        $root = dirname(__DIR__, 2).'/app/';
+        $files = array_merge(glob($root.'Services/Api/*.php'), array_map(fn ($f) => $root.'Services/Common/'.$f, [
             'SmsCodeService.php', 'EmailCodeService.php', 'OrderCreateService.php', 'OrderPointsService.php',
-            'OrderStockService.php', 'ShippingFeeService.php',
-        ]), [$root . 'Http/Middleware/ApiToken.php']);
+            'OrderStockService.php', 'ShippingFeeService.php', 'UploadService.php',
+        ]), [$root.'Http/Middleware/ApiToken.php']);
 
         $missing = [];
         $checked = 0;
@@ -77,7 +77,7 @@ class ApiMessageTranslatorTest extends TestCase
             foreach ($m[1] as $msg) {
                 $checked++;
                 if (preg_match('/[\x{4e00}-\x{9fff}]/u', ApiMessageTranslator::translate($msg, 'en'))) {
-                    $missing[] = basename($file) . '：' . $msg;
+                    $missing[] = basename($file).'：'.$msg;
                 }
             }
         }

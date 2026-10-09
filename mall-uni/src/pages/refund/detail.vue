@@ -29,6 +29,10 @@ async function onReturn() {
   load()
 }
 
+function preview(i) {
+  uni.previewImage({ urls: d.value.images, current: i })
+}
+
 onLoad((q) => {
   refundNo.value = q.refund_no || ''
   load()
@@ -67,6 +71,9 @@ onLoad((q) => {
         </view>
       </view>
       <view class="kv"><text class="sub">{{ t('refund.reason') }}</text><text class="val">{{ d.reason }}</text></view>
+      <view v-if="d.images && d.images.length" class="pics">
+        <image v-for="(u, i) in d.images" :key="i" :src="u" mode="aspectFill" class="pic" @click="preview(i)" />
+      </view>
       <view class="kv"><text class="sub">{{ t('refund.amount') }}</text><text class="price">{{ money(d.refund_amount, d.currency) }}</text></view>
     </view>
 
@@ -93,4 +100,6 @@ onLoad((q) => {
 .kv { display: flex; justify-content: space-between; padding: 8rpx 0; gap: 24rpx; }
 .val { text-align: right; word-break: break-all; }
 .cancel { text-align: center; color: var(--sub); padding: 30rpx; }
+.pics { display: flex; flex-wrap: wrap; gap: 16rpx; padding: 8rpx 0 16rpx; }
+.pic { width: 140rpx; height: 140rpx; border-radius: 12rpx; background: #f5f6f8; }
 </style>

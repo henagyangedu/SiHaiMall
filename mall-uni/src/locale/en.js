@@ -1,6 +1,6 @@
 export default {
   common: {
-    requestFailed: 'Request failed', networkError: 'Network error, please try again', loading: 'Loading…', noMore: 'No more items', empty: 'Nothing here yet',
+    requestFailed: 'Request failed', uploadFailed: 'Upload failed. Try another image or try again later.', networkError: 'Network error, please try again', loading: 'Loading…', noMore: 'No more items', empty: 'Nothing here yet',
     confirm: 'Confirm', cancel: 'Cancel', save: 'Save', delete: 'Delete', edit: 'Edit', submit: 'Submit', ok: 'OK', saved: 'Saved', deleted: 'Deleted',
     more: 'View more', all: 'All', retry: 'Retry',
   },
@@ -54,7 +54,7 @@ export default {
     submitted: 'Request submitted', none: 'Nothing in this order is eligible for a refund right now', cancel: 'Withdraw request', cancelConfirm: 'Withdraw this refund request?', cancelled: 'Withdrawn',
     amount: 'Refund amount', no: 'Refund no.', orderNo: 'Order no.', applyAt: 'Requested on', rejectReason: 'Reason for decline', returnTitle: 'Send the item back',
     returnTip: 'Your request was approved. Please ship the item back and enter the tracking details.', express: 'Carrier', expressNo: 'Tracking number', submitReturn: 'Submit tracking', needExpress: 'Enter the carrier and tracking number',
-    returnSent: 'Submitted. Waiting for the seller to receive it.', returned: 'Shipped back', available: '{n} eligible',
+    imagesTip: 'Add photos (optional, up to {n})', uploading: 'Uploading…', returnSent: 'Submitted. Waiting for the seller to receive it.', returned: 'Shipped back', available: '{n} eligible',
   },
   dist: {
     title: 'Affiliate center', closed: 'The affiliate program is not available yet', applyTitle: 'Become an affiliate', applyTip: 'Earn commission when friends sign up with your invite code and place orders.',

@@ -1,6 +1,6 @@
 export default {
   common: {
-    requestFailed: '请求失败', networkError: '网络错误，请稍后再试', loading: '加载中…', noMore: '没有更多了', empty: '暂无数据',
+    requestFailed: '请求失败', uploadFailed: '图片上传失败，请换一张或稍后再试', networkError: '网络错误，请稍后再试', loading: '加载中…', noMore: '没有更多了', empty: '暂无数据',
     confirm: '确定', cancel: '取消', save: '保存', delete: '删除', edit: '编辑', submit: '提交', ok: '好的', saved: '保存成功', deleted: '已删除',
     more: '查看更多', all: '全部', retry: '重试',
   },
@@ -54,7 +54,7 @@ export default {
     submitted: '申请已提交', none: '这个订单当前没有可以申请售后的商品', cancel: '撤销申请', cancelConfirm: '确定撤销这次售后申请吗？', cancelled: '已撤销',
     amount: '退款金额', no: '售后单号', orderNo: '订单号', applyAt: '申请时间', rejectReason: '拒绝原因', returnTitle: '寄回商品',
     returnTip: '商家已同意，请把商品寄回，并填写快递信息', express: '快递公司', expressNo: '快递单号', submitReturn: '提交快递信息', needExpress: '请填写快递公司和单号',
-    returnSent: '已提交，等待商家收货', returned: '已寄回', available: '可申请 {n} 件',
+    returnSent: '已提交，等待商家收货', imagesTip: '上传凭证图片（可选，最多 {n} 张）', uploading: '上传中…', returned: '已寄回', available: '可申请 {n} 件',
   },
   dist: {
     title: '分销中心', closed: '分销功能暂未开启', applyTitle: '申请成为分销员', applyTip: '成为分销员后，好友通过你的邀请码注册并下单，你可以获得佣金。',

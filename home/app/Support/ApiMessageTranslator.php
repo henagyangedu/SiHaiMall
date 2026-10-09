@@ -21,6 +21,13 @@ final class ApiMessageTranslator
         '服务器繁忙，请稍后再试' => 'Something went wrong. Please try again later.',
         '系统繁忙，请重试' => 'The system is busy. Please try again.',
         '操作过于频繁，请稍后再试' => 'Too many attempts. Please try again later.',
+        // 上传
+        '不支持的图片格式' => 'Unsupported image format',
+        '图片文件无效' => 'This file is not a valid image',
+        '不支持的图片用途' => 'Unsupported image purpose',
+        '今天上传的图片太多了，请明天再试' => 'You have uploaded too many images today. Please try again tomorrow.',
+        '图片上传失败，请稍后再试' => 'We could not upload the image. Please try again later.',
+        '图片无效，请重新上传' => 'This image is not valid. Please upload it again.',
         // 账号
         '账号或密码错误' => 'Incorrect account or password',
         '账号已被禁用，请联系客服' => 'This account has been disabled. Please contact support.',
@@ -127,7 +134,7 @@ final class ApiMessageTranslator
         '收件人' => 'recipient', '电话' => 'phone', '手机号' => 'phone number', '区号' => 'country code', '国家' => 'country', '详细地址' => 'street address',
         '邮编' => 'postal code', '收货地址' => 'shipping address', '账号' => 'account', '原密码' => 'current password', '新密码' => 'new password',
         '密码' => 'password', '昵称' => 'nickname', '头像' => 'avatar', '性别' => 'gender', '生日' => 'birthday', '邮箱' => 'email',
-        '验证码用途' => 'verification purpose', '验证码' => 'verification code', '邀请码' => 'invite code',
+        '图片用途' => 'image purpose', '图片' => 'image', '验证码用途' => 'verification purpose', '验证码' => 'verification code', '邀请码' => 'invite code',
         '购物车商品' => 'cart items', '商品规格' => 'product option', '商品' => 'items', '数量' => 'quantity', '留言' => 'note', '使用积分' => 'use points',
         '支付方式' => 'payment method', '取消原因' => 'reason', '售后商品' => 'item', '售后类型' => 'refund type', '申请原因' => 'reason',
         '凭证图片' => 'photos', '退款金额' => 'refund amount', '快递公司' => 'carrier', '快递单号' => 'tracking number',

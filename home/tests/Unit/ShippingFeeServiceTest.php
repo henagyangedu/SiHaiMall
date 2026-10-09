@@ -14,7 +14,7 @@ class ShippingFeeServiceTest extends TestCase
     #[DataProvider('feeCases')]
     public function test_fee_for_rule(array $rule, string $total, string $expected): void
     {
-        $this->assertSame($expected, (new ShippingFeeService())->feeForRule($rule, $total));
+        $this->assertSame($expected, (new ShippingFeeService)->feeForRule($rule, $total));
     }
 
     public static function feeCases(): array
@@ -40,7 +40,7 @@ class ShippingFeeServiceTest extends TestCase
             ['id' => 3, 'countries' => 'CN', 'provinces' => '新疆,西藏'],
             ['id' => 4, 'countries' => 'US,CA', 'provinces' => ''],
         ];
-        $svc = new ShippingFeeService();
+        $svc = new ShippingFeeService;
 
         $this->assertSame(3, $svc->pickRule($rules, 'CN', '新疆')['id']);
         $this->assertSame(2, $svc->pickRule($rules, 'CN', '广东省')['id']);
@@ -52,12 +52,12 @@ class ShippingFeeServiceTest extends TestCase
     {
         $rules = [['id' => 1, 'countries' => 'us', 'provinces' => 'Alaska, Hawaii']];
 
-        $this->assertSame(1, (new ShippingFeeService())->pickRule($rules, 'US', 'hawaii')['id']);
+        $this->assertSame(1, (new ShippingFeeService)->pickRule($rules, 'US', 'hawaii')['id']);
     }
 
     public function test_pick_rule_returns_null_when_region_not_covered(): void
     {
-        $svc = new ShippingFeeService();
+        $svc = new ShippingFeeService;
 
         $this->assertNull($svc->pickRule([['countries' => 'CN', 'provinces' => '']], 'US', ''));
         // 只配了个别省份、没有整国规则：其他省份不配送

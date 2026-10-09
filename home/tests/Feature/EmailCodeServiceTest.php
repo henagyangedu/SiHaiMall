@@ -76,7 +76,7 @@ class EmailCodeServiceTest extends TestCase
 
         for ($i = 0; $i < 5; $i++) {
             try {
-                $svc->verify('reset', 'c@example.com', '00000' . $i === $good ? '999999' : '00000' . $i);
+                $svc->verify('reset', 'c@example.com', '00000'.$i === $good ? '999999' : '00000'.$i);
             } catch (BusinessException) {
                 // 预期：验证码错误
             }

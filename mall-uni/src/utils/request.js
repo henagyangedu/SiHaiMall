@@ -47,6 +47,42 @@ export function request(method, url, data = {}, { silent = false, auth = true } 
   })
 }
 
+/**
+ * 上传一张本地图片（uni.chooseImage 得到的临时路径），成功时 resolve {id, url, ...}。
+ * scene：refund 售后凭证 / avatar 头像。失败时弹出提示并 reject。
+ */
+export function upload(filePath, scene) {
+  return new Promise((resolve, reject) => {
+    const header = { 'X-Lang': state.lang, 'X-Source': source }
+    if (state.token) header.Authorization = `Bearer ${state.token}`
+    const failed = (msg) => {
+      uni.showToast({ title: msg, icon: 'none', duration: 2500 })
+      reject({ code: -1, msg })
+    }
+
+    uni.uploadFile({
+      url: BASE + '/upload/image',
+      filePath,
+      name: 'file',
+      formData: { scene },
+      header,
+      success: (res) => {
+        // uploadFile 返回的 data 是字符串；文件超过服务器限制时返回的不是 JSON
+        let body = null
+        try { body = typeof res.data === 'string' ? JSON.parse(res.data) : res.data } catch (e) { body = null }
+        if (body && body.code === 0) return resolve(body.data)
+        if (body && body.code === 401) {
+          logout(false)
+          toLogin()
+          return reject(body)
+        }
+        failed((body && body.msg) || t('common.uploadFailed'))
+      },
+      fail: () => failed(t('common.networkError')),
+    })
+  })
+}
+
 let jumping = false
 export function toLogin() {
   if (jumping) return

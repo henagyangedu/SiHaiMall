@@ -5,6 +5,7 @@ namespace App\Services\Api;
 use App\Models\Order;
 use App\Models\OrderRefund;
 use App\Services\Common\OrderRefundService;
+use App\Services\Common\UploadService;
 use App\Support\Exceptions\BusinessException;
 use App\Support\Paginate;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 /** C 端售后：可退信息、申请、列表、详情、撤销、填写退货物流。流转规则见 Common\OrderRefundService */
 class RefundService
 {
-    public function __construct(private OrderRefundService $refunds) {}
+    public function __construct(private OrderRefundService $refunds, private UploadService $uploads) {}
 
     public function refundable(int $memberId, string $orderNo): array
     {
@@ -21,7 +22,10 @@ class RefundService
 
     public function apply(int $memberId, string $orderNo, array $d): array
     {
-        $refund = $this->refunds->apply((int) $this->order($memberId, $orderNo)->id, $memberId, $d);
+        $order = $this->order($memberId, $orderNo);
+        // 凭证图片只接受本人通过上传接口传的
+        $this->uploads->assertMemberImages($memberId, array_values((array) ($d['images'] ?? [])));
+        $refund = $this->refunds->apply((int) $order->id, $memberId, $d);
 
         return ['refund_no' => $refund->refund_no, 'refund_amount' => (string) $refund->refund_amount, 'currency' => $refund->currency];
     }

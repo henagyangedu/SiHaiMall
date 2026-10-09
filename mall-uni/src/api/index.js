@@ -1,4 +1,4 @@
-import { get, post, put, del } from '@/utils/request'
+import { get, post, put, del, upload } from '@/utils/request'
 
 // ---- 启动配置、内容
 export const getInit = () => get('/config/init', {}, { auth: false, silent: true })
@@ -54,6 +54,7 @@ export const resetPasswordBySms = (data) => post('/auth/reset-password', data, {
 export const resetPasswordByEmail = (data) => post('/auth/reset-password-email', data, { auth: false })
 
 // ---- 售后
+export const uploadImage = (filePath, scene) => upload(filePath, scene)
 export const getRefundable = (orderNo) => get(`/orders/${orderNo}/refundable`)
 export const applyRefund = (orderNo, data) => post(`/orders/${orderNo}/refunds`, data)
 export const getRefunds = (params) => get('/refunds', params)

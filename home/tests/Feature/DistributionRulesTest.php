@@ -16,12 +16,12 @@ class DistributionRulesTest extends TestCase
             $code = DistributionService::inviteCode($id);
             $this->assertMatchesRegularExpression('/^[0-9A-Z]{3,}$/', $code);
             $this->assertSame($id, DistributionService::decodeInviteCode($code));
-            $this->assertSame($id, DistributionService::decodeInviteCode(' ' . strtolower($code) . ' '), '大小写和首尾空格不影响');
+            $this->assertSame($id, DistributionService::decodeInviteCode(' '.strtolower($code).' '), '大小写和首尾空格不影响');
         }
 
         // 改掉校验位、截短、非法字符都无效
         $code = DistributionService::inviteCode(1295);
-        $this->assertNull(DistributionService::decodeInviteCode(substr($code, 0, -1) . ($code[-1] === 'A' ? 'B' : 'A')));
+        $this->assertNull(DistributionService::decodeInviteCode(substr($code, 0, -1).($code[-1] === 'A' ? 'B' : 'A')));
         $this->assertNull(DistributionService::decodeInviteCode('ZZ'));
         $this->assertNull(DistributionService::decodeInviteCode('AB-CD'));
         $this->assertNull(DistributionService::decodeInviteCode(''));

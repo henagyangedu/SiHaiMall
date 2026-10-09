@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
-import { getRefundable, applyRefund } from '@/api'
+import { getRefundable, applyRefund, uploadImage } from '@/api'
 import { money } from '@/utils/app'
 import { usePageTitle, toast } from '@/utils/page'
 
@@ -18,6 +18,10 @@ const qty = ref(1)
 const type = ref(1)
 const reason = ref('')
 const submitting = ref(false)
+// 凭证图片：已上传成功的地址，最多 6 张
+const MAX_IMAGES = 6
+const images = ref([])
+const uploading = ref(false)
 
 const items = computed(() => (info.value?.items || []).filter((i) => i.available_qty > 0))
 const item = computed(() => items.value.find((i) => i.item_id === target.value) || null)
@@ -33,15 +37,44 @@ function step(n) {
   if (!item.value) return
   qty.value = Math.min(item.value.available_qty, Math.max(1, qty.value + n))
 }
+function addImages() {
+  if (uploading.value || images.value.length >= MAX_IMAGES) return
+  uni.chooseImage({
+    count: MAX_IMAGES - images.value.length,
+    sizeType: ['compressed'],
+    success: async (res) => {
+      uploading.value = true
+      uni.showLoading({ title: t('refund.uploading') })
+      try {
+        // 逐张上传：某一张失败（提示已弹出）就停下，已传好的保留
+        for (const path of res.tempFilePaths.slice(0, MAX_IMAGES - images.value.length)) {
+          const r = await uploadImage(path, 'refund')
+          images.value.push(r.url)
+        }
+      } catch (e) {
+        // 提示已由 upload 弹出
+      } finally {
+        uni.hideLoading()
+        uploading.value = false
+      }
+    },
+  })
+}
+function removeImage(i) {
+  images.value.splice(i, 1)
+}
+function preview(i) {
+  uni.previewImage({ urls: images.value, current: i })
+}
 async function submit() {
-  if (submitting.value) return
+  if (submitting.value || uploading.value) return
   if (target.value === null) return toast(t('refund.needItem'))
   if (!reason.value.trim()) return toast(t('refund.needReason'))
   submitting.value = true
   try {
     const data = target.value === 'whole'
-      ? { type: 1, reason: reason.value.trim() }
-      : { order_item_id: target.value, qty: qty.value, type: type.value, reason: reason.value.trim() }
+      ? { type: 1, reason: reason.value.trim(), images: images.value }
+      : { order_item_id: target.value, qty: qty.value, type: type.value, reason: reason.value.trim(), images: images.value }
     const r = await applyRefund(orderNo.value, data)
     toast(t('refund.submitted'))
     setTimeout(() => uni.redirectTo({ url: `/pages/refund/detail?refund_no=${r.refund_no}` }), 400)
@@ -102,6 +135,14 @@ onLoad(async (q) => {
       <view class="card">
         <view class="strong" style="margin-bottom: 12rpx">{{ t('refund.reason') }}</view>
         <textarea v-model="reason" class="textarea" maxlength="255" :placeholder="t('refund.reasonPh')" />
+        <view class="sub" style="margin: 20rpx 0 12rpx">{{ t('refund.imagesTip', { n: MAX_IMAGES }) }}</view>
+        <view class="pics">
+          <view v-for="(u, i) in images" :key="u" class="pic">
+            <image :src="u" mode="aspectFill" class="pic-img" @click="preview(i)" />
+            <view class="pic-del" @click.stop="removeImage(i)">×</view>
+          </view>
+          <view v-if="images.length < MAX_IMAGES" class="pic pic-add" @click="addImages">＋</view>
+        </view>
       </view>
 
       <view class="btn submit" :class="{ disabled: submitting }" @click="submit">{{ t('refund.submit') }}</view>
@@ -127,5 +168,10 @@ onLoad(async (q) => {
 .st { width: 56rpx; height: 56rpx; line-height: 52rpx; text-align: center; background: #f5f6f8; border-radius: 8rpx; font-size: 32rpx; }
 .num { min-width: 72rpx; text-align: center; }
 .textarea { width: 100%; height: 180rpx; background: #f5f6f8; border-radius: 12rpx; padding: 16rpx; box-sizing: border-box; font-size: 28rpx; }
+.pics { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.pic { position: relative; width: 150rpx; height: 150rpx; border-radius: 12rpx; background: #f5f6f8; }
+.pic-img { width: 100%; height: 100%; border-radius: 12rpx; }
+.pic-del { position: absolute; top: -12rpx; right: -12rpx; width: 40rpx; height: 40rpx; line-height: 36rpx; text-align: center; border-radius: 50%; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 28rpx; }
+.pic-add { display: flex; align-items: center; justify-content: center; color: #c0c4cc; font-size: 56rpx; border: 2rpx dashed #dcdfe6; box-sizing: border-box; }
 .submit { margin: 30rpx 24rpx; }
 </style>

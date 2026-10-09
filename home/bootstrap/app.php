@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'admin.auth' => \App\Http\Middleware\AdminAuth::class,
+            'api.token'  => \App\Http\Middleware\ApiToken::class,
             'perm'       => \App\Http\Middleware\AdminPerm::class,
             'oplog'      => \App\Http\Middleware\OperationLog::class,
         ]);

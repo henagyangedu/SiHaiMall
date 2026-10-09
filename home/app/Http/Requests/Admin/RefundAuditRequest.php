@@ -21,6 +21,11 @@ class RefundAuditRequest extends FormRequest
         ];
     }
 
+    public function messages(): array
+    {
+        return ['reject_reason.required_if' => '请填写拒绝原因'];
+    }
+
     public function attributes(): array
     {
         return ['pass' => '审核结果', 'amount' => '退款金额', 'reject_reason' => '拒绝原因'];

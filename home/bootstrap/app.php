@@ -32,6 +32,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'oplog'      => \App\Http\Middleware\OperationLog::class,
         ]);
         $middleware->appendToGroup('api', \App\Http\Middleware\SetLocale::class);
+        // 放在 SetLocale 之后：它的后半段（处理响应）会最后执行，此时语言已经确定
+        $middleware->appendToGroup('api', \App\Http\Middleware\TranslateApiMessages::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $isApi = fn (Request $r) => $r->is('api/*', 'admin-api/*', 'notify/*');

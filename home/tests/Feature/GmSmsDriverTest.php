@@ -116,7 +116,8 @@ class GmSmsDriverTest extends TestCase
             (new GmSmsDriver(['scene_login' => ''] + self::CONFIG))->sendCode('login', '13800000000');
             $this->fail('应当抛出异常');
         } catch (BusinessException $e) {
-            $this->assertStringContainsString('短信场景未配置', $e->getMessage());
+            // 买家触发的请求不暴露配置细节，只给通用提示（详情写日志）
+            $this->assertSame('验证码发送失败，请稍后再试', $e->getMessage());
         }
         Http::assertNothingSent();
     }

@@ -35,7 +35,7 @@ class GmSmsDriver implements SmsDriver
 
     public function sendCode(string $purpose, string $mobile): void
     {
-        $res = $this->request('POST', '/verify-code/send', ['scene' => $this->scene($purpose), 'mobile' => $mobile]);
+        $res = $this->buyerRequest('/verify-code/send', $purpose, ['mobile' => $mobile], '验证码发送失败，请稍后再试');
         if ($res['code'] !== 0) {
             Log::warning('短信验证码发送失败', ['purpose' => $purpose, 'mobile' => self::mask($mobile), 'code' => $res['code'], 'msg' => $res['msg']]);
             throw new BusinessException(self::SEND_ERRORS[$res['code']] ?? '验证码发送失败，请稍后再试');
@@ -44,7 +44,7 @@ class GmSmsDriver implements SmsDriver
 
     public function checkCode(string $purpose, string $mobile, string $code): bool
     {
-        $res = $this->request('POST', '/verify-code/check', ['scene' => $this->scene($purpose), 'mobile' => $mobile, 'code' => $code]);
+        $res = $this->buyerRequest('/verify-code/check', $purpose, ['mobile' => $mobile, 'code' => $code], '验证码校验服务暂时不可用，请稍后再试');
         if ($res['code'] === 0) {
             return true;
         }
@@ -82,6 +82,21 @@ class GmSmsDriver implements SmsDriver
         }
 
         return false;
+    }
+
+    /**
+     * 买家触发的请求：连不上平台、配置不完整、场景没配这类故障的详情（含接口地址）只写日志，买家只看到一句通用提示。
+     * 后台“测试连接”走 ping()，仍然显示详细原因。
+     * @return array{code:int,msg:string,data:array}
+     */
+    private function buyerRequest(string $path, string $purpose, array $payload, string $fallback): array
+    {
+        try {
+            return $this->request('POST', $path, ['scene' => $this->scene($purpose)] + $payload);
+        } catch (BusinessException $e) {
+            Log::error('短信平台请求失败', ['path' => $path, 'mobile' => self::mask((string) ($payload['mobile'] ?? '')), 'error' => $e->getMessage()]);
+            throw new BusinessException($fallback);
+        }
     }
 
     /** @return array{code:int,msg:string,data:array} */

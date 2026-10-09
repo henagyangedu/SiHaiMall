@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\PayController;
 use App\Http\Controllers\Api\PointController;
 use App\Http\Controllers\Api\ProtocolController;
 use App\Http\Controllers\Api\RefundController;
+use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\UploadController;
 use App\Support\ApiResponse;
 use Illuminate\Support\Facades\Route;
@@ -35,6 +36,8 @@ Route::middleware('api.token:optional')->group(function () {
     Route::get('categories', [CatalogController::class, 'categories']);
     Route::get('goods', [CatalogController::class, 'goods']);
     Route::get('goods/{id}', [CatalogController::class, 'detail'])->where('id', '[0-9]+');
+    // 商品评价：概况 + 列表
+    Route::get('goods/{id}/reviews', [ReviewController::class, 'index'])->where('id', '[0-9]+');
 });
 
 // ---- 注册 / 登录（限流防暴力破解，登录另有失败次数锁定）
@@ -92,6 +95,8 @@ Route::middleware('api.token')->group(function () {
     // 售后
     Route::get('orders/{orderNo}/refundable', [RefundController::class, 'refundable'])->where('orderNo', '[A-Za-z0-9]+');
     Route::post('orders/{orderNo}/refunds', [RefundController::class, 'apply'])->where('orderNo', '[A-Za-z0-9]+')->middleware('throttle:20,1');
+    // 评价订单里的一件商品（订单完成后）
+    Route::post('orders/{orderNo}/reviews', [ReviewController::class, 'store'])->where('orderNo', '[A-Za-z0-9]+')->middleware('throttle:20,1');
     Route::get('refunds', [RefundController::class, 'index']);
     Route::get('refunds/{refundNo}', [RefundController::class, 'show'])->where('refundNo', '[A-Za-z0-9]+');
     Route::post('refunds/{refundNo}/cancel', [RefundController::class, 'cancel'])->where('refundNo', '[A-Za-z0-9]+');

@@ -181,7 +181,11 @@ onShow(async () => {
           <view class="ellipsis-2">{{ i.title }}</view>
           <view class="sub ellipsis">{{ i.spec_text }}</view>
         </view>
-        <view class="right"><view>{{ money(i.price, order.currency) }}</view><view class="sub">× {{ i.qty }}</view></view>
+        <view class="right">
+          <view>{{ money(i.price, order.currency) }}</view><view class="sub">× {{ i.qty }}</view>
+          <view v-if="i.can_review" class="rv-btn" @click="nav(`/pages/review/create?order_no=${order.order_no}&item_id=${i.item_id}`)">{{ t('review.toReview') }}</view>
+          <view v-else-if="i.reviewed" class="sub rv-done">{{ t('review.reviewed') }}</view>
+        </view>
       </view>
       <view class="kv"><text class="sub">{{ t('checkout.goods') }}</text><text>{{ money(order.goods_amount, order.currency) }}</text></view>
       <view class="kv"><text class="sub">{{ t('checkout.shipping') }}</text><text>{{ money(order.shipping_fee, order.currency) }}</text></view>
@@ -223,6 +227,8 @@ onShow(async () => {
 .thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #f0f1f3; flex: none; }
 .body { flex: 1; min-width: 0; margin: 0 20rpx; }
 .right { text-align: right; flex: none; }
+.rv-btn { display: inline-block; margin-top: 10rpx; padding: 4rpx 24rpx; border-radius: 28rpx; border: 2rpx solid var(--theme); color: var(--theme); font-size: 24rpx; }
+.rv-done { margin-top: 10rpx; }
 .kv { display: flex; justify-content: space-between; padding: 8rpx 0; }
 .total { border-top: 2rpx solid var(--line); margin-top: 8rpx; padding-top: 16rpx; font-weight: 600; }
 .bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; display: flex; justify-content: flex-end; gap: 16rpx; padding: 16rpx 24rpx; box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05); }

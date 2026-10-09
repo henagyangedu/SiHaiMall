@@ -11,7 +11,8 @@
     "dist": "node run.js dist",
     "returns": "node run.js returns",
     "security": "node run.js security",
-    "wxpay": "node run.js wxpay"
+    "wxpay": "node run.js wxpay",
+    "reviews": "node run.js reviews"
   },
   "devDependencies": {
     "playwright-core": "^1.48.0"

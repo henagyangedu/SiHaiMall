@@ -17,7 +17,7 @@ class MenuSeeder extends Seeder
         'remark' => '备注', 'price' => '改价', 'cancel' => '取消订单', 'do' => '发货', 'print' => '打印',
         'audit' => '审核', 'confirm' => '确认收货', 'pay' => '执行退款', 'retry' => '重新处理',
         'status' => '禁用/启用', 'balance' => '调整余额', 'points' => '调整积分', 'sale' => '上下架',
-        'stock' => '修改库存', 'rate' => '更新汇率', 'test' => '测试', 'reset' => '重置密码', 'paid' => '登记打款', 'apply' => '发起售后',
+        'stock' => '修改库存', 'rate' => '更新汇率', 'test' => '测试', 'reset' => '重置密码', 'paid' => '登记打款', 'apply' => '发起售后', 'reply' => '回复',
     ];
 
     /**
@@ -81,6 +81,7 @@ class MenuSeeder extends Seeder
                 ['t' => '商品分类', 'path' => '/goods/category', 'perm' => 'goods:category', 'acts' => ['add', 'edit', 'del']],
                 ['t' => '商品品牌', 'path' => '/goods/brand', 'perm' => 'goods:brand', 'acts' => ['add', 'edit', 'del']],
                 ['t' => '销售区域', 'path' => '/goods/region', 'perm' => 'goods:region', 'acts' => ['add', 'edit', 'del']],
+                ['t' => '商品评价', 'path' => '/goods/review', 'perm' => 'goods:review', 'acts' => ['edit', 'reply']],
                 ['t' => '库存流水', 'path' => '/goods/stocklog', 'perm' => 'goods:stocklog'],
             ]],
             ['t' => '订单', 'path' => '/order', 'icon' => 'Tickets', 'children' => [

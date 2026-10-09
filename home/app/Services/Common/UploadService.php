@@ -23,7 +23,7 @@ class UploadService
     /** 买家可上传的图片格式、用途，以及每人每天的上传张数上限 */
     private const MEMBER_IMAGE_EXT = ['jpg', 'jpeg', 'png', 'webp'];
 
-    public const MEMBER_SCENES = ['refund', 'avatar'];
+    public const MEMBER_SCENES = ['refund', 'avatar', 'review'];
 
     private const MEMBER_DAILY_LIMIT = 60;
 

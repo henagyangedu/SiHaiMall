@@ -7,6 +7,7 @@ import { getGoods, addCart } from '@/api'
 import { needLogin } from '@/utils/request'
 import { refreshCartCount } from '@/utils/app'
 import { safeHtml } from '@/utils/html'
+import GoodsReviews from '@/components/GoodsReviews.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -122,6 +123,8 @@ onMounted(async () => {
       <!-- 详情是后台富文本编辑器保存的内容，后端不过滤，渲染前必须先清洗（见 utils/html.js） -->
       <div class="desc" v-html="safeHtml(goods.description)" />
     </div>
+
+    <GoodsReviews :goods-id="goods.id" />
   </template>
 </template>
 

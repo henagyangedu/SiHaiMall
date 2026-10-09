@@ -13,6 +13,8 @@ export const getProtocol = (key) => get(`/protocols/${key}`, {}, { auth: false }
 export const getCategories = () => get('/categories', {}, { auth: false })
 export const getGoodsList = (params) => get('/goods', params, { auth: false })
 export const getGoods = (id) => get(`/goods/${id}`, {}, { auth: false })
+export const getGoodsReviews = (id, params) => get(`/goods/${id}/reviews`, params, { auth: false })
+export const createReview = (orderNo, data) => post(`/orders/${orderNo}/reviews`, data)
 
 // ---- 登录注册
 export const login = (data) => post('/auth/login', data, { auth: false })

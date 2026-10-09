@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { getOrder, getOrderTracks, cancelOrder, receiveOrder, getPayChannels, startPay, confirmPay } from '@/api'
 import { money, confirm, addressLine } from '@/utils/app'
+import ReviewDialog from '@/components/ReviewDialog.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -13,6 +14,12 @@ const router = useRouter()
 const orderNo = String(route.params.orderNo)
 
 const order = ref(null)
+// 正在评价的商品行；null 表示评价弹窗关着
+const reviewing = ref(null)
+async function onReviewed() {
+  reviewing.value = null
+  order.value = await getOrder(orderNo)
+}
 // 发起支付后把支付单号记在本地：买家从收银台回来时用它向后端确认是否到账
 const tradeKey = `gm_trade_${orderNo}`
 const savedTrade = () => { try { return localStorage.getItem(tradeKey) || '' } catch (e) { return '' } }
@@ -191,6 +198,10 @@ onMounted(async () => {
         </div>
         <div class="cell">{{ money(i.price, order.currency) }}</div>
         <div class="cell sub">× {{ i.qty }}</div>
+        <div class="cell rv">
+          <el-button v-if="i.can_review" size="small" type="primary" plain @click="reviewing = i">{{ t('review.toReview') }}</el-button>
+          <span v-else-if="i.reviewed" class="sub">{{ t('review.reviewed') }}</span>
+        </div>
       </div>
       <div class="sum">
         <div class="kv"><span class="sub">{{ t('checkout.goods') }}</span><span>{{ money(order.goods_amount, order.currency) }}</span></div>
@@ -220,6 +231,7 @@ onMounted(async () => {
       </div>
     </el-dialog>
   </template>
+  <ReviewDialog :order-no="orderNo" :item="reviewing" @close="reviewing = null" @done="onReviewed" />
 </template>
 
 <style scoped>

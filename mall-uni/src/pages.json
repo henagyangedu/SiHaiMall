@@ -15,6 +15,8 @@
     { "path": "pages/refund/apply", "style": { "navigationBarTitleText": "" } },
     { "path": "pages/refund/list", "style": { "navigationBarTitleText": "", "enablePullDownRefresh": true } },
     { "path": "pages/refund/detail", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/review/create", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/review/list", "style": { "navigationBarTitleText": "" } },
     { "path": "pages/distribution/index", "style": { "navigationBarTitleText": "" } },
     { "path": "pages/distribution/records", "style": { "navigationBarTitleText": "" } },
     { "path": "pages/distribution/withdraw", "style": { "navigationBarTitleText": "" } },

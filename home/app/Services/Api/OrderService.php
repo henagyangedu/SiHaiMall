@@ -17,6 +17,7 @@ use App\Support\Exceptions\BusinessException;
 use App\Support\Money;
 use App\Support\OrderStatus;
 use App\Support\Paginate;
+use App\Services\Common\GoodsReviewService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -190,7 +191,17 @@ class OrderService
         $addr = DB::table('order_address')->where('order_id', $o->id)->first();
         $ship = DB::table('shipping')->where('order_id', $o->id)->orderBy('id')->get(['express_code', 'express_name', 'express_no', 'item_ids', 'shipped_at']);
 
-        return $this->brief($o, $items) + [
+        // 评价：订单完成后，每个商品行可以评价一次（全部退款的不行）
+        $canReview = GoodsReviewService::orderCanReview($o);
+        $reviewed = $canReview ? app(GoodsReviewService::class)->reviewedItemIds((int) $o->id) : [];
+        $brief = $this->brief($o, $items);
+        foreach ($brief['items'] as &$it) {
+            $it['reviewed'] = in_array($it['item_id'], $reviewed, true);
+            $it['can_review'] = $canReview && !$it['reviewed'] && $it['refund_qty'] < $it['qty'];
+        }
+        unset($it);
+
+        return $brief + [
             'remark' => $o->remark, 'cancel_reason' => $o->cancel_reason, 'pay_channel' => $o->pay_channel,
             'paid_at' => $o->paid_at?->format('Y-m-d H:i:s'), 'shipped_at' => $o->shipped_at?->format('Y-m-d H:i:s'),
             'finished_at' => $o->finished_at?->format('Y-m-d H:i:s'),

@@ -110,6 +110,7 @@ class CrossMemberAccessTest extends FeatureTestCase
         $this->denied('GET', "/orders/{$sn}/tracks");
         $this->denied('GET', "/orders/{$sn}/refundable");
         $this->denied('POST', "/orders/{$sn}/refunds", ['order_item_id' => $itemId, 'qty' => 1, 'type' => 1, 'reason' => '乙来申请']);
+        $this->denied('POST', "/orders/{$sn}/reviews", ['order_item_id' => $itemId, 'rating' => 1, 'content' => '乙来差评']);
         $this->assertSame(2, (int) $shipped->refresh()->status, '甲的订单仍是待收货');
         $this->assertSame(0, OrderRefund::query()->count());
 

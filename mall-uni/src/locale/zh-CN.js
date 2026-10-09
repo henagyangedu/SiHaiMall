@@ -48,6 +48,14 @@ export default {
   refundType: { 1: '仅退款', 2: '退货退款' },
   commissionStatus: { 0: '待结算', 1: '已结算', 2: '已作废' },
   withdrawStatus: { 0: '待审核', 1: '待打款', 2: '已打款', 3: '已拒绝' },
+  review: {
+    title: '商品评价', write: '评价商品', goodRate: '好评率', empty: '还没有评价', viewAll: '查看全部 {n} 条评价', reply: '商家回复',
+    level: { all: '全部', good: '好评', mid: '中评', bad: '差评', image: '有图' },
+    star: { 1: '很差', 2: '较差', 3: '一般', 4: '满意', 5: '非常满意' },
+    rating: '评分', content: '评价', contentPh: '商品怎么样？说说你的使用感受（选填）', anonymous: '匿名评价', anonymousTip: '不显示头像，昵称只显示第一个字',
+    submit: '提交评价', done: '评价成功', needRating: '请选择评分', toReview: '评价', reviewed: '已评价',
+    already: '这件商品已经评价过了', notYet: '订单完成后才能评价',
+  },
   refund: {
     apply: '申请售后', list: '我的售后', detail: '售后详情', whole: '整单退款', wholeTip: '订单还没发货，可以整单退款（含运费）',
     chooseItem: '选择要售后的商品', type: '售后类型', qty: '数量', reason: '申请原因', reasonPh: '请说明原因，方便我们尽快处理', maxAmount: '最多可退 {amount}',

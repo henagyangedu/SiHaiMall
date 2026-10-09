@@ -48,6 +48,14 @@ export default {
   refundType: { 1: 'Refund only', 2: 'Return & refund' },
   commissionStatus: { 0: 'Pending', 1: 'Settled', 2: 'Void' },
   withdrawStatus: { 0: 'Under review', 1: 'Approved', 2: 'Paid', 3: 'Declined' },
+  review: {
+    title: 'Reviews', write: 'Write a review', goodRate: 'positive', empty: 'No reviews yet', viewAll: 'See all {n} reviews', reply: 'Seller reply',
+    level: { all: 'All', good: 'Positive', mid: 'Neutral', bad: 'Negative', image: 'With photos' },
+    star: { 1: 'Very poor', 2: 'Poor', 3: 'Average', 4: 'Good', 5: 'Excellent' },
+    rating: 'Rating', content: 'Review', contentPh: 'How was it? Share your experience (optional)', anonymous: 'Post anonymously', anonymousTip: 'Hides your photo and shows only the first letter of your name',
+    submit: 'Submit review', done: 'Thanks for your review', needRating: 'Please choose a rating', toReview: 'Review', reviewed: 'Reviewed',
+    already: 'You have already reviewed this item', notYet: 'You can review after the order is completed',
+  },
   refund: {
     apply: 'Request refund', list: 'My refunds', detail: 'Refund details', whole: 'Refund entire order', wholeTip: 'This order has not shipped yet, so you can refund all of it (shipping included)',
     chooseItem: 'Select the item', type: 'Type', qty: 'Quantity', reason: 'Reason', reasonPh: 'Tell us what went wrong so we can help faster', maxAmount: 'Up to {amount} refundable',

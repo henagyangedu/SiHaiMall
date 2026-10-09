@@ -3,10 +3,11 @@ import { ref, reactive, computed, watch } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 import { state } from '@/store'
-import { getGoods, addCart } from '@/api'
+import { getGoods, addCart, getGoodsReviews } from '@/api'
 import { needLogin } from '@/utils/request'
 import { refreshCartCount } from '@/utils/app'
-import { usePageTitle, toast, tab } from '@/utils/page'
+import { usePageTitle, toast, tab, nav } from '@/utils/page'
+import ReviewItem from '@/components/ReviewItem.vue'
 
 const { t } = useI18n()
 usePageTitle('goods.detail')
@@ -16,6 +17,8 @@ const goods = ref(null)
 const picked = reactive({}) // 规格项 ID => 选中的规格值 ID
 const qty = ref(1)
 const failed = ref(false)
+// 商品页只带出最新的两条评价，其余在评价列表页看
+const reviews = ref([])
 
 async function load() {
   try {
@@ -24,6 +27,10 @@ async function load() {
     Object.keys(picked).forEach((k) => delete picked[k])
   } catch (e) {
     failed.value = true
+    return
+  }
+  if (goods.value.review?.count) {
+    getGoodsReviews(id.value, { size: 2 }).then((d) => { reviews.value = d.list }).catch(() => {})
   }
 }
 
@@ -113,6 +120,16 @@ watch(() => [state.lang, state.currency], load)
       </view>
     </view>
 
+    <view v-if="goods.review" class="card reviews">
+      <view class="section rv-head" @click="goods.review.count && nav(`/pages/review/list?goods_id=${goods.id}`)">
+        <text>{{ t('review.title') }}（{{ goods.review.count }}）</text>
+        <text v-if="goods.review.count" class="sub">{{ goods.review.good_rate }}% {{ t('review.goodRate') }} ›</text>
+      </view>
+      <ReviewItem v-for="r in reviews" :key="r.id" :review="r" />
+      <view v-if="!goods.review.count" class="sub rv-empty">{{ t('review.empty') }}</view>
+      <view v-else-if="goods.review.count > reviews.length" class="rv-more" @click="nav(`/pages/review/list?goods_id=${goods.id}`)">{{ t('review.viewAll', { n: goods.review.count }) }}</view>
+    </view>
+
     <view v-if="goods.description" class="card">
       <view class="section">{{ t('goods.description') }}</view>
       <rich-text :nodes="goods.description" class="desc" />
@@ -134,6 +151,9 @@ watch(() => [state.lang, state.currency], load)
 .swiper { height: 750rpx; background: #fff; }
 .img { width: 100%; height: 100%; }
 .big { font-size: 44rpx; }
+.rv-head { display: flex; justify-content: space-between; align-items: center; }
+.rv-empty { padding: 16rpx 0 8rpx; }
+.rv-more { text-align: center; color: var(--theme); font-size: 26rpx; padding-top: 20rpx; }
 .title { font-size: 32rpx; font-weight: 600; margin: 8rpx 0; }
 .spec { margin-bottom: 24rpx; }
 .spec-name { color: #606266; margin-bottom: 12rpx; }

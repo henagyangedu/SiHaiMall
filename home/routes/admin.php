@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\MemberLevelController;
+use App\Http\Controllers\Admin\GoodsReviewController;
 use App\Http\Controllers\Admin\MemberPointController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\MessageTemplateController;
@@ -184,6 +185,11 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         });
 
         Route::get('stocklog/list', [StockLogController::class, 'index'])->middleware('perm:goods:stocklog:view');
+
+        // 商品评价：查看、隐藏 / 恢复显示、商家回复
+        Route::get('review/list', [GoodsReviewController::class, 'index'])->middleware('perm:goods:review:view');
+        Route::post('review/{id}/status', [GoodsReviewController::class, 'status'])->where('id', '[0-9]+')->middleware('perm:goods:review:edit');
+        Route::post('review/{id}/reply', [GoodsReviewController::class, 'reply'])->where('id', '[0-9]+')->middleware('perm:goods:review:reply');
 
         // 商品本身（放在分类、品牌之后；{id} 只匹配数字，不会和上面的路径冲突）
         Route::get('list', [GoodsController::class, 'index'])->middleware('perm:goods:list:view');

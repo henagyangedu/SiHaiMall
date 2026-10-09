@@ -67,13 +67,14 @@
 7. 二期 AI 翻译（Claude、Qwen）；分类/品牌/规格名的翻译按钮与批量填充。
 
 ## 验证状态（重要）
-最初的代码是在没有 Laravel 运行环境的沙箱里写的，只做过 `php -l` 语法检查。2026-10-09 起已在本地跑通：下面第 1、4 步完成；第 2 步除真实支付（缺 Stripe/PayPal 沙箱密钥）外都走过真实 HTTP 链路；第 3 步只有纯计算的单元测试（运费、区域匹配、币种换算、退款分摊、积分抵扣），还没有带数据库的功能测试。后台页面：2026-10-09 用无头 Edge 逐页截图看过运费模板、销售区域、售后订单、分销四页、短信、交易设置、基础信息、首页、数据概览的列表态，渲染正常；弹窗、抽屉和表单提交没有在浏览器里点过。原始清单：
+最初的代码是在没有 Laravel 运行环境的沙箱里写的，只做过 `php -l` 语法检查。2026-10-09 起已在本地跑通：下面第 1、4 步完成；第 2 步除真实支付（缺 Stripe/PayPal 沙箱密钥）外都走过真实 HTTP 链路；第 3 步除纯计算的单元测试（运费、区域匹配、币种换算、退款分摊、积分抵扣）外，已有带数据库的功能测试（`home/tests/Feature/*Test.php` 中继承 `Tests\FeatureTestCase` 的五个类）：下单与库存扣减/回补、支付入账幂等与回调重放（假支付驱动，不是真实渠道）、售后退款全流程、分销佣金/结算/提现、注册登录与提示多语言。真实 Stripe/PayPal 回调验签不在测试范围内。后台页面：2026-10-09 用无头 Edge 逐页截图看过运费模板、销售区域、售后订单、分销四页、短信、交易设置、基础信息、首页、数据概览的列表态，渲染正常；弹窗、抽屉和表单提交没有在浏览器里点过。原始清单：
 1. `composer install`、配置 `.env`、`php artisan migrate`，`php artisan route:list` 确认路由。
 2. 逐模块冒烟测试：登录 → 商品 → 地址 → 购物车 → 下单 → 取消/超时关闭 → 支付（Stripe/PayPal 沙箱密钥）。
 3. 补 PHPUnit/Pest 测试，重点：金额计算、库存扣减/回补、支付幂等与回调重放。
 4. `cd admin-web && npm install && npm run build` 确认前端能构建（沙箱里没构建过）。
 
 ## 常用命令
+- 测试：在 `home/` 下 `php artisan test`（单个文件：`php artisan test tests/Feature/RefundFlowTest.php`）。功能测试连独立的 MySQL 库 `gmmall_test`（`phpunit.xml` 里配置，新环境先 `CREATE DATABASE gmmall_test`），首次运行自动建表，每个测试在事务里跑完回滚；基类会拒绝在库名不以 `_test` 结尾的库上运行。新的功能测试继承 `Tests\FeatureTestCase`，用它的 `makeMember/makeAddress/makeSku/placeOrder/pay/api/adminApi`。
 - 迁移：`php artisan migrate`；若旧表是手工导入 `gm_mall_step1.sql`，只跑新增迁移用 `--path=`。
 - 定时任务：`mall:close-expired-orders`、`mall:auto-receive`、`mall:pay-compensate`、`mall:distribution-settle`，调度已写在 `routes/console.php`；服务器上要加一条每分钟执行 `php artisan schedule:run` 的 cron 才会生效。
 - 联调命令：`mall:dev-order {member_id} {sku_id} {qty}`（造测试订单，`--paid` 模拟已付）、`mall:dev-pay {order_no} {stripe|paypal}`（发起支付，`--confirm` 确认入账）。

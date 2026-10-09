@@ -40,6 +40,16 @@ class RegionPricingTest extends TestCase
         ];
     }
 
+    public function test_pick_chain_orders_city_region_before_province_region(): void
+    {
+        // 深圳同时命中市级区域和整省区域：市级在前，整省作为回退
+        $this->assertSame([2, 1], SaleRegionService::pickChain(self::AREAS, 'CN', '广东省', '深圳市'));
+        $this->assertSame([1], SaleRegionService::pickChain(self::AREAS, 'CN', '广东省', '广州市'));
+        $this->assertSame([3], SaleRegionService::pickChain(self::AREAS, 'CN', '浙江省', '杭州市'));
+        $this->assertSame([4], SaleRegionService::pickChain(self::AREAS, 'US', '', ''));
+        $this->assertSame([], SaleRegionService::pickChain(self::AREAS, 'JP', '', ''));
+    }
+
     #[DataProvider('convertCases')]
     public function test_convert_between_currencies(string $amount, string $fromRate, string $toRate, int $decimals, string $expected): void
     {

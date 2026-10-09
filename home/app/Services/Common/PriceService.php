@@ -32,11 +32,11 @@ class PriceService
     }
 
     /**
-     * 取价顺序：销售区域价（该 SKU 在该区域有定价时）→ 币种单独定价 → 基准价 × 汇率。
+     * 取价顺序：销售区域价（市级区域没填则用整省区域的）→ 币种单独定价 → 基准价 × 汇率。
      * 区域价按区域的定价币种填写，买家用其他币种结算时按汇率换算。
      *
      * @param array<int,string> $basePrices sku_id => 基准币种价
-     * @param array{id:int,name:string,currency:string}|null $region 收货地址命中的销售区域，null 表示标准价
+     * @param array{id:int,name:string,currency:string,fallback?:array}|null $region SaleRegionService::match 的结果，null 表示标准价
      * @return array<int,string> sku_id => 目标币种单价
      */
     public function unitPrices(array $basePrices, string $currency, ?array $region = null): array
@@ -48,19 +48,27 @@ class PriceService
         $skuIds = array_keys($basePrices);
         $own = DB::table('goods_price')->whereIn('sku_id', $skuIds)->where('currency', $cur['code'])->pluck('price', 'sku_id');
 
-        $regional = [];
-        $regionRate = $region ? $this->enabledRate($region['currency']) : null;
-        if ($regionRate !== null) {
-            $regional = DB::table('goods_region_price')->whereIn('sku_id', $skuIds)->where('region_id', $region['id'])->pluck('price', 'sku_id')->all();
+        // 区域价逐级回退：市级区域 → 整省区域（$region['fallback']）；定价币种未启用的区域无法换算，跳过
+        $tiers = [];
+        for ($r = $region; $r; $r = $r['fallback'] ?? null) {
+            $rate = $this->enabledRate($r['currency']);
+            if ($rate !== null) {
+                $tiers[] = [
+                    'currency' => $r['currency'], 'rate' => $rate,
+                    'prices' => DB::table('goods_region_price')->whereIn('sku_id', $skuIds)->where('region_id', $r['id'])->pluck('price', 'sku_id')->all(),
+                ];
+            }
         }
 
         $out = [];
         foreach ($basePrices as $skuId => $base) {
-            if (isset($regional[$skuId])) {
-                $out[$skuId] = $region['currency'] === $cur['code']
-                    ? bcadd((string) $regional[$skuId], '0', 2)
-                    : Money::convert((string) $regional[$skuId], $regionRate, $cur['rate'], $cur['decimals']);
-                continue;
+            foreach ($tiers as $t) {
+                if (isset($t['prices'][$skuId])) {
+                    $out[$skuId] = $t['currency'] === $cur['code']
+                        ? bcadd((string) $t['prices'][$skuId], '0', 2)
+                        : Money::convert((string) $t['prices'][$skuId], $t['rate'], $cur['rate'], $cur['decimals']);
+                    continue 2;
+                }
             }
             $out[$skuId] = isset($own[$skuId])
                 ? bcadd((string) $own[$skuId], '0', 2)

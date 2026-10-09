@@ -320,7 +320,7 @@ async function onStockDone() {
                   <el-input-number v-model="form.region_prices[r.id]" :min="0" :precision="2" :controls="false" placeholder="留空按标准价" style="width: 200px" />
                   <span class="hint-inline">{{ r.currency }}</span>
                 </div>
-                <div class="hint-inline" style="margin-left: 0">收货地址属于该区域时按区域价销售，留空则按上面的标准价。区域在 商品 → 销售区域 里维护</div>
+                <div class="hint-inline" style="margin-left: 0">收货地址属于该区域时按区域价销售。市级区域留空时用所在省的区域价，都没填则按上面的标准价。区域在 商品 → 销售区域 里维护</div>
               </div>
             </el-form-item>
 

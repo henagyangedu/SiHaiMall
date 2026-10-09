@@ -103,7 +103,7 @@ function applyBatch() {
         <template #default="{ row }"><el-switch v-model="row.status" :active-value="1" :inactive-value="0" size="small" /></template>
       </el-table-column>
     </el-table>
-    <div class="tip">共 {{ rows.length }} 个规格组合；停用的组合不可购买。已有组合的库存只能点“调整”修改，新增组合可直接填写初始库存。<template v-if="regions.length">销售区域价留空表示该区域按标准价销售。</template></div>
+    <div class="tip">共 {{ rows.length }} 个规格组合；停用的组合不可购买。已有组合的库存只能点“调整”修改，新增组合可直接填写初始库存。<template v-if="regions.length">销售区域价留空时，市级区域用所在省的区域价，都没填则按标准价。</template></div>
   </div>
 </template>
 

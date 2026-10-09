@@ -124,7 +124,7 @@ onMounted(async () => {
       </el-form>
 
       <el-alert type="info" :closable="false" show-icon style="margin-bottom: 12px">
-        商品可以为每个销售区域单独定价（在商品的“价格库存”里填写）。下单时按收货地址匹配区域：国内按“省 + 市”优先、其次整个省，境外按国家；没有匹配到区域或商品没填该区域价时，按标准价销售。
+        商品可以为每个销售区域单独定价（在商品的“价格库存”里填写）。下单时按收货地址匹配区域：国内按“省 + 市”优先、其次整个省，境外按国家。商品没填市级区域的价时，先用所在省的区域价；都没有或没有匹配到区域时，按标准价销售。
       </el-alert>
 
       <el-table v-loading="loading" :data="list" border stripe>
@@ -182,7 +182,7 @@ onMounted(async () => {
               <el-button link type="danger" :disabled="form.areas.length === 1" @click="form.areas.splice(i, 1)">删除</el-button>
             </div>
             <el-button @click="form.areas.push(newArea())">添加省份</el-button>
-            <div class="note">城市留空表示整个省。“整个省”和“该省的某个市”可以分属两个区域，匹配时市优先。</div>
+            <div class="note">城市留空表示整个省。“整个省”和“该省的某个市”可以分属两个区域，匹配时市优先；商品没填市级区域的价时，用整省区域的价。</div>
           </div>
         </el-form-item>
         <el-form-item v-else label="国家/地区" required>

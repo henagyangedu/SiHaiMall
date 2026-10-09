@@ -28,11 +28,11 @@ class PayService
 
     /**
      * 渠道自身的限制（和后台配置无关）：能用在哪些来源端、只收哪些币种。没写的表示不限。
-     * 微信支付只有小程序和手机浏览器两种付法、只收人民币；支付宝只有手机和电脑浏览器两种、只收人民币；跳转收银台的渠道在小程序里打不开。
+     * 微信支付有小程序、手机浏览器、电脑扫码三种付法，只收人民币；支付宝只有手机和电脑浏览器两种、只收人民币；跳转收银台的渠道在小程序里打不开。
      */
     private const LIMITS = [
         'alipay' => ['scenes' => ['h5', 'pc'], 'currencies' => ['CNY']],
-        'wechat' => ['scenes' => ['mp', 'h5'], 'currencies' => ['CNY']],
+        'wechat' => ['scenes' => ['mp', 'h5', 'pc'], 'currencies' => ['CNY']],
         'stripe' => ['scenes' => ['h5', 'pc', 'app']],
         'paypal' => ['scenes' => ['h5', 'pc', 'app']],
     ];

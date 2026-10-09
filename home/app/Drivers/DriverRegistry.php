@@ -120,7 +120,7 @@ class DriverRegistry
                     ],
                     'wechat' => [
                         'name'   => '微信支付',
-                        'desc'   => '微信支付 API v3（直连商户）。小程序里调起支付，手机浏览器里跳转微信付款（H5 支付需在商户平台开通并登记域名）。只支持人民币订单。回调地址：站点域名/notify/pay/wechat，必须是公网可访问的 HTTPS 地址。',
+                        'desc'   => '微信支付 API v3（直连商户）。小程序里调起支付，手机浏览器里跳转微信付款（H5 支付需在商户平台开通并登记域名），电脑上显示二维码扫码付款（需开通 Native 支付）。只支持人民币订单。回调地址：站点域名/notify/pay/wechat，必须是公网可访问的 HTTPS 地址。',
                         'fields' => [
                             'mch_id'        => ['label' => '商户号', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => '微信支付商户平台的商户号（mchid）'],
                             'api_v3_key'    => ['label' => 'APIv3 密钥', 'type' => 'secret', 'required' => true, 'default' => '', 'hint' => '商户平台 → API 安全 里设置的 32 位密钥，用于解密回调。加密保存，页面不再显示'],
@@ -130,7 +130,7 @@ class DriverRegistry
                             'public_key'    => ['label' => '微信支付公钥', 'type' => 'textarea', 'required' => true, 'default' => '', 'hint' => '下载的 pub_key.pem 的完整内容，用于验证回调确实来自微信'],
                             'mp_app_id'     => ['label' => '小程序 AppID', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '要在小程序里收款就必须填，且该小程序已在商户平台关联'],
                             'mp_app_secret' => ['label' => '小程序 AppSecret', 'type' => 'secret', 'required' => false, 'default' => '', 'hint' => '付款时用它把小程序登录凭证换成 openid。加密保存，页面不再显示'],
-                            'h5_app_id'     => ['label' => 'H5 支付 AppID', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。H5 支付使用的公众号或小程序 AppID；不填则用上面的小程序 AppID'],
+                            'h5_app_id'     => ['label' => 'H5 / 扫码支付 AppID', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。H5 支付和电脑扫码支付使用的公众号或小程序 AppID；不填则用上面的小程序 AppID'],
                             'api_base'      => ['label' => '接口地址', 'type' => 'text', 'required' => false, 'default' => 'https://api.mch.weixin.qq.com', 'hint' => '一般不用改'],
                             'timeout'       => ['label' => '超时（秒）', 'type' => 'text', 'required' => false, 'default' => '30', 'hint' => ''],
                             'proxy'         => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。服务器在境外、直连微信支付不稳定时填写'],

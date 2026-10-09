@@ -163,13 +163,40 @@ class WechatPayTest extends FeatureTestCase
         $this->assertNotSame($r->json('data.trade_no'), $again->json('data.trade_no'));
     }
 
+    public function test_pc_payment_returns_a_qr_code_to_scan(): void
+    {
+        Http::fake(['api.mch.weixin.qq.com/v3/pay/transactions/native' => Http::response(['code_url' => 'weixin://wxpay/bizpayurl?pr=p4lpSuKzz'])]);
+
+        $r = $this->startPay('pc');
+
+        $r->assertJsonPath('code', 0);
+        $this->assertSame(['', 'weixin://wxpay/bizpayurl?pr=p4lpSuKzz'], [$r->json('data.redirect_url'), $r->json('data.client_params.code_url')]);
+        $tradeNo = $r->json('data.trade_no');
+        Http::assertSent(function (HttpRequest $req) use ($tradeNo) {
+            $this->assertSignedByMerchant($req, 'POST', '/v3/pay/transactions/native');
+            $b = json_decode($req->body(), true);
+            $this->assertSame(['wxmp0000000000001', $tradeNo, ['total' => 19980, 'currency' => 'CNY']], [$b['appid'], $b['out_trade_no'], $b['amount']]);
+            // 扫码支付不需要付款人信息，也没有回跳
+            $this->assertArrayNotHasKey('payer', $b);
+            $this->assertArrayNotHasKey('scene_info', $b);
+
+            return true;
+        });
+
+        // 买家扫码付款后，页面轮询到支付成功
+        Http::fake(["api.mch.weixin.qq.com/v3/pay/transactions/out-trade-no/{$tradeNo}*" => Http::response(
+            ['trade_state' => 'SUCCESS', 'out_trade_no' => $tradeNo, 'transaction_id' => '4200000000000000009', 'amount' => ['total' => 19980, 'currency' => 'CNY']])]);
+        $this->api('GET', "/pay/{$tradeNo}/confirm", [], $this->token)->assertJsonPath('data.status', 'success');
+        $this->assertSame(OrderStatus::PAY_PAID, (int) $this->order->fresh()->pay_status);
+    }
+
     public function test_wechat_pay_is_only_offered_where_it_can_work(): void
     {
         $channels = fn (string $source, ?Order $o = null) => array_column($this->api('GET', '/orders/'.($o ?? $this->order)->order_no.'/pay/channels', [], $this->token, ['X-Source' => $source])->json('data'), 'channel');
 
         $this->assertSame(['wechat'], $channels('mp'));
         $this->assertSame(['wechat'], $channels('h5'));
-        $this->assertSame([], $channels('pc'));
+        $this->assertSame(['wechat'], $channels('pc'));
         $this->assertSame([], $channels('app'));
 
         // 美元订单不能用微信支付

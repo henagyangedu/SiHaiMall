@@ -13,7 +13,8 @@ use Illuminate\Support\Str;
 /**
  * 微信支付（API v3，直连商户）。无需 SDK，直接调 REST 接口。
  *
- * - 场景：小程序里用 JSAPI 支付（scene=mp，付款时由小程序 wx.login 的 code 换 openid）；手机浏览器用 H5 支付（scene=h5）。
+ * - 场景：小程序里用 JSAPI 支付（scene=mp，付款时由小程序 wx.login 的 code 换 openid）；手机浏览器用 H5 支付（scene=h5）；
+ *   电脑浏览器用 Native 扫码支付（scene=pc，返回二维码内容，页面显示二维码让买家用手机微信扫）。
  * - 只支持人民币。
  * - 请求签名：商户 API 证书私钥，SHA256-RSA，签名串为 方法\n路径\n时间戳\n随机串\n报文\n。
  * - 回调验签：微信支付公钥（商户平台“微信支付公钥”模式，不是平台证书）；回调内容用 APIv3 密钥做 AES-256-GCM 解密。
@@ -85,6 +86,21 @@ class WechatDriver extends BasePayDriver implements PayDriver
 
             // H5 下单不返回渠道单号，支付成功后回调或查单时才有
             return new PayResult(redirectUrl: $url);
+        }
+
+        if ($req->scene === 'pc') {
+            $appId = $this->cfg('h5_app_id') ?: $this->cfg('mp_app_id');
+            if ($appId === '') {
+                throw new BusinessException('微信支付还没有配置 AppID');
+            }
+            $j = $this->call('POST', '/v3/pay/transactions/native', $body + ['appid' => $appId], '发起微信支付');
+            $codeUrl = (string) ($j['code_url'] ?? '');
+            if ($codeUrl === '') {
+                throw new BusinessException('发起微信支付失败，请稍后重试');
+            }
+
+            // code_url 是二维码的内容（weixin:// 开头），由页面画成二维码；有效期 2 小时
+            return new PayResult(clientParams: ['code_url' => $codeUrl]);
         }
 
         throw new BusinessException('微信支付暂不支持当前终端');

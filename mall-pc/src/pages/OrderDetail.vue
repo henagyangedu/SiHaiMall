@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import QRCode from 'qrcode'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
@@ -52,12 +53,43 @@ async function pay(channel) {
     const back = window.location.href.replace(/([?&])pay=1(&|$)/, (m, a, b) => (b ? a : ''))
     const r = await startPay(orderNo, { channel, return_url: back })
     try { localStorage.setItem(tradeKey, r.trade_no) } catch (e) { /* 忽略 */ }
-    if (r.redirect_url) window.location.href = r.redirect_url
-    else paying.value = ''
+    if (r.redirect_url) {
+      window.location.href = r.redirect_url
+    } else if (r.client_params?.code_url) {
+      // 扫码支付（微信）：把渠道给的内容画成二维码，买家用手机扫
+      payDialog.value = false
+      paying.value = ''
+      await openScan(r.client_params.code_url)
+    } else {
+      paying.value = ''
+    }
   } catch (e) {
     paying.value = ''
   }
 }
+// ---- 扫码支付：显示二维码，每 3 秒问一次后端有没有到账；关掉弹窗就停止
+const scan = reactive({ show: false, image: '' })
+let scanTimer = null
+async function openScan(codeUrl) {
+  scan.image = await QRCode.toDataURL(codeUrl, { width: 240, margin: 1 })
+  scan.show = true
+  clearInterval(scanTimer)
+  scanTimer = setInterval(async () => {
+    const status = await checkTrade()
+    // 还没付，或这一次查询没成功（网络抖动）：继续等
+    if (status === 'pending' || status === '') return
+    closeScan()
+    if (status === 'success') ElMessage.success(t('order.paidSuccess'))
+    load()
+  }, 3000)
+}
+function closeScan() {
+  clearInterval(scanTimer)
+  scanTimer = null
+  scan.show = false
+}
+onUnmounted(() => clearInterval(scanTimer))
+
 // 买家在另一个窗口付完款后，手动点“我已完成支付”
 async function onPaidCheck() {
   const status = await checkTrade()
@@ -179,6 +211,15 @@ onMounted(async () => {
         <el-button type="primary" plain @click="onPaidCheck">{{ t('pc.payCheck') }}</el-button>
       </template>
     </el-dialog>
+
+    <el-dialog :model-value="scan.show" :title="t('pc.scanTitle')" width="360px" :close-on-click-modal="false" @update:model-value="(v) => !v && closeScan()">
+      <div class="scan">
+        <img :src="scan.image" alt="" class="qr" />
+        <div>{{ t('pc.scanTip') }}</div>
+        <div class="price scan-amount">{{ money(order.pay_amount, order.currency) }}</div>
+        <div class="sub">{{ t('pc.scanWaiting') }}</div>
+      </div>
+    </el-dialog>
   </template>
 </template>
 
@@ -201,4 +242,7 @@ onMounted(async () => {
 .total { font-size: 22px; }
 .channel { display: block; width: 100%; margin: 0 0 12px !important; }
 .tip { text-align: center; }
+.scan { text-align: center; line-height: 1.9; }
+.qr { width: 240px; height: 240px; display: block; margin: 0 auto 12px; }
+.scan-amount { font-size: 22px; }
 </style>

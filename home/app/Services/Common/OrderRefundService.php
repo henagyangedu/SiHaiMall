@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\DB;
  *   商家审核时可以改退款金额（不超过订单剩余可退金额）。
  * - 有进行中的售后时订单为“售后中”，全部处理完后回到应有状态；商品全部退完则订单关闭。
  * - 库存：未发货的退款、退货退款完成时回补库存；已发货的仅退款不回补。
+ * - 积分：下单抵扣的积分在商品全部退完（订单关闭）时一次性退还；部分退款不退积分。
  * - 资金：在线支付的订单调用支付渠道原路退回；线下收款的订单只能登记“线下已退款”。
  */
 class OrderRefundService
@@ -36,6 +37,7 @@ class OrderRefundService
         private OrderStockService $stock,
         private ConfigService $config,
         private DriverManager $drivers,
+        private OrderPointsService $points,
     ) {}
 
     // ------------------------------------------------------------------ 可退信息
@@ -303,6 +305,7 @@ class OrderRefundService
         if ($left->isEmpty()) {
             $to = OrderStatus::CLOSED;
             $extra['cancel_reason'] = '商品已全部退款';
+            $this->points->giveBack($order, '商品已全部退款，退还抵扣积分');
         } elseif ($order->finished_at) {
             // 已完成的订单（含无需发货的虚拟商品订单）售后结束后仍是已完成
             $to = OrderStatus::FINISHED;

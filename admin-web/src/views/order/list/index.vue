@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { listOrder, orderCounts, getOrder, setOrderRemark, changeOrderPrice, cancelOrder, receiveOrder } from '@/api/order'
+import { listOrder, orderCounts, getOrder, setOrderRemark, changeOrderPrice, cancelOrder, receiveOrder, exportOrders } from '@/api/order'
 import { hasPerm } from '@/utils/perm'
 import OrderDetail from '../OrderDetail.vue'
 
@@ -11,11 +11,14 @@ const total = ref(0)
 const loading = ref(false)
 const counts = ref([])
 
+function filters() {
+  const [from, to] = query.range || []
+  return { order_no: query.order_no, keyword: query.keyword, status: query.status, pay_status: query.pay_status, date_from: from || '', date_to: to || '' }
+}
 async function load() {
   loading.value = true
   try {
-    const [from, to] = query.range || []
-    const d = await listOrder({ order_no: query.order_no, keyword: query.keyword, status: query.status, pay_status: query.pay_status, date_from: from || '', date_to: to || '', page: query.page, size: query.size })
+    const d = await listOrder({ ...filters(), page: query.page, size: query.size })
     list.value = d.list
     total.value = d.total
   } finally {
@@ -26,6 +29,18 @@ async function load() {
 function search() {
   query.page = 1
   load()
+}
+// 导出当前筛选条件下的订单（最多 5 万条）
+const exporting = ref(false)
+async function onExport() {
+  exporting.value = true
+  try {
+    await exportOrders(filters())
+  } catch (e) {
+    ElMessage.error(e.message || '导出失败')
+  } finally {
+    exporting.value = false
+  }
 }
 function onTab(name) {
   query.status = name === 'all' ? '' : Number(name)
@@ -98,7 +113,10 @@ onMounted(load)
           </el-select>
         </el-form-item>
         <el-form-item><el-date-picker v-model="query.range" type="daterange" value-format="YYYY-MM-DD" range-separator="至" start-placeholder="下单开始" end-placeholder="下单结束" @change="search" /></el-form-item>
-        <el-form-item><el-button type="primary" @click="search">查询</el-button></el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="search">查询</el-button>
+          <el-button v-perm="'order:list:export'" :loading="exporting" @click="onExport">导出 CSV</el-button>
+        </el-form-item>
       </el-form>
 
       <el-table v-loading="loading" :data="list" border stripe>

@@ -209,6 +209,7 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::prefix('order')->group(function () {
         Route::get('list', [OrderController::class, 'index'])->middleware('perm:order:list:view');
         Route::get('counts', [OrderController::class, 'counts'])->middleware('perm:order:list:view');
+        Route::get('list/export', [OrderController::class, 'export'])->middleware(['throttle:10,1', 'perm:order:list:export']);
         Route::get('list/{id}', [OrderController::class, 'show'])->middleware('perm:order:list:detail,order:ship:view');
         Route::post('list/{id}/remark', [OrderController::class, 'remark'])->middleware('perm:order:list:remark');
         Route::post('list/{id}/price', [OrderController::class, 'price'])->middleware('perm:order:list:price');

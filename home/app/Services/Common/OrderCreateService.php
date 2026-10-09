@@ -28,12 +28,13 @@ class OrderCreateService
         private ShippingFeeService $shippingFee,
         private PriceService $price,
         private SaleRegionService $regions,
+        private OrderPointsService $points,
     ) {}
 
     /**
      * @param array<int,array{sku_id:int,qty:int}> $lines
      * @param array<string,mixed> $address name,phone,phone_area,country_code,province,city,district,address,address2,postcode
-     * @param array{currency?:string,lang?:string,source?:string,remark?:string,source_member_id?:int} $opts
+     * @param array{currency?:string,lang?:string,source?:string,remark?:string,source_member_id?:int,use_points?:bool} $opts
      */
     public function create(int $memberId, array $lines, array $address, array $opts = []): Order
     {
@@ -74,12 +75,18 @@ class OrderCreateService
                 throw new BusinessException('未达到最低下单金额');
             }
 
-            $shipping =$needShip ? $this->calcShipping($rows, $address, $cur) : '0.00';
+            $shipping = $needShip ? $this->calcShipping($rows, $address, $cur) : '0.00';
             $discount = $this->levelDiscount($member, $goodsAmount);
-            $pay = bcsub(bcadd($goodsAmount, $shipping, 2), $discount, 2);
+            // 积分抵扣：锁住会员行后按最新积分计算，抵扣金额不会达到商品金额（见 OrderPointsService::quote）
+            $points = ['points' => 0, 'amount' => '0.00'];
+            if (!empty($opts['use_points'])) {
+                $locked = Member::query()->lockForUpdate()->find($member->id);
+                $points = $this->points->quote($locked, bcsub($goodsAmount, $discount, 2), $cur['rate'], $cur['decimals']);
+            }
+            $pay = bcsub(bcsub(bcadd($goodsAmount, $shipping, 2), $discount, 2), $points['amount'], 2);
             if (bccomp($pay, '0.01', 2) < 0) {
                 $pay = '0.01'; // 支付渠道不接受 0 元单
-                $discount = bcsub(bcadd($goodsAmount, $shipping, 2), $pay, 2);
+                $discount = bcsub(bcsub(bcadd($goodsAmount, $shipping, 2), $points['amount'], 2), $pay, 2);
             }
 
             $orderNo = $this->makeOrderNo();
@@ -88,7 +95,7 @@ class OrderCreateService
                 'source' => (string) ($opts['source'] ?? $member->register_source ?: ''),
                 'lang' => $lang, 'currency' => $currency, 'rate' => $cur['rate'],
                 'goods_amount' => $goodsAmount, 'shipping_fee' => $shipping, 'discount_amount' => $discount,
-                'points_amount' => '0.00', 'pay_amount' => $pay, 'base_pay_amount' => Money::toBase($pay, $cur['rate']),
+                'points_amount' => $points['amount'], 'pay_amount' => $pay, 'base_pay_amount' => Money::toBase($pay, $cur['rate']),
                 'status' => OrderStatus::PENDING, 'pay_status' => OrderStatus::PAY_UNPAID,
                 'remark' => mb_substr((string) ($opts['remark'] ?? ''), 0, 500),
                 'source_member_id' => (int) ($opts['source_member_id'] ?? 0),
@@ -111,6 +118,8 @@ class OrderCreateService
             if ($needShip) {
                 OrderAddress::query()->create(['order_id' => $order->id] + $address);
             }
+
+            $this->points->spend((int) $member->id, $points['points'], $orderNo);
 
             if (($trade['stock_deduct_mode'] ?? 'order') === 'order') {
                 $this->stock->deduct($need, $orderNo);

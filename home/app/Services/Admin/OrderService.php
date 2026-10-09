@@ -54,6 +54,58 @@ class OrderService
         return Paginate::format($paginator);
     }
 
+    public const EXPORT_HEAD = [
+        '订单号', '下单时间', '订单状态', '支付状态', '支付方式', '会员', '币种', '商品金额', '运费', '优惠', '积分抵扣', '应付', '折合基准币种',
+        '定价区域', '商品明细', '收件人', '电话', '国家', '省', '市', '区', '详细地址', '买家留言', '商家备注', '支付时间', '发货时间', '完成时间',
+    ];
+
+    private const MAX_EXPORT = 50000;
+
+    /** 导出：按列表页同样的筛选条件分批读取，最多 5 万行；返回生成器供控制器流式输出 */
+    public function exportRows(array $f): \Generator
+    {
+        $n = 0;
+        // 每 500 单一批取会员、地址、商品明细，避免逐单查询
+        foreach ($this->filtered($f, null)->lazyByIdDesc(500)->chunk(500) as $chunk) {
+            foreach ($this->exportBatch($chunk->values()->all()) as $row) {
+                if (++$n > self::MAX_EXPORT) {
+                    return;
+                }
+                yield $row;
+            }
+        }
+    }
+
+    /** @param Order[] $orders */
+    private function exportBatch(array $orders): array
+    {
+        if ($orders === []) {
+            return [];
+        }
+        $ids = array_map(fn (Order $o) => (int) $o->id, $orders);
+        $members = DB::table('member')->whereIn('id', array_unique(array_map(fn (Order $o) => (int) $o->member_id, $orders)))->get(['id', 'nickname', 'account'])->keyBy('id');
+        $addr = DB::table('order_address')->whereIn('order_id', $ids)->get()->keyBy('order_id');
+        $items = DB::table('order_item')->whereIn('order_id', $ids)->orderBy('id')->get()->groupBy('order_id');
+
+        $fmt = fn ($t) => $t?->format('Y-m-d H:i:s') ?? '';
+        $rows = [];
+        foreach ($orders as $o) {
+            $m = $members->get($o->member_id);
+            $a = $addr->get($o->id);
+            $goods = $items->get($o->id, collect())->map(fn ($i) => trim($i->title . ' ' . $i->spec_text) . ' ×' . (int) $i->qty)->implode('；');
+            $rows[] = [
+                $o->order_no, $fmt($o->created_at), OrderStatus::TEXT[(int) $o->status] ?? '', OrderStatus::PAY_TEXT[(int) $o->pay_status] ?? '', $o->pay_channel,
+                $m ? ($m->nickname ?: $m->account ?: '#' . $m->id) : '#' . $o->member_id, $o->currency,
+                (string) $o->goods_amount, (string) $o->shipping_fee, (string) $o->discount_amount, (string) $o->points_amount, (string) $o->pay_amount, (string) $o->base_pay_amount,
+                (string) $o->price_region_name, $goods,
+                $a->name ?? '', $a ? trim($a->phone_area . ' ' . $a->phone) : '', $a->country_code ?? '', $a->province ?? '', $a->city ?? '', $a->district ?? '',
+                $a ? trim($a->address . ' ' . $a->address2) : '', $o->remark, $o->admin_remark, $fmt($o->paid_at), $fmt($o->shipped_at), $fmt($o->finished_at),
+            ];
+        }
+
+        return $rows;
+    }
+
     /** 各状态订单数（列表页页签角标） */
     public function counts(): array
     {

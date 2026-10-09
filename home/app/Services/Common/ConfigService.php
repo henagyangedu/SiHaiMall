@@ -34,6 +34,9 @@ class ConfigService
             'after_sale_days'      => ['label' => '售后申请期限（天）', 'type' => 'int', 'min' => 0, 'max' => 90, 'default' => 7],
             'stock_deduct_mode'    => ['label' => '库存扣减时机', 'type' => 'enum', 'options' => ['order', 'pay'], 'default' => 'order'],
             'min_order_amount'     => ['label' => '最低下单金额', 'type' => 'decimal', 'min' => 0, 'default' => '0'],
+            'points_deduct_enabled' => ['label' => '下单积分抵扣', 'type' => 'bool', 'default' => 0],
+            'points_per_unit'      => ['label' => '多少积分抵 1 元（基准币种）', 'type' => 'int', 'min' => 1, 'max' => 1000000, 'default' => 100],
+            'points_max_percent'   => ['label' => '积分最多抵扣商品金额的百分比', 'type' => 'int', 'min' => 1, 'max' => 99, 'default' => 50],
         ],
     ];
 

@@ -20,6 +20,23 @@ class OrderController extends BaseAdminController
         return ApiResponse::ok($this->service->list($request->only(self::FILTERS)));
     }
 
+    /** 导出 CSV（与列表相同的筛选条件，流式输出） */
+    public function export(Request $request)
+    {
+        $filters = $request->only(self::FILTERS);
+
+        return response()->streamDownload(function () use ($filters) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, OrderService::EXPORT_HEAD, ',', '"', '');
+            foreach ($this->service->exportRows($filters) as $row) {
+                // 以 = + - @ 开头的文本前面加单引号，防止表格软件把它当公式执行
+                fputcsv($out, array_map(fn ($v) => is_string($v) && $v !== '' && str_contains('=+-@', $v[0]) ? "'" . $v : $v, $row), ',', '"', '');
+            }
+            fclose($out);
+        }, 'orders_' . date('Ymd_His') . '.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
     public function counts()
     {
         return ApiResponse::ok($this->service->counts());

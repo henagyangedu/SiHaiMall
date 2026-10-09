@@ -11,6 +11,9 @@ const form = reactive({
   after_sale_days: 7,
   stock_deduct_mode: 'order',
   min_order_amount: '0',
+  points_deduct_enabled: 0,
+  points_per_unit: 100,
+  points_max_percent: 50,
 })
 
 async function load() {
@@ -61,6 +64,23 @@ onMounted(load)
           <el-input-number v-model="form.min_order_amount" :min="0" :precision="2" :controls="false" />
           <span class="unit">按基准币种计，0 表示不限制</span>
         </el-form-item>
+        <el-form-item label="下单积分抵扣">
+          <el-switch v-model="form.points_deduct_enabled" :active-value="1" :inactive-value="0" />
+          <span class="unit">开启后买家下单时可以用积分抵扣部分商品金额</span>
+        </el-form-item>
+        <template v-if="form.points_deduct_enabled">
+          <el-form-item label="积分兑换比例">
+            <el-input-number v-model="form.points_per_unit" :min="1" :max="1000000" />
+            <span class="unit">个积分抵 1 元（按基准币种计，其他币种按汇率折算）</span>
+          </el-form-item>
+          <el-form-item label="积分抵扣上限">
+            <el-input-number v-model="form.points_max_percent" :min="1" :max="99" />
+            <span class="unit">%（最多抵扣“商品金额 - 会员折扣”的比例，运费不参与）</span>
+          </el-form-item>
+          <el-form-item label="积分退还">
+            <span class="unit" style="margin-left: 0">订单取消、超时关闭或商品全部退款时，抵扣的积分自动退还；部分退款不退积分。</span>
+          </el-form-item>
+        </template>
         <el-form-item>
           <el-button v-perm="'setting:trade:edit'" type="primary" :loading="saving" @click="submit">保存设置</el-button>
         </el-form-item>

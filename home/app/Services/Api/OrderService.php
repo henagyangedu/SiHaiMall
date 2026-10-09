@@ -6,6 +6,7 @@ use App\Models\Member;
 use App\Models\Order;
 use App\Services\Common\OrderCloseService;
 use App\Services\Common\OrderCreateService;
+use App\Services\Common\OrderPointsService;
 use App\Services\Common\OrderStatusService;
 use App\Services\Common\PriceService;
 use App\Services\Common\SaleRegionService;
@@ -35,12 +36,14 @@ class OrderService
         private PriceService $price,
         private ShippingFeeService $shippingFee,
         private SaleRegionService $regions,
+        private OrderPointsService $points,
     ) {}
 
     /**
      * 结算预览（不占库存、不落库）。区域价和运费按所选地址（未选则默认地址）计算；还没有收货地址时按标准价、运费为 0，
      * 以 need_address=true 且 address=null 提示前端先填地址；地址不在配送范围时写入 problems。
-     * @param array{cart_ids?:int[],items?:array<int,array{sku_id:int,qty:int}>,address_id?:int} $d
+     * 返回的 points 是本单积分抵扣的可用情况；传 use_points=true 时抵扣金额计入 pay_amount。
+     * @param array{cart_ids?:int[],items?:array<int,array{sku_id:int,qty:int}>,address_id?:int,use_points?:bool} $d
      */
     public function checkout(Member $m, array $d, string $lang, string $currency): array
     {
@@ -97,9 +100,15 @@ class OrderService
             }
         }
 
+        $cur = $this->price->currency($currency);
+        $points = $this->points->quote($m->fresh() ?? $m, bcsub($goods, $discount, 2), $cur['rate'], $cur['decimals']);
+        $pointsAmount = !empty($d['use_points']) ? $points['amount'] : '0.00';
+
         return [
             'items' => $items, 'currency' => $currency, 'goods_amount' => $goods, 'shipping_fee' => $shipping,
-            'discount_amount' => $discount, 'pay_amount' => bcsub(bcadd($goods, $shipping, 2), $discount, 2),
+            'discount_amount' => $discount, 'points_amount' => $pointsAmount,
+            'pay_amount' => bcsub(bcsub(bcadd($goods, $shipping, 2), $discount, 2), $pointsAmount, 2),
+            'points' => ['enabled' => $points['enabled'], 'available' => $points['available'], 'usable_points' => $points['points'], 'deduct_amount' => $points['amount']],
             'need_address' => $needShip, 'address' => $address, 'problems' => $problems,
             'price_region' => $region ? ['id' => $region['id'], 'name' => $region['name']] : null,
         ];
@@ -125,6 +134,7 @@ class OrderService
             $order = DB::transaction(function () use ($m, $d, $lines, $address, $lang, $currency, $source) {
                 $order = $this->creator->create($m->id, $lines, $address, [
                     'currency' => $currency, 'lang' => $lang, 'source' => $source, 'remark' => (string) ($d['remark'] ?? ''),
+                    'use_points' => !empty($d['use_points']),
                 ]);
                 if (!empty($d['cart_ids'])) {
                     $this->cart->remove($m->id, array_map('intval', $d['cart_ids']));
@@ -215,7 +225,7 @@ class OrderService
             'order_no' => $o->order_no, 'status' => (int) $o->status, 'status_text' => OrderStatus::TEXT[(int) $o->status] ?? '',
             'pay_status' => (int) $o->pay_status, 'currency' => $o->currency,
             'goods_amount' => (string) $o->goods_amount, 'shipping_fee' => (string) $o->shipping_fee,
-            'discount_amount' => (string) $o->discount_amount, 'pay_amount' => (string) $o->pay_amount,
+            'discount_amount' => (string) $o->discount_amount, 'points_amount' => (string) $o->points_amount, 'pay_amount' => (string) $o->pay_amount,
             'created_at' => $o->created_at?->format('Y-m-d H:i:s'), 'expire_at' => $o->expire_at?->format('Y-m-d H:i:s'),
             'items' => collect($items)->map(fn ($i) => [
                 'goods_id' => (int) $i->goods_id, 'sku_id' => (int) $i->sku_id, 'title' => $i->title, 'spec_text' => $i->spec_text,

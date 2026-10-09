@@ -78,9 +78,9 @@ class MemberController extends BaseAdminController
         return response()->streamDownload(function () use ($filters) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, MemberService::EXPORT_HEAD);
+            fputcsv($out, MemberService::EXPORT_HEAD, ',', '"', '');
             foreach ($this->service->exportRows($filters) as $row) {
-                fputcsv($out, array_map(fn ($v) => is_string($v) && $v !== '' && str_contains('=+-@', $v[0]) ? "'" . $v : $v, $row));
+                fputcsv($out, array_map(fn ($v) => is_string($v) && $v !== '' && str_contains('=+-@', $v[0]) ? "'" . $v : $v, $row), ',', '"', '');
             }
             fclose($out);
         }, $file, ['Content-Type' => 'text/csv; charset=UTF-8']);

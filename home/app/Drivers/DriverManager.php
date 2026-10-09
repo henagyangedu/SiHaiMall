@@ -23,7 +23,7 @@ class DriverManager
     /** 支付驱动登记表：驱动编码 => 实现类（接入时逐个补充） */
     private const PAY_MAP = [
         // 'alipay' => \App\Drivers\Pay\AlipayDriver::class,   // 下一步
-        // 'wechat' => \App\Drivers\Pay\WechatDriver::class,   // 下一步
+        'wechat' => \App\Drivers\Pay\WechatDriver::class,
         'paypal' => \App\Drivers\Pay\PaypalDriver::class,
         'stripe' => \App\Drivers\Pay\StripeDriver::class,
     ];

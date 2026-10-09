@@ -26,13 +26,35 @@ class PayService
 {
     public function __construct(private DriverManager $drivers, private OrderPaidService $paid, private OrderRefundService $refunds) {}
 
+    /**
+     * 渠道自身的限制（和后台配置无关）：能用在哪些来源端、只收哪些币种。没写的表示不限。
+     * 微信支付只有小程序和手机浏览器两种付法、只收人民币；跳转收银台的渠道在小程序里打不开。
+     */
+    private const LIMITS = [
+        'wechat' => ['scenes' => ['mp', 'h5'], 'currencies' => ['CNY']],
+        'stripe' => ['scenes' => ['h5', 'pc', 'app']],
+        'paypal' => ['scenes' => ['h5', 'pc', 'app']],
+    ];
+
+    /** 每次发起都要向渠道重新下单的渠道（微信的支付凭证几分钟就过期，不能复用上一次的） */
+    private const NO_REUSE = ['wechat'];
+
     // ------------------------------------------------------------------ 可用渠道
-    /** 订单可用的支付渠道（已启用且支持该币种） */
-    public function channels(Order $order): array
+    /** 订单可用的支付渠道（已启用、支持该币种、能在当前来源端使用）。$scene 为空表示不按来源端筛选 */
+    public function channels(Order $order, string $scene = ''): array
     {
         $out = [];
         foreach (DriverConfig::query()->where('type', 'pay')->where('is_enabled', 1)->orderBy('sort')->get() as $row) {
+            $limit = self::LIMITS[$row->driver] ?? [];
+            if (($scene !== '' && isset($limit['scenes']) && !in_array($scene, $limit['scenes'], true))
+                || (isset($limit['currencies']) && !in_array(strtoupper($order->currency), $limit['currencies'], true))) {
+                continue;
+            }
             $cfg = $row->config ?? [];
+            // 小程序里用微信支付必须配了小程序 AppID
+            if ($row->driver === 'wechat' && $scene === 'mp' && trim((string) ($cfg['mp_app_id'] ?? '')) === '') {
+                continue;
+            }
             $allow = array_filter(array_map('trim', explode(',', strtoupper((string) ($cfg['currencies'] ?? '')))));
             if ($allow !== [] && !in_array(strtoupper($order->currency), $allow, true)) {
                 continue;
@@ -44,13 +66,17 @@ class PayService
     }
 
     // ------------------------------------------------------------------ 发起支付
-    /** @return array{trade_no:string,redirect_url:string,client_params:array} */
-    public function start(int $orderId, int $memberId, string $channel, string $scene, string $returnUrl = ''): array
+    /**
+     * @param array<string,mixed> $extra 渠道需要的附加信息：wx_code（小程序登录凭证）、client_ip、in_wechat 等
+     * @return array{trade_no:string,redirect_url:string,client_params:array}
+     */
+    public function start(int $orderId, int $memberId, string $channel, string $scene, string $returnUrl = '', array $extra = []): array
     {
-        $returnUrl = $this->safeReturnUrl($returnUrl);
+        // 小程序里付款不会跳转，没有回跳地址可校验
+        $returnUrl = $scene === 'mp' ? '' : $this->safeReturnUrl($returnUrl);
 
         /** @var PayTrade $trade */
-        [$trade, $order, $reuse] = DB::transaction(function () use ($orderId, $memberId, $channel) {
+        [$trade, $order, $reuse] = DB::transaction(function () use ($orderId, $memberId, $channel, $scene) {
             $order = Order::query()->lockForUpdate()->find($orderId) ?? throw new BusinessException('订单不存在');
             if ($memberId > 0 && (int) $order->member_id !== $memberId) {
                 throw new BusinessException('订单不存在');
@@ -61,7 +87,7 @@ class PayService
             if ($order->expire_at && $order->expire_at->isPast()) {
                 throw new BusinessException('订单已超时，请重新下单');
             }
-            if (!in_array($channel, array_column($this->channels($order), 'channel'), true)) {
+            if (!in_array($channel, array_column($this->channels($order, $scene), 'channel'), true)) {
                 throw new BusinessException('该支付方式暂不可用或不支持当前币种');
             }
 
@@ -69,13 +95,15 @@ class PayService
             $old = PayTrade::query()->where('order_id', $order->id)->where('channel', $channel)->where('trade_type', 1)
                 ->where('status', PayTrade::PENDING)->where('amount', $order->pay_amount)->where('currency', $order->currency)
                 ->where('created_at', '>', now()->subMinutes(20))->orderByDesc('id')->first();
-            if ($old && ($old->rawData()['redirect_url'] ?? '') !== '') {
+            if ($old && ($old->rawData()['redirect_url'] ?? '') !== '' && !in_array($channel, self::NO_REUSE, true)) {
                 return [$old, $order, true];
             }
 
+            // 渠道单号先用商城支付单号占位：留空会撞 (channel, channel_trade_no, trade_type) 唯一约束
+            $tradeNo = $this->makeTradeNo();
             $trade = PayTrade::query()->create([
-                'trade_no' => $this->makeTradeNo(), 'order_id' => $order->id, 'member_id' => $order->member_id, 'channel' => $channel,
-                'channel_trade_no' => '', 'trade_type' => 1, 'currency' => $order->currency, 'amount' => $order->pay_amount,
+                'trade_no' => $tradeNo, 'order_id' => $order->id, 'member_id' => $order->member_id, 'channel' => $channel,
+                'channel_trade_no' => $tradeNo, 'trade_type' => 1, 'currency' => $order->currency, 'amount' => $order->pay_amount,
                 'status' => PayTrade::PENDING,
             ]);
 
@@ -92,6 +120,7 @@ class PayService
                 tradeNo: $trade->trade_no, orderNo: $order->order_no, currency: $order->currency, amount: (string) $order->pay_amount,
                 subject: $this->subject($order), scene: $scene, returnUrl: $returnUrl,
                 notifyUrl: rtrim((string) config('app.url'), '/') . '/notify/pay/' . $channel,
+                extra: $extra,
             ));
         } catch (\Throwable $e) {
             $trade->update(['status' => PayTrade::FAILED, 'raw_response' => json_encode(['flag' => '', 'error' => mb_substr($e->getMessage(), 0, 300)], JSON_UNESCAPED_UNICODE)]);
@@ -100,7 +129,7 @@ class PayService
         }
 
         $trade->update([
-            'channel_trade_no' => $res->channelTradeNo,
+            'channel_trade_no' => $res->channelTradeNo !== '' ? $res->channelTradeNo : $trade->trade_no,
             'raw_response'     => json_encode(['redirect_url' => $res->redirectUrl], JSON_UNESCAPED_UNICODE),
         ]);
 
@@ -126,7 +155,7 @@ class PayService
         if ((int) $trade->status === PayTrade::SUCCESS) {
             return 'success';
         }
-        $q = $this->drivers->payForNotify($trade->channel)->confirm($trade->trade_no, (string) $trade->channel_trade_no);
+        $q = $this->drivers->payForNotify($trade->channel)->confirm($trade->trade_no, $trade->channelNo());
         if ($q->status === 'pending') {
             return 'pending';
         }
@@ -215,7 +244,7 @@ class PayService
             if (!$trade) {
                 return [PayNotifyLog::FAIL, '未找到支付单：' . $r->tradeNo];
             }
-            $q = $this->drivers->payForNotify($channel)->confirm($r->tradeNo, $r->channelTradeNo ?: (string) $trade->channel_trade_no);
+            $q = $this->drivers->payForNotify($channel)->confirm($r->tradeNo, $r->channelTradeNo ?: $trade->channelNo());
 
             return $this->settle($r->tradeNo, $q->status, $q->channelTradeNo, $q->currency, $q->amount, '0');
         }
@@ -271,7 +300,7 @@ class PayService
             }
 
             try {
-                $this->paid->markPaid((int) $order->id, $trade->channel, OrderStatus::OP_SYSTEM, 0, "支付成功：{$trade->channel} {$trade->channel_trade_no}");
+                $this->paid->markPaid((int) $order->id, $trade->channel, OrderStatus::OP_SYSTEM, 0, "支付成功：{$trade->channel} {$trade->channelNo()}");
             } catch (BusinessException $e) {
                 $this->flag($trade, '订单处理失败：' . $e->getMessage() . '。款项已收到，请人工退款或处理');
 
@@ -312,7 +341,7 @@ class PayService
     public function compensate(int $limit = 100): int
     {
         $n = 0;
-        PayTrade::query()->where('trade_type', 1)->where('status', PayTrade::PENDING)->where('channel_trade_no', '!=', '')
+        PayTrade::query()->where('trade_type', 1)->where('status', PayTrade::PENDING)
             ->where('created_at', '<', now()->subMinutes(2))->where('created_at', '>', now()->subDay())
             ->orderBy('id')->limit($limit)->get()
             ->each(function (PayTrade $t) use (&$n) {

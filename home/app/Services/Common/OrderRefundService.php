@@ -252,7 +252,7 @@ class OrderRefundService
         $res = (string) $refund->refund_trade_no !== ''
             ? $driver->queryRefund((string) $refund->refund_no, (string) $refund->refund_trade_no)
             : $driver->refund(new RefundRequest(
-                refundNo: (string) $refund->refund_no, tradeNo: (string) $trade->trade_no, channelTradeNo: (string) $trade->channel_trade_no,
+                refundNo: (string) $refund->refund_no, tradeNo: (string) $trade->trade_no, channelTradeNo: $trade->channelNo(),
                 currency: (string) $refund->currency, amount: (string) $refund->refund_amount, totalAmount: (string) $trade->amount,
                 reason: (string) $refund->reason,
             ));

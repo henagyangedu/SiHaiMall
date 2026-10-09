@@ -16,6 +16,8 @@ class PayStartRequest extends FormRequest
         return [
             'channel'    => ['required', 'string', 'max:30', 'regex:/^[a-z0-9_]+$/'],
             'return_url' => ['nullable', 'string', 'max:500'],
+            // 小程序里用微信支付时带上 wx.login 拿到的 code，后端用它换 openid
+            'wx_code'    => ['nullable', 'string', 'max:128'],
         ];
     }
 

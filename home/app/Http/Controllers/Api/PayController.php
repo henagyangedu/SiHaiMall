@@ -14,7 +14,7 @@ class PayController extends ApiController
     /** 订单可用的支付方式 */
     public function channels(Request $request)
     {
-        return ApiResponse::ok($this->service->channels($this->memberId($request), (string) $request->route('orderNo')));
+        return ApiResponse::ok($this->service->channels($this->memberId($request), (string) $request->route('orderNo'), $this->source($request)));
     }
 
     /** 发起支付：scene 由来源端决定（h5 / mp / app / pc），不由客户端任意指定 */
@@ -22,7 +22,11 @@ class PayController extends ApiController
     {
         return ApiResponse::ok($this->service->start(
             $this->memberId($request), (string) $request->route('orderNo'), $request->validated('channel'),
-            $this->source($request), (string) $request->validated('return_url', '')
+            $this->source($request), (string) $request->validated('return_url', ''),
+            [
+                'wx_code' => (string) $request->validated('wx_code', ''), 'client_ip' => (string) $request->ip(),
+                'in_wechat' => str_contains((string) $request->userAgent(), 'MicroMessenger'),
+            ]
         ));
     }
 

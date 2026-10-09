@@ -55,10 +55,22 @@ async function onPay() {
       // #ifdef H5
       returnUrl = window.location.href.replace(/([?&])pay=1/, '$1')
       // #endif
-      const r = await startPay(orderNo.value, { channel: channels[tapIndex].channel, return_url: returnUrl })
+      const channel = channels[tapIndex].channel
+      let wxCode = ''
+      // #ifdef MP-WEIXIN
+      // 微信支付要知道付款人是谁：取一次登录凭证，后端用它换 openid（只用于这次付款）
+      if (channel === 'wechat') wxCode = await new Promise((resolve) => uni.login({ provider: 'weixin', success: (x) => resolve(x.code || ''), fail: () => resolve('') }))
+      // #endif
+      const r = await startPay(orderNo.value, { channel, return_url: returnUrl, wx_code: wxCode })
       uni.setStorageSync(tradeKey(), r.trade_no)
       // #ifdef H5
       if (r.redirect_url) window.location.href = r.redirect_url
+      // #endif
+      // #ifdef MP-WEIXIN
+      if (r.client_params && r.client_params.package) {
+        // 调起微信收银台；付完或取消后都回来向后端确认一次（load 里会用记下的支付单号查）
+        uni.requestPayment({ provider: 'wxpay', ...r.client_params, complete: () => load() })
+      }
       // #endif
     },
   })

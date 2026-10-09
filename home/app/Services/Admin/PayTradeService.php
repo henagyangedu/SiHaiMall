@@ -34,7 +34,7 @@ class PayTradeService
 
             return [
                 'id' => (int) $r->id, 'trade_no' => $r->trade_no, 'order_id' => (int) $r->order_id, 'order_no' => (string) ($r->order_no ?? ''),
-                'channel' => $r->channel, 'channel_trade_no' => $r->channel_trade_no,
+                'channel' => $r->channel, 'channel_trade_no' => $r->channel_trade_no === $r->trade_no ? '' : $r->channel_trade_no,
                 'trade_type' => (int) $r->trade_type, 'trade_type_text' => (int) $r->trade_type === 2 ? '退款' : '支付',
                 'currency' => $r->currency, 'amount' => (string) $r->amount, 'fee_amount' => (string) $r->fee_amount,
                 'status' => (int) $r->status, 'status_text' => PayTrade::STATUS_TEXT[(int) $r->status] ?? '',

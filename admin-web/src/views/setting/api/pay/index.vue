@@ -97,7 +97,8 @@ onMounted(load)
       <el-form v-if="row" label-width="120px">
         <el-alert type="info" :closable="false" style="margin-bottom: 14px" :title="row.desc" />
         <el-form-item v-for="f in row.fields" :key="f.key" :label="f.label" :required="f.required">
-          <el-input v-model="form.config[f.key]" :type="f.type === 'secret' ? 'password' : 'text'" :show-password="f.type === 'secret'" />
+          <el-input v-if="f.type === 'textarea' || f.type === 'secret_text'" v-model="form.config[f.key]" type="textarea" :rows="f.type === 'secret_text' && form.config[f.key] === '******' ? 1 : 5" :placeholder="f.type === 'secret_text' ? '粘贴完整内容；显示 ****** 表示已保存，不修改请保持原样' : ''" style="font-family: monospace; font-size: 12px" />
+          <el-input v-else v-model="form.config[f.key]" :type="f.type === 'secret' ? 'password' : 'text'" :show-password="f.type === 'secret'" />
           <div v-if="f.hint" class="hint">{{ f.hint }}</div>
         </el-form-item>
         <el-divider />

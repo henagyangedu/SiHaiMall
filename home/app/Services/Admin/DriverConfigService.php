@@ -30,7 +30,7 @@ class DriverConfigService
             foreach ($def['fields'] as $key => $f) {
                 $v = array_key_exists($key, $stored) ? $stored[$key] : $f['default'];
                 $merged[$key] = $v;
-                $config[$key] = ($f['type'] === 'secret') ? (($v !== '' && $v !== null) ? self::MASK : '') : $v;
+                $config[$key] = self::isSecret($f) ? (($v !== '' && $v !== null) ? self::MASK : '') : $v;
             }
 
             $out[] = [
@@ -67,7 +67,7 @@ class DriverConfigService
             }
             $v = $input[$key];
             $config[$key] = match ($f['type']) {
-                'secret' => ($v === null || $v === '' || $v === self::MASK) ? $prev : trim((string) $v),
+                'secret', 'secret_text' => ($v === null || $v === '' || $v === self::MASK) ? $prev : trim((string) $v),
                 'switch' => (!empty($v) && $v !== '0') ? 1 : 0,
                 default  => trim((string) ($v ?? '')),
             };
@@ -208,6 +208,12 @@ class DriverConfigService
         }
 
         return true;
+    }
+
+    /** 密钥类字段（secret 单行、secret_text 多行，如 PEM 私钥）：列表里不回显，留空或原样提交表示不修改 */
+    private static function isSecret(array $field): bool
+    {
+        return in_array($field['type'], ['secret', 'secret_text'], true);
     }
 
     private function fieldList(array $fields): array

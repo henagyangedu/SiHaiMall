@@ -21,6 +21,15 @@ final class ApiMessageTranslator
         '服务器繁忙，请稍后再试' => 'Something went wrong. Please try again later.',
         '系统繁忙，请重试' => 'The system is busy. Please try again.',
         '操作过于频繁，请稍后再试' => 'Too many attempts. Please try again later.',
+        // 微信支付
+        '微信支付只支持人民币订单' => 'WeChat Pay is only available for orders in CNY',
+        '微信支付还没有配置小程序 AppID' => 'WeChat Pay is not available right now',
+        '微信支付还没有配置 AppID' => 'WeChat Pay is not available right now',
+        '微信支付暂不支持当前终端' => 'WeChat Pay is not available on this device',
+        '发起微信支付失败，请稍后重试' => 'Could not start WeChat Pay. Please try again later.',
+        '请在微信小程序里重新发起支付' => 'Please start the payment again in the WeChat mini program',
+        '微信登录状态已失效，请重新发起支付' => 'Your WeChat session has expired. Please start the payment again.',
+        '微信内打开的页面暂不支持直接付款，请用手机浏览器打开，或在小程序里付款' => 'Payment is not supported inside the WeChat browser. Please open this page in your phone\'s browser, or pay in the mini program.',
         // 物流
         '商家还没有开通物流查询，可以复制单号到快递公司官网查询' => 'Online tracking is not available. Please copy the tracking number and check it on the carrier\'s website.',
         '这家快递公司暂不支持在线查询，可以复制单号到快递公司官网查询' => 'Online tracking is not available for this carrier. Please copy the tracking number and check it on the carrier\'s website.',

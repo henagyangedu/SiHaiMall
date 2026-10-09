@@ -141,7 +141,7 @@ class OrderService
         ])->all();
 
         $trades = DB::table('pay_trade')->where('order_id', $id)->orderBy('id')->get()->map(fn ($t) => [
-            'trade_no' => $t->trade_no, 'channel' => $t->channel, 'channel_trade_no' => $t->channel_trade_no,
+            'trade_no' => $t->trade_no, 'channel' => $t->channel, 'channel_trade_no' => $t->channel_trade_no === $t->trade_no ? '' : $t->channel_trade_no,
             'trade_type' => (int) $t->trade_type === 2 ? '退款' : '支付', 'currency' => $t->currency, 'amount' => (string) $t->amount,
             'status' => ['待支付', '成功', '失败', '已关闭'][(int) $t->status] ?? '', 'paid_at' => (string) $t->paid_at,
         ])->all();

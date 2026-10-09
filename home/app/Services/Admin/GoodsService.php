@@ -92,6 +92,18 @@ class GoodsService
     }
 
     // ------------------------------------------------------------------ 详情
+    /**
+     * 分销佣金设置：0 跟随全局、1 单独设置比例、2 不参与分销。只有“单独设置”才保存比例，其余清零。
+     * @return array{commission_type:int,commission_rate_1:string,commission_rate_2:string}
+     */
+    private function commissionFields(array $d): array
+    {
+        $type = (int) ($d['commission_type'] ?? 0);
+        $rate = fn (string $key) => $type === 1 ? number_format((float) ($d[$key] ?? 0), 2, '.', '') : '0.00';
+
+        return ['commission_type' => $type, 'commission_rate_1' => $rate('commission_rate_1'), 'commission_rate_2' => $rate('commission_rate_2')];
+    }
+
     public function detail(int $id): array
     {
         $g = $this->find($id);
@@ -102,6 +114,9 @@ class GoodsService
             'category_id' => (int) $g->category_id,
             'brand_id'    => (int) $g->brand_id,
             'shipping_template_id' => (int) $g->shipping_template_id,
+            'commission_type' => (int) $g->commission_type,
+            'commission_rate_1' => (string) $g->commission_rate_1,
+            'commission_rate_2' => (string) $g->commission_rate_2,
             'goods_sn'    => $g->goods_sn,
             'images'      => json_decode((string) ($g->images ?: '[]'), true) ?: [],
             'video'       => $g->video,
@@ -131,6 +146,7 @@ class GoodsService
                 'category_id' => (int) $d['category_id'],
                 'brand_id'    => (int) ($d['brand_id'] ?? 0),
                 'shipping_template_id' => (int) ($d['shipping_template_id'] ?? 0),
+                ...$this->commissionFields($d),
                 'goods_sn'    => trim((string) ($d['goods_sn'] ?? '')) ?: $this->generateSn(),
                 'cover'       => $images[0] ?? '',
                 'images'      => json_encode($images, JSON_UNESCAPED_SLASHES),
@@ -164,6 +180,7 @@ class GoodsService
                 'category_id' => (int) $d['category_id'],
                 'brand_id'    => (int) ($d['brand_id'] ?? 0),
                 'shipping_template_id' => (int) ($d['shipping_template_id'] ?? 0),
+                ...$this->commissionFields($d),
                 'goods_sn'    => trim((string) ($d['goods_sn'] ?? '')) ?: $goods->goods_sn,
                 'cover'       => $images[0] ?? '',
                 'images'      => json_encode($images, JSON_UNESCAPED_SLASHES),

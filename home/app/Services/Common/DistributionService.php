@@ -174,17 +174,24 @@ class DistributionService
             return;
         }
 
+        // 各商品行的金额和商品上的佣金设置（取支付这一刻的设置，之后再改商品不影响已生成的佣金）
+        $lines = DB::table('order_item as oi')->leftJoin('goods as g', 'g.id', '=', 'oi.goods_id')->where('oi.order_id', $order->id)
+            ->get(['oi.price', 'oi.qty', 'g.commission_type', 'g.commission_rate_1', 'g.commission_rate_2'])
+            ->map(fn ($r) => [
+                'amount' => Money::mul((string) $r->price, (int) $r->qty), 'type' => (int) ($r->commission_type ?? 0),
+                'rate_1' => (string) ($r->commission_rate_1 ?? '0'), 'rate_2' => (string) ($r->commission_rate_2 ?? '0'),
+            ])->all();
+
         $parentId = (int) Member::query()->whereKey($order->member_id)->value('parent_id');
         $firstBeneficiary = 0;
         for ($level = 1; $level <= $s['level'] && $parentId > 0; $level++) {
-            $rate = $s['rate_' . $level];
-            $amount = self::commissionAmount($base, $rate);
+            ['base' => $levelBase, 'rate' => $rate, 'amount' => $amount] = self::commissionByGoods($base, $lines, $level, $s['rate_' . $level]);
             $d = Distributor::query()->lockForUpdate()->find($parentId);
             if ($d && (int) $d->status === Distributor::NORMAL && bccomp($amount, '0', 2) > 0
                 && !DistributionCommission::query()->where('order_id', $order->id)->where('level', $level)->exists()) {
                 DistributionCommission::query()->create([
                     'order_id' => $order->id, 'buyer_id' => $order->member_id, 'member_id' => $parentId, 'level' => $level,
-                    'base_amount' => $base, 'rate' => $rate, 'amount' => $amount, 'status' => DistributionCommission::PENDING,
+                    'base_amount' => $levelBase, 'rate' => $rate, 'origin_amount' => $amount, 'amount' => $amount, 'status' => DistributionCommission::PENDING,
                 ]);
                 $d->update(['pending_amount' => bcadd((string) $d->pending_amount, $amount, 2)]);
                 $firstBeneficiary = $firstBeneficiary ?: $parentId;
@@ -211,7 +218,7 @@ class DistributionService
         $goodsPaid = bcsub((string) $order->pay_amount, (string) $order->shipping_fee, 2);
 
         foreach ($rows as $c) {
-            $target = $allRefunded ? '0.00' : self::afterRefund(self::commissionAmount((string) $c->base_amount, (string) $c->rate), $goodsPaid, $refunded);
+            $target = $allRefunded ? '0.00' : self::afterRefund((string) $c->origin_amount, $goodsPaid, $refunded);
             $diff = bcsub((string) $c->amount, $target, 2);
             if (bccomp($diff, '0', 2) <= 0 && !$allRefunded) {
                 continue;
@@ -356,6 +363,45 @@ class DistributionService
     public static function commissionAmount(string $base, string $rate): string
     {
         return Money::round(bcdiv(bcmul($base, $rate, 6), '100', 6), 2);
+    }
+
+    /**
+     * 一张订单某一层级的佣金：把整单计佣基数按各商品行金额占比摊开，每行乘以自己的比例后加总。
+     * 商品设置 type：0 跟随全局比例，1 用商品自己的 rate_1 / rate_2，2 不参与分销（不计入基数）。
+     * 返回的 rate 用于展示：各行比例相同时就是该比例，否则是折算出的综合比例（佣金 ÷ 基数）。
+     * @param array<int,array{amount:string,type:int,rate_1:string,rate_2:string}> $lines amount 为行金额（单价 × 数量）
+     * @return array{base:string,rate:string,amount:string}
+     */
+    public static function commissionByGoods(string $base, array $lines, int $level, string $globalRate): array
+    {
+        // 先按比例把行金额归组（精确到分），再按组摊基数：只有一种比例时基数不会因为逐行摊分而产生舍入误差
+        $total = '0.00';
+        $groups = [];
+        foreach ($lines as $l) {
+            $total = bcadd($total, $l['amount'], 2);
+            if ($l['type'] === 2) {
+                continue;
+            }
+            $rate = self::num($l['type'] === 1 ? $l['rate_' . $level] : $globalRate);
+            $groups[$rate] = bcadd($groups[$rate] ?? '0.00', $l['amount'], 2);
+        }
+        if (bccomp($total, '0', 2) <= 0 || bccomp($base, '0', 2) <= 0 || $groups === []) {
+            return ['base' => '0.00', 'rate' => '0.00', 'amount' => '0.00'];
+        }
+
+        $partBase = $amount = '0';
+        foreach ($groups as $rate => $groupAmount) {
+            $share = bcdiv(bcmul($base, $groupAmount, 10), $total, 10);
+            $partBase = bcadd($partBase, $share, 10);
+            $amount = bcadd($amount, bcdiv(bcmul($share, (string) $rate, 10), '100', 10), 10);
+        }
+        $partBase = Money::round($partBase, 2);
+        $amount = Money::round($amount, 2);
+        $rate = count($groups) === 1
+            ? (string) array_key_first($groups)
+            : (bccomp($partBase, '0', 2) > 0 ? Money::round(bcdiv(bcmul($amount, '100', 10), $partBase, 10), 2) : '0.00');
+
+        return ['base' => $partBase, 'rate' => self::num($rate), 'amount' => $amount];
     }
 
     /** 退款后的佣金 = 原佣金 × 未退的商品款占比（已退金额超过商品款时按全退算） */

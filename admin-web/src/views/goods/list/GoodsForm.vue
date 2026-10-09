@@ -46,6 +46,7 @@ const newSku = (keys) => ({
 })
 const emptyForm = () => ({
   id: 0, category_id: null, brand_id: 0, shipping_template_id: 0, goods_sn: '',
+  commission_type: 0, commission_rate_1: 0, commission_rate_2: 0,
   title: {}, subtitle: {}, keywords: {}, description: {}, seo_title: {}, seo_desc: {},
   images: [], video: '', unit: '', is_virtual: 0, is_on_sale: 0, sort: 0, spec_type: 1,
   sku: { sku_sn: '', price: 0, market_price: 0, cost_price: 0, stock: 0, warn_stock: 0, weight: 0, volume: 0 },
@@ -83,6 +84,8 @@ async function loadAll() {
         sku: { ...emptyForm().sku, ...(d.sku || {}) },
         prices: numPrices(d.prices),
         region_prices: numPrices(d.region_prices),
+        commission_rate_1: Number(d.commission_rate_1 || 0),
+        commission_rate_2: Number(d.commission_rate_2 || 0),
         specs: (d.specs || []).map((s) => ({
           id: s.id,
           name: { ...s.name },
@@ -127,6 +130,7 @@ async function submit() {
   try {
     const payload = {
       category_id: form.category_id, brand_id: form.brand_id || 0, shipping_template_id: form.shipping_template_id || 0, goods_sn: form.goods_sn,
+      commission_type: form.commission_type, commission_rate_1: form.commission_rate_1 || 0, commission_rate_2: form.commission_rate_2 || 0,
       title: form.title, subtitle: form.subtitle, keywords: form.keywords, description: form.description,
       seo_title: form.seo_title, seo_desc: form.seo_desc,
       images: form.images, video: form.video, unit: form.unit,
@@ -281,6 +285,20 @@ async function onStockDone() {
               <el-option v-for="t in shippingTemplates" :key="t.id" :label="t.name" :value="t.id" />
             </el-select>
             <span class="hint-inline">在 设置 → 发货设置 → 运费模板 里维护</span>
+          </el-form-item>
+          <el-form-item label="分销佣金">
+            <el-radio-group v-model="form.commission_type">
+              <el-radio :value="0">跟随全局比例</el-radio>
+              <el-radio :value="1">单独设置</el-radio>
+              <el-radio :value="2">不参与分销</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item v-if="form.commission_type === 1" label="佣金比例">
+            <span class="hint-inline" style="margin-left: 0; margin-right: 8px">一级</span>
+            <el-input-number v-model="form.commission_rate_1" :min="0" :max="50" :precision="2" :controls="false" style="width: 110px" />
+            <span class="hint-inline" style="margin-right: 8px">% 　二级</span>
+            <el-input-number v-model="form.commission_rate_2" :min="0" :max="50" :precision="2" :controls="false" style="width: 110px" />
+            <span class="hint-inline">%（二级比例只在分销层级设为 2 级时生效；填 0 表示该级不返佣）</span>
           </el-form-item>
           <el-form-item label="排序"><el-input-number v-model="form.sort" :min="0" :max="9999" /><span class="hint-inline">越小越靠前</span></el-form-item>
           <el-form-item label="立即上架"><el-switch v-model="form.is_on_sale" :active-value="1" :inactive-value="0" /><span class="hint-inline">上架商品必须有图片和至少一个启用的规格</span></el-form-item>

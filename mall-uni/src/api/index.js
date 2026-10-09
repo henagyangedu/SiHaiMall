@@ -25,6 +25,8 @@ export const updateProfile = (data) => put('/member/profile', data)
 export const changePassword = (data) => put('/member/password', data)
 export const bindContact = (data) => post('/member/bind', data)
 export const getPointLogs = (params) => get('/member/points', params)
+export const getSignIn = () => get('/member/signin')
+export const signIn = () => post('/member/signin')
 
 // ---- 购物车
 export const getCart = (opt) => get('/cart', {}, opt)

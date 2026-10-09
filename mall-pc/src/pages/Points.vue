@@ -2,7 +2,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { state } from '@/store'
-import { getProfile, getPointLogs } from '@/api'
+import { ElMessage } from 'element-plus'
+import { getProfile, getPointLogs, getSignIn, signIn } from '@/api'
 
 const { t, te } = useI18n()
 const list = ref([])
@@ -22,8 +23,27 @@ async function load() {
   }
 }
 
+// 每日签到：后台没开放时不显示按钮
+const sign = ref({ enabled: false, points: 0, signed_today: false })
+const signing = ref(false)
+async function onSignIn() {
+  if (signing.value) return
+  signing.value = true
+  try {
+    const r = await signIn()
+    ElMessage.success(t('points.signOk', { n: r.points }))
+    sign.value.signed_today = true
+    getProfile().then((m) => { state.member = m }).catch(() => {})
+    page.no = 1
+    load()
+  } finally {
+    signing.value = false
+  }
+}
+
 onMounted(() => {
   getProfile().then((m) => { state.member = m }).catch(() => {})
+  getSignIn().then((s) => { sign.value = s }).catch(() => {})
   load()
 })
 </script>
@@ -33,6 +53,9 @@ onMounted(() => {
     <div class="panel-title">{{ t('points.title') }}</div>
     <div class="balance">
       {{ t('points.balance') }}<span class="num">{{ state.member?.points ?? 0 }}</span>
+      <el-button v-if="sign.enabled" class="sign" type="primary" round :disabled="sign.signed_today" :loading="signing" @click="onSignIn">
+        {{ sign.signed_today ? t('points.signed') : t('points.signIn', { n: sign.points }) }}
+      </el-button>
       <div v-if="state.member?.level_name" class="sub level">
         {{ state.member.level_name }}　{{ t('points.growth', { n: state.member.growth }) }}　{{ state.member.next_level
           ? t('points.nextLevel', { n: state.member.next_level.remain, name: state.member.next_level.name }) : t('points.topLevel') }}
@@ -58,4 +81,5 @@ onMounted(() => {
 .balance { background: #fcf5f5; border-radius: 8px; padding: 18px 20px; margin-bottom: 16px; }
 .num { font-size: 28px; font-weight: 600; color: var(--theme); margin-left: 14px; }
 .level { margin-top: 8px; }
+.sign { margin-left: 24px; vertical-align: 4px; }
 </style>

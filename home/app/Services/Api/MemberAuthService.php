@@ -9,6 +9,7 @@ use App\Services\Common\DistributionService;
 use App\Services\Common\EmailCodeService;
 use App\Services\Common\LocaleService;
 use App\Services\Common\MemberGrowthService;
+use App\Services\Common\PointRewardService;
 use App\Services\Common\SmsCodeService;
 use App\Services\Common\UploadService;
 use App\Support\Exceptions\BusinessException;
@@ -28,7 +29,7 @@ class MemberAuthService
 {
     public function __construct(private LocaleService $locale, private SmsCodeService $sms, private EmailCodeService $emailCodes,
         private DistributionService $distribution, private UploadService $uploads, private DriverManager $drivers,
-        private MemberGrowthService $growth) {}
+        private MemberGrowthService $growth, private PointRewardService $rewards) {}
 
     /** @param array{account:string,password:string,nickname?:string,phone_area?:string,code?:string,invite_code?:string,lang?:string,currency?:string} $d */
     public function register(array $d, string $source, string $ip, string $ua): array
@@ -86,6 +87,7 @@ class MemberAuthService
                 'level_id'        => 1,
                 'status'          => 1,
             ]);
+            $this->rewards->onRegister($member);
         } finally {
             $lock->release();
         }
@@ -142,6 +144,9 @@ class MemberAuthService
         }
         if ((int) $member->status !== 1) {
             throw new BusinessException('账号已被禁用，请联系客服');
+        }
+        if ($isNew) {
+            $this->rewards->onRegister($member);
         }
         $member->forceFill(['last_login_at' => now(), 'last_login_ip' => $ip])->save();
 

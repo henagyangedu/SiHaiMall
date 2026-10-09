@@ -52,6 +52,8 @@ final class ApiMessageTranslator
         // 账号
         '账号或密码错误' => 'Incorrect account or password',
         '账号已被禁用，请联系客服' => 'This account has been disabled. Please contact support.',
+        '签到功能未开启' => 'Daily check-in is not available',
+        '今天已经签到过了' => 'You have already checked in today',
         '请输入原密码' => 'Please enter your current password',
         '已绑定邮箱，如需更换请联系客服' => 'An email is already linked. Please contact support to change it.',
         '已绑定手机号，如需更换请联系客服' => 'A phone number is already linked. Please contact support to change it.',

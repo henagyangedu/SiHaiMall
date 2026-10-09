@@ -5,8 +5,8 @@ const { Flow, Skip, el, desktop, mobile, pcLogin, uniGo, uniLogin } = require('.
 /**
  * 账号与安全，跨 PC 端和手机端：
  * 一个没有密码、没有邮箱和手机号的会员（微信一键登录注册出来的就是这样）
- * 设置密码 → 修改密码 → 绑定邮箱 → 换一个浏览器用邮箱和密码登录 → 在手机端绑定手机号。
- * 会员是现造的，结束时注销，不占库存。
+ * 签到 → 设置密码 → 修改密码 → 绑定邮箱 → 换一个浏览器用邮箱和密码登录 → 在手机端绑定手机号。
+ * 会员是现造的，结束时注销，不占库存。运行期间临时把“每日签到”设为送 5 积分，结束时恢复原值。
  */
 module.exports = async function securityFlow(browser) {
   const flow = new Flow('security');
@@ -30,6 +30,19 @@ module.exports = async function securityFlow(browser) {
       await pc.waitForURL(/#\/security$/);
       await row('pwd').getByText('未设置').waitFor();
       if ((await pc.locator('.row').filter({ hasText: '未绑定' }).count()) !== 2) throw new Error('邮箱和手机号应该都显示未绑定');
+    });
+    await flow.step('PC：我的积分里签到，积分到账，按钮变成“今日已签到”，明细里多一条签到', pc, async () => {
+      await pc.goto(config.pc + '/#/points');
+      await pc.locator('.balance .level', { hasText: '成长值 0' }).waitFor();
+      await pc.getByRole('button', { name: '签到 +5' }).click();
+      await el.message(pc, '签到成功，获得 5 积分');
+      await pc.getByRole('button', { name: '今日已签到' }).waitFor();
+      if (!(await pc.getByRole('button', { name: '今日已签到' }).isDisabled())) throw new Error('签到后按钮应该不能再点');
+      await pc.locator('.balance .num', { hasText: /^5$/ }).waitFor();
+      await pc.locator('.balance .level', { hasText: '成长值 5' }).waitFor();
+      await pc.locator('.el-table__row', { hasText: '签到' }).first().waitFor();
+      await pc.goto(config.pc + '/#/security');
+      await row('pwd').waitFor();
     });
     await flow.step('PC：第一次设置密码不用原密码，两次输入不一致会被拦住', pc, async () => {
       await row('pwd').getByRole('button', { name: '设置' }).click();
@@ -99,6 +112,11 @@ module.exports = async function securityFlow(browser) {
         await m.locator('.cell', { hasText: '账号与安全' }).click();
         await m.locator('.cell', { hasText: '登录密码' }).getByText('已设置').waitFor();
         await m.locator('.cell', { hasText: '邮箱' }).getByText(email).waitFor();
+        // 手机端的积分页：今天已经在电脑上签过了
+        await uniGo(m, '/pages/user/points');
+        await m.locator('.head .sign.done', { hasText: '今日已签到' }).waitFor();
+        await m.locator('.head .num', { hasText: /^5$/ }).waitFor();
+        await uniGo(m, '/pages/user/security');
         await m.locator('.cell', { hasText: '手机号' }).click();
         await m.locator('.form .btn', { hasText: '绑定' }).click();
         await m.locator('uni-toast', { hasText: '请输入正确的手机号' }).waitFor();
@@ -121,7 +139,7 @@ module.exports = async function securityFlow(browser) {
       await row('phone').getByText(phone).waitFor();
     });
   } finally {
-    backend('security', { E2E_STEP: 'drop', E2E_MEMBER: String(made.member_id) });
+    backend('security', { E2E_STEP: 'drop', E2E_MEMBER: String(made.member_id), E2E_SIGNIN: String(made.signin_original) });
     await ctx.close();
   }
 

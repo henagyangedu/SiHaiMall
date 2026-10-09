@@ -16,6 +16,8 @@ const form = reactive({
   points_max_percent: 50,
   points_earn_enabled: 0,
   points_earn_per_unit: 1,
+  points_register: 0,
+  points_signin: 0,
 })
 
 async function load() {
@@ -97,6 +99,14 @@ onMounted(load)
             <span class="unit" style="margin-left: 0">订单完成后再退款，按退款比例扣回已赠送的积分；买家积分不够时扣到 0 为止。</span>
           </el-form-item>
         </template>
+        <el-form-item label="注册送积分">
+          <el-input-number v-model="form.points_register" :min="0" :max="100000" />
+          <span class="unit">个积分，新会员注册成功时赠送一次；填 0 表示不送</span>
+        </el-form-item>
+        <el-form-item label="每日签到">
+          <el-input-number v-model="form.points_signin" :min="0" :max="100000" />
+          <span class="unit">个积分，会员每天可以在“我的积分”里签到一次；填 0 表示不开放签到</span>
+        </el-form-item>
         <el-form-item>
           <el-button v-perm="'setting:trade:edit'" type="primary" :loading="saving" @click="submit">保存设置</el-button>
         </el-form-item>

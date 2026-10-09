@@ -3,8 +3,8 @@ import { ref, reactive } from 'vue'
 import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 import { state } from '@/store'
-import { getProfile, getPointLogs } from '@/api'
-import { usePageTitle } from '@/utils/page'
+import { getProfile, getPointLogs, getSignIn, signIn } from '@/api'
+import { usePageTitle, toast } from '@/utils/page'
 
 const { t, te } = useI18n()
 usePageTitle('points.title')
@@ -28,8 +28,24 @@ async function load(reset = false) {
     page.loading = false
   }
 }
+// 每日签到：后台没开放时不显示按钮
+const sign = ref({ enabled: false, points: 0, signed_today: false })
+const signing = ref(false)
+async function onSignIn() {
+  if (signing.value || sign.value.signed_today) return
+  signing.value = true
+  try {
+    const r = await signIn()
+    toast(t('points.signOk', { n: r.points }))
+    await refresh()
+  } finally {
+    signing.value = false
+  }
+}
+
 async function refresh() {
   try { state.member = await getProfile() } catch (e) { /* 令牌失效时请求层已清掉登录态 */ }
+  getSignIn().then((s) => { sign.value = s }).catch(() => {})
   await load(true)
 }
 
@@ -43,6 +59,9 @@ onReachBottom(() => { if (list.value.length < page.total) load() })
     <view class="head">
       <view class="label">{{ t('points.balance') }}</view>
       <view class="num">{{ state.member?.points ?? 0 }}</view>
+      <view v-if="sign.enabled" class="sign" :class="{ done: sign.signed_today }" @click="onSignIn">
+        {{ sign.signed_today ? t('points.signed') : t('points.signIn', { n: sign.points }) }}
+      </view>
       <view v-if="state.member?.level_name" class="level">
         {{ state.member.level_name }}　{{ t('points.growth', { n: state.member.growth }) }}　{{ state.member.next_level
           ? t('points.nextLevel', { n: state.member.next_level.remain, name: state.member.next_level.name }) : t('points.topLevel') }}
@@ -78,4 +97,6 @@ onReachBottom(() => { if (list.value.length < page.total) load() })
 .chg.plus { color: var(--theme); }
 .end { text-align: center; padding: 30rpx 0 40rpx; }
 .level { font-size: 24rpx; opacity: 0.9; margin-top: 16rpx; line-height: 1.6; }
+.sign { display: inline-block; margin-top: 20rpx; padding: 10rpx 36rpx; border-radius: 32rpx; background: #fff; color: var(--theme); font-size: 26rpx; }
+.sign.done { background: rgba(255, 255, 255, 0.3); color: #fff; }
 </style>

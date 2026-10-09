@@ -84,7 +84,7 @@ export default {
     set: 'Set', change: 'Change', bind: 'Link', unbound: 'Not linked', oldPwd: 'Current password', againPwd: 'Repeat the new password', needOld: 'Please enter your current password',
     pwdMismatch: 'The two passwords do not match', pwdSaved: 'Password saved', emailPh: 'Email address', needEmail: 'Please enter a valid email', needPhone: 'Please enter a valid phone number', bound: 'Linked',
   },
-  points: { growth: 'Growth {n}', nextLevel: '{n} more to reach {name}', topLevel: 'You are at the top level', title: 'My points', balance: 'Points balance', after: 'Balance {n}', other: 'Other' },
+  points: { growth: 'Growth {n}', nextLevel: '{n} more to reach {name}', topLevel: 'You are at the top level', signIn: 'Check in +{n}', signed: 'Checked in today', signOk: 'Checked in. You earned {n} points.', title: 'My points', balance: 'Points balance', after: 'Balance {n}', other: 'Other' },
   pointType: { 1: 'Sign-up bonus', 2: 'Check-in', 3: 'Earned from order', 4: 'Used on order', 5: 'Adjustment', 6: 'Refund deduction' },
   userMenu: { articles: 'News', points: 'My points',  refunds: 'My refunds', distribution: 'Affiliate center', help: 'Help center', notices: 'Notices', protocols: 'Terms & policies' },
 }

@@ -97,6 +97,20 @@ class StripeDriver extends BasePayDriver implements PayDriver
         $obj = $e['data']['object'] ?? [];
         $base = ['verified' => true, 'eventId' => (string) ($e['id'] ?? ''), 'rawBody' => $body, 'ackBody' => 'ok'];
 
+        // 退款结果：发起退款时把售后单号放在了 metadata.refund_no 里；在 Stripe 后台手工发起的退款没有它，只记录不处理
+        if (in_array($type, ['refund.updated', 'refund.failed', 'charge.refund.updated'], true)) {
+            $currency = strtoupper((string) ($obj['currency'] ?? ''));
+            $status = match ((string) ($obj['status'] ?? '')) {
+                'succeeded' => 'refunded',
+                'failed', 'canceled' => 'refund_failed',
+                default => '',
+            };
+
+            return new NotifyResult(...$base, status: $status, currency: $currency,
+                amount: $currency !== '' ? PayAmount::fromMinor((string) ($obj['amount'] ?? 0), $currency) : '0',
+                refundNo: (string) ($obj['metadata']['refund_no'] ?? ''), channelRefundNo: (string) ($obj['id'] ?? ''));
+        }
+
         $isSession = str_starts_with($type, 'checkout.session.');
         if (!$isSession) {
             return new NotifyResult(...$base); // 其它事件只记录，不处理
@@ -161,6 +175,20 @@ class StripeDriver extends BasePayDriver implements PayDriver
         $st = (string) $res->json('status');
 
         return new RefundResult(success: $st === 'succeeded', channelRefundNo: (string) $res->json('id'), pending: in_array($st, ['pending', 'requires_action'], true));
+    }
+
+    public function queryRefund(string $refundNo, string $channelRefundNo): RefundResult
+    {
+        if ($channelRefundNo === '') {
+            return new RefundResult(success: false, pending: true);
+        }
+        $res = $this->client()->get($this->base() . '/v1/refunds/' . rawurlencode($channelRefundNo));
+        if (!$res->successful()) {
+            $this->fail('查询 Stripe 退款', $res->json(), $res->status());
+        }
+        $st = (string) $res->json('status');
+
+        return new RefundResult(success: $st === 'succeeded', channelRefundNo: (string) $res->json('id'), pending: in_array($st, ['pending', 'requires_action'], true), raw: ['status' => $st]);
     }
 
     public function ping(): array

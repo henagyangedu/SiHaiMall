@@ -30,6 +30,12 @@ interface PayDriver
 
     public function refund(RefundRequest $req): RefundResult;
 
+    /**
+     * 查询一笔已受理的退款（只读）。渠道异步处理退款时，用它确认最终结果；
+     * 不能靠带着同一个幂等键重发 refund() 来查——渠道会原样返回第一次的应答。
+     */
+    public function queryRefund(string $refundNo, string $channelRefundNo): RefundResult;
+
     /** 连通性测试：用已保存的密钥调一个只读接口，失败抛 BusinessException */
     public function ping(): array;
 }

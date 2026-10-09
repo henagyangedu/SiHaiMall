@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\DB;
  */
 class PayService
 {
-    public function __construct(private DriverManager $drivers, private OrderPaidService $paid) {}
+    public function __construct(private DriverManager $drivers, private OrderPaidService $paid, private OrderRefundService $refunds) {}
 
     // ------------------------------------------------------------------ 可用渠道
     /** 订单可用的支付渠道（已启用且支持该币种） */
@@ -196,11 +196,19 @@ class PayService
     /** 事件分发：success / failed / closed / approved（PayPal 待捕获） */
     private function dispatch(string $channel, NotifyResult $r): array
     {
+        // 退款结果：带着商城售后单号的才处理（在渠道后台手工发起的退款没有单号，只记录）
+        if ($r->status === 'refunded' || $r->status === 'refund_failed') {
+            if ($r->refundNo === '') {
+                return [PayNotifyLog::OK, '退款事件已记录（不是商城发起的退款，未自动处理）'];
+            }
+            [$ok, $msg] = $r->status === 'refunded'
+                ? $this->refunds->completeByNotify($r->refundNo, $channel, $r->channelRefundNo, $r->currency, $r->amount)
+                : $this->refunds->failByNotify($r->refundNo, $channel);
+
+            return [$ok ? PayNotifyLog::OK : PayNotifyLog::FAIL, $msg];
+        }
         if ($r->tradeNo === '' || $r->status === '') {
             return [PayNotifyLog::OK, '非支付结果事件，已记录'];
-        }
-        if ($r->status === 'refunded') {
-            return [PayNotifyLog::OK, '退款事件已记录（退款入账由售后模块处理）'];
         }
         if ($r->status === 'approved') {
             $trade = PayTrade::query()->where('trade_no', $r->tradeNo)->first();

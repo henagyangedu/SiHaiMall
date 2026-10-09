@@ -247,11 +247,15 @@ class OrderRefundService
             throw new BusinessException('该订单没有在线支付记录（线下收款），请线下退款后选择“线下已退款”');
         }
 
-        $res = $this->drivers->pay((string) $trade->channel)->refund(new RefundRequest(
-            refundNo: (string) $refund->refund_no, tradeNo: (string) $trade->trade_no, channelTradeNo: (string) $trade->channel_trade_no,
-            currency: (string) $refund->currency, amount: (string) $refund->refund_amount, totalAmount: (string) $trade->amount,
-            reason: (string) $refund->reason,
-        ));
+        // 渠道已经受理过（留有渠道退款单号）就只查询结果；否则发起退款
+        $driver = $this->drivers->pay((string) $trade->channel);
+        $res = (string) $refund->refund_trade_no !== ''
+            ? $driver->queryRefund((string) $refund->refund_no, (string) $refund->refund_trade_no)
+            : $driver->refund(new RefundRequest(
+                refundNo: (string) $refund->refund_no, tradeNo: (string) $trade->trade_no, channelTradeNo: (string) $trade->channel_trade_no,
+                currency: (string) $refund->currency, amount: (string) $refund->refund_amount, totalAmount: (string) $trade->amount,
+                reason: (string) $refund->reason,
+            ));
 
         if ($res->success) {
             $this->finish($refundId, $adminId, (string) $trade->channel, $res->channelRefundNo ?: (string) $refund->refund_no, "已原路退回（{$trade->channel}）");
@@ -261,9 +265,85 @@ class OrderRefundService
         if ($res->pending) {
             OrderRefund::query()->whereKey($refundId)->where('status', OrderRefund::REFUNDING)->update(['refund_trade_no' => $res->channelRefundNo, 'updated_at' => now()]);
 
-            return ['done' => false, 'msg' => '支付渠道已受理，正在处理中，请稍后再次点击“执行退款”查询结果'];
+            return ['done' => false, 'msg' => '支付渠道已受理，正在处理中；到账后系统会自动完成，也可以稍后再次点击“执行退款”查询结果'];
         }
+        // 渠道明确退款失败：清掉渠道退款单号，下次点击会重新发起
+        OrderRefund::query()->whereKey($refundId)->where('status', OrderRefund::REFUNDING)->update(['refund_trade_no' => '', 'updated_at' => now()]);
         throw new BusinessException('支付渠道未能完成退款，请到渠道后台核实后重试');
+    }
+
+    /**
+     * 渠道回调通知“退款成功”时调用：售后单还在“退款中”、金额币种一致就完成它。重复通知无副作用。
+     * @return array{0:bool,1:string} [是否处理成功, 说明]
+     */
+    public function completeByNotify(string $refundNo, string $channel, string $channelRefundNo, string $currency, string $amount): array
+    {
+        $refund = OrderRefund::query()->where('refund_no', $refundNo)->first();
+        if (!$refund) {
+            return [false, '未找到售后单：' . $refundNo];
+        }
+        if ((int) $refund->status === OrderRefund::DONE) {
+            return [true, '售后单已完成，忽略重复通知'];
+        }
+        if ((int) $refund->status !== OrderRefund::REFUNDING) {
+            return [false, "售后单 {$refundNo} 当前是“" . (OrderRefund::STATUS_TEXT[(int) $refund->status] ?? '') . '”，渠道却通知退款成功，需人工核对'];
+        }
+        if (strtoupper($currency) !== strtoupper((string) $refund->currency) || bccomp(Money::round(number_format((float) $amount, 4, '.', ''), 2), (string) $refund->refund_amount, 2) !== 0) {
+            return [false, "渠道退款金额 {$amount} {$currency} 与售后单 {$refund->refund_amount} {$refund->currency} 不一致，需人工核对"];
+        }
+        try {
+            $this->finish((int) $refund->id, 0, $channel, $channelRefundNo ?: $refundNo, "渠道通知退款成功（{$channel}）");
+        } catch (BusinessException $e) {
+            // 和管理员的手动操作撞上了：以最新状态为准
+            return [(int) $refund->fresh()->status === OrderRefund::DONE, '售后单状态已变化：' . $e->getMessage()];
+        }
+
+        return [true, "售后单 {$refundNo} 已自动完成退款"];
+    }
+
+    /** 渠道回调通知“退款失败”：清掉渠道退款单号并在订单日志里留一笔，等人工重新处理 */
+    public function failByNotify(string $refundNo, string $channel): array
+    {
+        $refund = OrderRefund::query()->where('refund_no', $refundNo)->first();
+        if (!$refund || (int) $refund->status !== OrderRefund::REFUNDING) {
+            return [true, '退款失败通知已记录（售后单不在退款中）'];
+        }
+        DB::transaction(function () use ($refund, $channel) {
+            OrderRefund::query()->whereKey($refund->id)->where('status', OrderRefund::REFUNDING)->update(['refund_trade_no' => '', 'updated_at' => now()]);
+            $order = Order::query()->find($refund->order_id);
+            if ($order) {
+                $this->status->note($order, OrderStatus::OP_SYSTEM, 0, "售后 {$refund->refund_no}：支付渠道（{$channel}）通知退款失败，请重新执行退款或改为线下退款");
+            }
+        });
+
+        return [true, "售后单 {$refundNo} 渠道退款失败，已提示人工处理"];
+    }
+
+    /**
+     * 补偿任务：渠道已受理但还没出结果的退款，主动去查一次。返回本次完成的笔数。
+     * 单笔出错（渠道报错、明确失败）不影响其它，留给人工处理。
+     */
+    public function compensate(int $limit = 50): int
+    {
+        $ids = OrderRefund::query()->where('status', OrderRefund::REFUNDING)->where('refund_trade_no', '!=', '')
+            ->where('updated_at', '<=', now()->subMinutes(2))->orderBy('id')->limit($limit)->pluck('id');
+        $done = 0;
+        foreach ($ids as $id) {
+            try {
+                if ($this->pay((int) $id, 0)['done']) {
+                    $done++;
+                } else {
+                    // 仍在处理中：刷新时间，避免每次都排在最前面
+                    OrderRefund::query()->whereKey($id)->where('status', OrderRefund::REFUNDING)->update(['updated_at' => now()]);
+                }
+            } catch (\Throwable $e) {
+                if (!$e instanceof BusinessException) {
+                    report($e);
+                }
+            }
+        }
+
+        return $done;
     }
 
     // ------------------------------------------------------------------ 内部
@@ -308,7 +388,7 @@ class OrderRefundService
                 'refund_amount' => (string) $refund->refund_amount, 'currency' => $refund->currency,
             ]);
 
-            $this->restoreOrder($order, OrderStatus::OP_ADMIN, $adminId, "售后 {$refund->refund_no} 退款完成：{$refund->refund_amount} {$refund->currency}，{$remark}");
+            $this->restoreOrder($order, $adminId > 0 ? OrderStatus::OP_ADMIN : OrderStatus::OP_SYSTEM, $adminId, "售后 {$refund->refund_no} 退款完成：{$refund->refund_amount} {$refund->currency}，{$remark}");
         });
     }
 

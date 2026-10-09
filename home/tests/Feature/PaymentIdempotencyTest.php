@@ -79,6 +79,11 @@ class PaymentIdempotencyTest extends FeatureTestCase
                 throw new \RuntimeException('未用到');
             }
 
+            public function queryRefund(string $refundNo, string $channelRefundNo): RefundResult
+            {
+                throw new RuntimeException('未用到');
+            }
+
             public function ping(): array
             {
                 return [];

@@ -123,11 +123,17 @@ class PaypalDriver extends BasePayDriver implements PayDriver
         $r = $e['resource'] ?? [];
         $base = ['verified' => true, 'eventId' => (string) ($e['id'] ?? ''), 'rawBody' => $body, 'ackBody' => 'ok'];
 
+        // 退款完成：resource 是退款单，invoice_id 是发起退款时带过去的售后单号
+        if ($type === 'PAYMENT.CAPTURE.REFUNDED') {
+            return new NotifyResult(...$base, tradeNo: (string) ($r['custom_id'] ?? ''), status: 'refunded',
+                currency: strtoupper((string) ($r['amount']['currency_code'] ?? '')), amount: (string) ($r['amount']['value'] ?? '0'),
+                refundNo: (string) ($r['invoice_id'] ?? ''), channelRefundNo: (string) ($r['id'] ?? ''));
+        }
+
         if (str_starts_with($type, 'PAYMENT.CAPTURE.')) {
             $status = match ($type) {
                 'PAYMENT.CAPTURE.COMPLETED' => 'success',
                 'PAYMENT.CAPTURE.DENIED', 'PAYMENT.CAPTURE.DECLINED' => 'failed',
-                'PAYMENT.CAPTURE.REFUNDED' => 'refunded',
                 default => '',
             };
 
@@ -216,6 +222,20 @@ class PaypalDriver extends BasePayDriver implements PayDriver
         $st = (string) $res->json('status');
 
         return new RefundResult(success: $st === 'COMPLETED', channelRefundNo: (string) $res->json('id'), pending: $st === 'PENDING');
+    }
+
+    public function queryRefund(string $refundNo, string $channelRefundNo): RefundResult
+    {
+        if ($channelRefundNo === '') {
+            return new RefundResult(success: false, pending: true);
+        }
+        $res = $this->api()->get($this->base() . '/v2/payments/refunds/' . rawurlencode($channelRefundNo));
+        if (!$res->successful()) {
+            $this->fail('查询 PayPal 退款', $res->json(), $res->status());
+        }
+        $st = (string) $res->json('status');
+
+        return new RefundResult(success: $st === 'COMPLETED', channelRefundNo: (string) $res->json('id'), pending: $st === 'PENDING', raw: ['status' => $st]);
     }
 
     public function ping(): array

@@ -128,11 +128,10 @@ async function loadTracks() {
 
 onMounted(async () => {
   await load()
-  // 从结算页或订单列表点“去支付”进来：直接弹出支付方式
-  if (route.query.pay && order.value?.can_pay) {
-    router.replace({ name: 'order-detail', params: { orderNo } })
-    openPay()
-  }
+  // 从结算页或订单列表点“去支付”进来（地址带 pay=1）：直接弹出支付方式。
+  // 不能在这里改地址去掉 pay=1——App.vue 按地址重建页面，弹窗会开在被销毁的旧页面上；
+  // 发起支付时的回跳地址已经去掉了这个参数
+  if (route.query.pay && order.value?.can_pay) openPay()
 })
 </script>
 

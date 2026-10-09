@@ -13,6 +13,12 @@ const route = useRoute()
 watch(() => [state.config.site?.site_name, state.lang], () => {
   document.title = state.config.site?.site_name || t('tab.home')
 }, { immediate: true })
+
+// 站点图标：后台“基础信息”里配置的；没配就保持空图标
+watch(() => state.config.site?.site_favicon, (icon) => {
+  const link = document.querySelector('link[rel="icon"]')
+  if (link && icon) link.href = icon
+}, { immediate: true })
 </script>
 
 <template>

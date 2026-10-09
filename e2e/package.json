@@ -8,7 +8,8 @@
     "pc": "node run.js pc",
     "uni": "node run.js uni",
     "admin": "node run.js admin",
-    "dist": "node run.js dist"
+    "dist": "node run.js dist",
+    "returns": "node run.js returns"
   },
   "devDependencies": {
     "playwright-core": "^1.48.0"

@@ -10,6 +10,8 @@ use App\Support\OrderStatus;
 /** 订单状态流转唯一入口：带前置状态校验（乐观锁）并写状态日志。必须在事务内调用 */
 class OrderStatusService
 {
+    public function __construct(private OrderPointsService $points) {}
+
     /**
      * @param int[] $from 允许的当前状态
      * @param array<string,mixed> $extra 同时更新的其它字段（如 paid_at、cancel_reason）
@@ -30,6 +32,11 @@ class OrderStatusService
         ]);
 
         $order->refresh();
+
+        // 订单完成即发放消费积分。放在这里是因为“完成”有多个入口（买家确认、后台确认、自动收货、虚拟商品支付即完成），同一订单只会发一次
+        if ($to === OrderStatus::FINISHED) {
+            $this->points->earn($order);
+        }
     }
 
     /** 只写日志（状态不变，如改价、备注） */

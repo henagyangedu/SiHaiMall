@@ -23,7 +23,7 @@ export default {
   checkout: {
     title: '确认订单', addAddress: '请添加收货地址', goods: '商品金额', shipping: '运费', discount: '会员优惠', points: '积分抵扣',
     usePoints: '使用 {n} 积分抵扣 {amount}', remark: '订单备注（可选）', pay: '应付', submit: '提交订单', region: '按“{name}”区域定价',
-    needAddress: '请先选择收货地址', free: '免运费',
+    needAddress: '请先选择收货地址', free: '免运费', earnPoints: '订单完成后预计获得 {n} 积分',
   },
   order: {
     list: '我的订单', detail: '订单详情', tabAll: '全部', tabUnpaid: '待支付', tabToShip: '待发货', tabShipped: '待收货', tabFinished: '已完成',

@@ -90,6 +90,7 @@ onShow(() => {
         <text>{{ t('checkout.usePoints', { n: data.points.usable_points, amount: money(data.points.deduct_amount, data.currency) }) }}</text>
         <view class="switch" :class="{ on: usePoints }"><view class="dot" /></view>
       </view>
+      <view v-if="data.earn_points > 0" class="kv"><text class="sub">{{ t('checkout.earnPoints', { n: data.earn_points }) }}</text></view>
       <input v-model="remark" class="remark" maxlength="500" :placeholder="t('checkout.remark')" />
     </view>
 

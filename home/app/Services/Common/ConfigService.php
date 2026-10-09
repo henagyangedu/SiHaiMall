@@ -38,6 +38,8 @@ class ConfigService
             'points_deduct_enabled' => ['label' => '下单积分抵扣', 'type' => 'bool', 'default' => 0],
             'points_per_unit'      => ['label' => '多少积分抵 1 元（基准币种）', 'type' => 'int', 'min' => 1, 'max' => 1000000, 'default' => 100],
             'points_max_percent'   => ['label' => '积分最多抵扣商品金额的百分比', 'type' => 'int', 'min' => 1, 'max' => 99, 'default' => 50],
+            'points_earn_enabled'  => ['label' => '消费得积分', 'type' => 'bool', 'default' => 0],
+            'points_earn_per_unit' => ['label' => '每消费 1 元（基准币种）赠送多少积分', 'type' => 'int', 'min' => 1, 'max' => 10000, 'default' => 1],
         ],
         // 协议与政策：多语言富文本。键名同时是 C 端接口 /api/protocols/{key} 的 key
         'protocol' => [

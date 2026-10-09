@@ -14,6 +14,8 @@ const form = reactive({
   points_deduct_enabled: 0,
   points_per_unit: 100,
   points_max_percent: 50,
+  points_earn_enabled: 0,
+  points_earn_per_unit: 1,
 })
 
 async function load() {
@@ -79,6 +81,20 @@ onMounted(load)
           </el-form-item>
           <el-form-item label="积分退还">
             <span class="unit" style="margin-left: 0">订单取消、超时关闭或商品全部退款时，抵扣的积分自动退还；部分退款不退积分。</span>
+          </el-form-item>
+        </template>
+        <el-form-item label="消费得积分">
+          <el-switch v-model="form.points_earn_enabled" :active-value="1" :inactive-value="0" />
+          <span class="unit">开启后订单完成（确认收货）时按实付的商品金额赠送积分</span>
+        </el-form-item>
+        <template v-if="form.points_earn_enabled">
+          <el-form-item label="赠送比例">
+            <span class="unit" style="margin-left: 0; margin-right: 10px">每消费 1 元赠送</span>
+            <el-input-number v-model="form.points_earn_per_unit" :min="1" :max="10000" />
+            <span class="unit">个积分（按基准币种计，运费和已退款的部分不送，不足 1 个积分的舍去）</span>
+          </el-form-item>
+          <el-form-item label="退款扣回">
+            <span class="unit" style="margin-left: 0">订单完成后再退款，按退款比例扣回已赠送的积分；买家积分不够时扣到 0 为止。</span>
           </el-form-item>
         </template>
         <el-form-item>

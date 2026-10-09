@@ -22,7 +22,7 @@ export default {
   },
   checkout: {
     title: 'Checkout', addAddress: 'Add a shipping address', goods: 'Subtotal', shipping: 'Shipping', discount: 'Member discount', points: 'Points',
-    usePoints: 'Use {n} points to save {amount}', remark: 'Order note (optional)', pay: 'Total', submit: 'Place order', region: 'Priced for region "{name}"',
+    usePoints: 'Use {n} points to save {amount}', earnPoints: 'Earn about {n} points when this order is completed', remark: 'Order note (optional)', pay: 'Total', submit: 'Place order', region: 'Priced for region "{name}"',
     needAddress: 'Please choose a shipping address', free: 'Free',
   },
   order: {

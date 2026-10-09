@@ -103,12 +103,15 @@ class OrderService
         $cur = $this->price->currency($currency);
         $points = $this->points->quote($m->fresh() ?? $m, bcsub($goods, $discount, 2), $cur['rate'], $cur['decimals']);
         $pointsAmount = !empty($d['use_points']) ? $points['amount'] : '0.00';
+        $goodsPaid = bcsub(bcsub($goods, $discount, 2), $pointsAmount, 2);
 
         return [
             'items' => $items, 'currency' => $currency, 'goods_amount' => $goods, 'shipping_fee' => $shipping,
             'discount_amount' => $discount, 'points_amount' => $pointsAmount,
             'pay_amount' => bcsub(bcsub(bcadd($goods, $shipping, 2), $discount, 2), $pointsAmount, 2),
             'points' => ['enabled' => $points['enabled'], 'available' => $points['available'], 'usable_points' => $points['points'], 'deduct_amount' => $points['amount']],
+            // 订单完成后预计获得的积分（未开启消费得积分时为 0）
+            'earn_points' => $this->points->earnQuote($goodsPaid, $cur['rate']),
             'need_address' => $needShip, 'address' => $address, 'problems' => $problems,
             'price_region' => $region ? ['id' => $region['id'], 'name' => $region['name']] : null,
         ];

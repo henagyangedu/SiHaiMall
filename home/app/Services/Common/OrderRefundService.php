@@ -283,6 +283,7 @@ class OrderRefundService
 
             // 分销佣金按最新的已退金额重算（商品全部退完则作废）
             $this->distribution->onRefund($order);
+            $this->points->clawBack($order, $refund);
             $this->notify->send('refund_done', (int) $refund->member_id, [
                 'refund_no' => $refund->refund_no, 'order_no' => $order->order_no,
                 'refund_amount' => (string) $refund->refund_amount, 'currency' => $refund->currency,

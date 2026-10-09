@@ -62,6 +62,7 @@ async function onCommand(cmd) {
               <el-dropdown-menu>
                 <el-dropdown-item command="orders">{{ t('pc.myOrders') }}</el-dropdown-item>
                 <el-dropdown-item command="user">{{ t('pc.account') }}</el-dropdown-item>
+                <el-dropdown-item command="refunds">{{ t('userMenu.refunds') }}</el-dropdown-item>
                 <el-dropdown-item command="logout" divided>{{ t('pc.logout') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -96,6 +97,8 @@ async function onCommand(cmd) {
       <div class="container">
         <router-link :to="{ name: 'home' }" class="nav-item">{{ t('pc.home') }}</router-link>
         <router-link :to="{ name: 'goods' }" class="nav-item">{{ t('category.all') }}</router-link>
+        <router-link :to="{ name: 'articles', query: { type: 'article' } }" class="nav-item">{{ t('article.articles') }}</router-link>
+        <router-link :to="{ name: 'articles', query: { type: 'help' } }" class="nav-item">{{ t('article.help') }}</router-link>
       </div>
     </nav>
   </header>

@@ -34,6 +34,7 @@ async function loadGoods() {
 function onBanner(b) {
   if (b.link_type === 'goods') router.push({ name: 'goods-detail', params: { id: b.link_value } })
   else if (b.link_type === 'category') router.push({ name: 'goods', query: { category_id: b.link_value } })
+  else if (b.link_type === 'article') router.push({ name: 'article-detail', params: { id: b.link_value } })
   else if (b.link_type === 'url' && /^https?:\/\//i.test(b.link_value)) window.open(b.link_value, '_blank', 'noopener')
 }
 
@@ -60,7 +61,9 @@ onMounted(() => {
         </el-carousel-item>
       </el-carousel>
       <div v-else class="banner-ph" />
-      <div v-if="notice" class="notice"><span class="tag">{{ t('home.notice') }}</span><span class="ellipsis">{{ notice.title }}</span></div>
+      <router-link v-if="notice" :to="{ name: 'article-detail', params: { id: notice.id } }" class="notice">
+        <span class="tag">{{ t('home.notice') }}</span><span class="ellipsis">{{ notice.title }}</span>
+      </router-link>
     </div>
   </div>
 

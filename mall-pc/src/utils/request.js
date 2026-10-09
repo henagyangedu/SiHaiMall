@@ -46,6 +46,35 @@ export async function request(method, url, data = {}, { silent = false, auth = t
   throw body || { code: -1, msg }
 }
 
+/**
+ * 上传一张图片（File 对象），成功时 resolve {id, url, ...}。scene：refund 售后凭证 / avatar 头像。
+ * 失败时弹出提示并 reject。
+ */
+export async function upload(file, scene) {
+  const headers = { Accept: 'application/json', 'X-Lang': state.lang, 'X-Source': 'pc' }
+  if (state.token) headers.Authorization = `Bearer ${state.token}`
+  const form = new FormData()
+  form.append('file', file)
+  form.append('scene', scene)
+
+  let body = null
+  try {
+    // 文件超过服务器限制时返回的可能不是 JSON
+    body = await (await fetch(BASE + '/upload/image', { method: 'POST', headers, body: form })).json()
+  } catch (e) {
+    body = null
+  }
+  if (body && body.code === 0) return body.data
+  if (body && body.code === 401) {
+    logout()
+    toLogin()
+    throw body
+  }
+  const msg = (body && body.msg) || t('common.uploadFailed')
+  ElMessage.error(msg)
+  throw body || { code: -1, msg }
+}
+
 /** 去登录页，登录后回到当前页面 */
 export function toLogin() {
   const current = router.currentRoute.value

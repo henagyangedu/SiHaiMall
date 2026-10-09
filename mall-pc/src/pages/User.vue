@@ -40,15 +40,15 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="state.member" class="wrap">
+  <div v-if="state.member">
     <div class="panel head">
       <img v-if="state.member.avatar" :src="state.member.avatar" alt="" class="avatar" />
       <div v-else class="avatar ph">{{ (state.member.nickname || '?').slice(0, 1) }}</div>
       <div class="who">
         <div class="nick">{{ state.member.nickname }}</div>
-        <div class="sub">{{ t('pc.memberSince') }}：{{ state.member.account }}</div>
+        <div class="sub">{{ t('pc.memberSince') }}：{{ state.member.account }}　<router-link :to="{ name: 'profile' }" class="link">{{ t('common.edit') }}</router-link></div>
       </div>
-      <div class="stat"><div class="num">{{ state.member.points }}</div><div class="sub">{{ t('pc.points') }}</div></div>
+      <router-link :to="{ name: 'points' }" class="stat"><div class="num">{{ state.member.points }}</div><div class="sub">{{ t('pc.points') }}</div></router-link>
       <div v-if="Number(state.member.level_discount) < 100" class="stat"><div class="num">{{ Number(state.member.level_discount) }}%</div><div class="sub">{{ t('pc.level') }}</div></div>
     </div>
 

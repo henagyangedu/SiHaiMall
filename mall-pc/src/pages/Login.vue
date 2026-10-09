@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { state, setToken } from '@/store'
-import { login, register, loginBySms, sendSmsCode, sendEmailCode } from '@/api'
+import { login, register, loginBySms, sendSmsCode, sendEmailCode, getProtocols } from '@/api'
 import { refreshCartCount } from '@/utils/app'
 
 const { t } = useI18n()
@@ -16,6 +16,7 @@ const mode = ref('login') // login | register
 const bySms = ref(false)
 const form = reactive({ account: '', password: '', nickname: '', code: '', invite_code: '' })
 const submitting = ref(false)
+const protocols = ref([])
 
 const isEmail = computed(() => form.account.includes('@'))
 const isPhone = computed(() => /^\d{6,15}$/.test(form.account.trim()))
@@ -84,6 +85,8 @@ onMounted(() => {
   if (state.token) return router.replace(backTo())
   // 通过邀请链接进来：直接进注册并带上邀请码
   if (route.query.invite) { mode.value = 'register'; form.invite_code = String(route.query.invite) }
+  // 没有填写协议时不显示“注册即表示同意”
+  getProtocols().then((d) => { protocols.value = d.filter((p) => ['user_agreement', 'privacy_policy'].includes(p.key)) }).catch(() => {})
 })
 </script>
 
@@ -112,12 +115,19 @@ onMounted(() => {
         <el-form-item><el-input v-model="form.invite_code" maxlength="20" :placeholder="t('login.inviteCode')" /></el-form-item>
       </template>
 
-      <div v-if="mode === 'login' && state.config.sms_enabled" class="links">
-        <a class="link" @click="bySms = !bySms; form.code = ''">{{ t(bySms ? 'auth.pwdLogin' : 'auth.smsLogin') }}</a>
+      <div v-if="mode === 'login'" class="links">
+        <a v-if="state.config.sms_enabled" class="link" @click="bySms = !bySms; form.code = ''">{{ t(bySms ? 'auth.pwdLogin' : 'auth.smsLogin') }}</a>
+        <span v-else />
+        <router-link :to="{ name: 'reset-password' }" class="link">{{ t('auth.forgot') }}</router-link>
       </div>
 
       <el-button type="primary" class="submit" :loading="submitting" @click="submit">{{ t(mode === 'login' ? 'login.submitLogin' : 'login.submitRegister') }}</el-button>
     </el-form>
+
+    <div v-if="mode === 'register' && protocols.length" class="agree sub">
+      {{ t('login.agree') }}
+      <router-link v-for="p in protocols" :key="p.key" :to="{ name: 'protocols', params: { key: p.key } }" target="_blank" class="link"> {{ p.title }}</router-link>
+    </div>
 
     <div class="switch">
       <a class="link" @click="switchMode(mode === 'login' ? 'register' : 'login')">{{ t(mode === 'login' ? 'login.toRegister' : 'login.toLogin') }}</a>
@@ -128,7 +138,8 @@ onMounted(() => {
 <style scoped>
 .box { width: 420px; margin: 40px auto; padding: 28px 36px 32px; }
 .code-row { display: flex; gap: 10px; width: 100%; }
-.links { text-align: right; margin: -6px 0 14px; font-size: 13px; }
+.links { display: flex; justify-content: space-between; margin: -6px 0 14px; font-size: 13px; }
+.agree { text-align: center; margin-top: 14px; }
 .submit { width: 100%; }
 .switch { text-align: center; margin-top: 18px; font-size: 13px; }
 </style>

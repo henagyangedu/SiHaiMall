@@ -111,12 +111,13 @@ onMounted(async () => {
         <div class="st">{{ t(`orderStatus.${order.status}`) }}</div>
         <div v-if="order.can_pay && order.expire_at" class="sub">{{ t('order.expireAt', { time: order.expire_at }) }}</div>
         <div v-if="order.cancel_reason" class="sub">{{ order.cancel_reason }}</div>
-        <div v-if="order.can_refund" class="sub">{{ t('pc.refundOnMobile') }}</div>
       </div>
       <div class="ops">
         <el-button v-if="order.can_pay" type="primary" size="large" @click="openPay">{{ t('order.payNow') }}</el-button>
         <el-button v-if="order.can_receive" type="primary" size="large" @click="onReceive">{{ t('order.receive') }}</el-button>
         <el-button v-if="order.can_cancel" size="large" @click="onCancel">{{ t('order.cancel') }}</el-button>
+        <!-- 能不能申请、能退多少由售后申请页向后端查询，这里只给入口 -->
+        <el-button v-if="order.can_refund" size="large" @click="router.push({ name: 'refund-apply', params: { orderNo } })">{{ t('refund.apply') }}</el-button>
       </div>
     </div>
 

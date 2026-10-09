@@ -1,4 +1,4 @@
-import { get, post, put, del } from '@/utils/request'
+import { get, post, put, del, upload } from '@/utils/request'
 
 // 接口与手机端（mall-uni/src/api）一致，后端不区分端；这里只列 PC 端已经用到的
 
@@ -7,6 +7,10 @@ export const getInit = () => get('/config/init', {}, { auth: false, silent: true
 export const getCnDivisions = () => get('/config/cn-divisions')
 export const getAds = (position) => get('/ads', { position }, { auth: false, silent: true })
 export const getArticles = (params) => get('/articles', params, { auth: false })
+export const getArticle = (id) => get(`/articles/${id}`, {}, { auth: false, silent: true })
+export const getHelp = () => get('/help', {}, { auth: false })
+export const getProtocols = () => get('/protocols', {}, { auth: false, silent: true })
+export const getProtocol = (key) => get(`/protocols/${key}`, {}, { auth: false, silent: true })
 
 // ---- 商品
 export const getCategories = () => get('/categories', {}, { auth: false })
@@ -22,6 +26,10 @@ export const sendEmailCode = (data) => post('/auth/email-code', data, { auth: fa
 export const logoutApi = () => post('/auth/logout', {}, { auth: false, silent: true })
 export const getProfile = () => get('/member/profile', {}, { auth: false, silent: true })
 export const updateProfile = (data) => put('/member/profile', data)
+export const getPointLogs = (params) => get('/member/points', params)
+export const resetPasswordBySms = (data) => post('/auth/reset-password', data, { auth: false })
+export const resetPasswordByEmail = (data) => post('/auth/reset-password-email', data, { auth: false })
+export const uploadImage = (file, scene) => upload(file, scene)
 
 // ---- 购物车
 export const getCart = (opt) => get('/cart', {}, opt)
@@ -47,3 +55,19 @@ export const receiveOrder = (orderNo) => post(`/orders/${orderNo}/receive`)
 export const getPayChannels = (orderNo) => get(`/orders/${orderNo}/pay/channels`)
 export const startPay = (orderNo, data) => post(`/orders/${orderNo}/pay`, data)
 export const confirmPay = (tradeNo) => get(`/pay/${tradeNo}/confirm`, {}, { silent: true })
+
+// ---- 售后
+export const getRefundable = (orderNo) => get(`/orders/${orderNo}/refundable`)
+export const applyRefund = (orderNo, data) => post(`/orders/${orderNo}/refunds`, data)
+export const getRefunds = (params) => get('/refunds', params)
+export const getRefund = (refundNo) => get(`/refunds/${refundNo}`)
+export const cancelRefund = (refundNo) => post(`/refunds/${refundNo}/cancel`)
+export const submitRefundReturn = (refundNo, data) => post(`/refunds/${refundNo}/return`, data)
+
+// ---- 分销中心
+export const getDistSummary = () => get('/distribution/summary')
+export const applyDistributor = (data) => post('/distribution/apply', data)
+export const getCommissions = (params) => get('/distribution/commissions', params)
+export const getTeam = (params) => get('/distribution/team', params)
+export const getWithdraws = (params) => get('/distribution/withdraws', params)
+export const applyWithdraw = (data) => post('/distribution/withdraws', data)

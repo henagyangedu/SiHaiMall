@@ -10,9 +10,27 @@ const routes = [
   { path: '/cart', name: 'cart', component: () => import('@/pages/Cart.vue') },
   { path: '/login', name: 'login', component: () => import('@/pages/Login.vue') },
   { path: '/checkout', name: 'checkout', component: () => import('@/pages/Checkout.vue'), meta: { auth: true } },
-  { path: '/orders', name: 'orders', component: () => import('@/pages/OrderList.vue'), meta: { auth: true } },
-  { path: '/orders/:orderNo', name: 'order-detail', component: () => import('@/pages/OrderDetail.vue'), meta: { auth: true } },
-  { path: '/user', name: 'user', component: () => import('@/pages/User.vue'), meta: { auth: true } },
+  { path: '/reset-password', name: 'reset-password', component: () => import('@/pages/ResetPassword.vue') },
+  // 资讯 / 公告 / 帮助中心共用一个列表页：?type=article|notice|help
+  { path: '/articles', name: 'articles', component: () => import('@/pages/Articles.vue') },
+  { path: '/articles/:id(\\d+)', name: 'article-detail', component: () => import('@/pages/ArticleDetail.vue') },
+  // 不带 key 列出所有协议，带 key 显示这一份的正文
+  { path: '/protocols/:key?', name: 'protocols', component: () => import('@/pages/Protocols.vue') },
+  // 会员中心：左侧菜单 + 右侧内容
+  {
+    path: '/', component: () => import('@/layout/AccountLayout.vue'), meta: { auth: true },
+    children: [
+      { path: 'user', name: 'user', component: () => import('@/pages/User.vue') },
+      { path: 'orders', name: 'orders', component: () => import('@/pages/OrderList.vue') },
+      { path: 'orders/:orderNo', name: 'order-detail', component: () => import('@/pages/OrderDetail.vue') },
+      { path: 'orders/:orderNo/refund', name: 'refund-apply', component: () => import('@/pages/RefundApply.vue') },
+      { path: 'refunds', name: 'refunds', component: () => import('@/pages/RefundList.vue') },
+      { path: 'refunds/:refundNo', name: 'refund-detail', component: () => import('@/pages/RefundDetail.vue') },
+      { path: 'points', name: 'points', component: () => import('@/pages/Points.vue') },
+      { path: 'profile', name: 'profile', component: () => import('@/pages/Profile.vue') },
+      { path: 'distribution', name: 'distribution', component: () => import('@/pages/Distribution.vue') },
+    ],
+  },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('@/pages/NotFound.vue') },
 ]
 
@@ -24,7 +42,7 @@ const router = createRouter({
 
 // 需要登录的页面：没有令牌先去登录，登录后回来
 router.beforeEach((to) => {
-  if (to.meta.auth && !state.token) return { name: 'login', query: { redirect: to.fullPath } }
+  if (to.matched.some((r) => r.meta.auth) && !state.token) return { name: 'login', query: { redirect: to.fullPath } }
   return true
 })
 

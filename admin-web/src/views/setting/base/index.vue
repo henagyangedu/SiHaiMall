@@ -43,10 +43,10 @@ onMounted(load)
     <el-card v-loading="loading" shadow="never">
       <el-form :model="form" label-width="120px" style="max-width: 760px">
         <el-divider content-position="left">站点信息（多语言）</el-divider>
-        <el-form-item label="站点名称"><LangInput v-model="form.site_name" :languages="languages" :maxlength="100" /></el-form-item>
-        <el-form-item label="站点描述"><LangInput v-model="form.site_desc" :languages="languages" type="textarea" :maxlength="500" /></el-form-item>
-        <el-form-item label="站点关键词"><LangInput v-model="form.site_keywords" :languages="languages" :maxlength="255" /></el-form-item>
-        <el-form-item label="版权信息"><LangInput v-model="form.copyright" :languages="languages" :maxlength="255" /></el-form-item>
+        <el-form-item label="站点名称"><LangInput v-model="form.site_name" :languages="languages" :maxlength="100" ai field-key="site_name" /></el-form-item>
+        <el-form-item label="站点描述"><LangInput v-model="form.site_desc" :languages="languages" type="textarea" :maxlength="500" ai field-key="seo_desc" /></el-form-item>
+        <el-form-item label="站点关键词"><LangInput v-model="form.site_keywords" :languages="languages" :maxlength="255" ai field-key="keywords" /></el-form-item>
+        <el-form-item label="版权信息"><LangInput v-model="form.copyright" :languages="languages" :maxlength="255" ai field-key="copyright" /></el-form-item>
 
         <el-divider content-position="left">品牌与联系方式</el-divider>
         <el-form-item label="站点 Logo">
@@ -65,7 +65,7 @@ onMounted(load)
           <el-switch v-model="form.site_closed" :active-value="1" :inactive-value="0" />
           <span style="margin-left: 12px; color: #909399">开启后 C 端会收到关闭状态和提示语（C 端接入后生效）</span>
         </el-form-item>
-        <el-form-item label="关闭提示"><LangInput v-model="form.close_notice" :languages="languages" type="textarea" :maxlength="500" /></el-form-item>
+        <el-form-item label="关闭提示"><LangInput v-model="form.close_notice" :languages="languages" type="textarea" :maxlength="500" ai field-key="notice" /></el-form-item>
 
         <el-divider content-position="left">注册安全</el-divider>
         <el-form-item label="邮箱注册验证">

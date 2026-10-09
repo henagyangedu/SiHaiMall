@@ -80,7 +80,7 @@ onMounted(async () => {
 
     <el-dialog v-model="dialog" :title="isEdit ? '编辑等级' : '新增等级'" width="560px" destroy-on-close>
       <el-form :model="form" label-width="110px">
-        <el-form-item label="等级名称" required><LangInput v-model="form.name" :languages="languages" :maxlength="50" /></el-form-item>
+        <el-form-item label="等级名称" required><LangInput v-model="form.name" :languages="languages" :maxlength="50" ai field-key="level_name" /></el-form-item>
         <el-form-item label="等级序号" required><el-input-number v-model="form.level_no" :min="1" :max="999" /></el-form-item>
         <el-form-item label="升级所需积分"><el-input-number v-model="form.need_points" :min="0" :max="100000000" /></el-form-item>
         <el-form-item label="折扣（%）"><el-input-number v-model="form.discount" :min="1" :max="100" :precision="2" /></el-form-item>

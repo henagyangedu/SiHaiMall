@@ -136,10 +136,10 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::put('driver/translate/{driver}', [DriverController::class, 'save'])->defaults('type', 'translate')->middleware('perm:setting:api_translate:edit');
     Route::post('driver/translate/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'translate')->middleware('perm:setting:api_translate:test');
 
-    // AI 翻译：翻译接口（有任一商品、分类、品牌编辑权限即可用）、路由与额度设置、术语表、用量日志
+    // AI 翻译：翻译接口（有任一带多语言内容的编辑权限即可用：商品、分类、品牌、会员等级、文章/公告/帮助、基础信息、协议）、路由与额度设置、术语表、用量日志
     Route::prefix('translate')->group(function () {
         Route::post('/', [TranslateController::class, 'translate'])
-            ->middleware(['throttle:30,1', 'perm:goods:list:add,goods:list:edit,goods:category:add,goods:category:edit,goods:brand:add,goods:brand:edit,setting:base:edit,setting:api_translate:test']);
+            ->middleware(['throttle:30,1', 'perm:goods:list:add,goods:list:edit,goods:category:add,goods:category:edit,goods:brand:add,goods:brand:edit,member:level:add,member:level:edit,content:article:add,content:article:edit,content:notice:add,content:notice:edit,content:help:add,content:help:edit,setting:base:edit,setting:protocol:edit,setting:api_translate:test']);
         Route::get('settings', [TranslateController::class, 'settings'])->middleware('perm:setting:api_translate:view');
         Route::put('settings', [TranslateController::class, 'saveSettings'])->middleware('perm:setting:api_translate:edit');
         Route::get('glossary', [TranslateController::class, 'glossaryIndex'])->middleware('perm:setting:api_translate:view');

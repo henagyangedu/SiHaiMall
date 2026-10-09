@@ -194,7 +194,7 @@ onMounted(async () => {
 
     <el-dialog v-model="dialog" :title="(isEdit ? '编辑' : '新增') + label" width="1000px" top="4vh" destroy-on-close>
       <el-form :model="form" label-width="90px">
-        <el-form-item label="标题" required><LangInput v-model="form.title" :languages="languages" :maxlength="255" /></el-form-item>
+        <el-form-item label="标题" required><LangInput v-model="form.title" :languages="languages" :maxlength="255" ai field-key="title" /></el-form-item>
         <el-form-item v-if="hasCategory" label="分类" :required="categoryRequired">
           <el-select v-model="form.category_id" clearable :placeholder="categoryRequired ? '请选择分类' : '可不选'" style="width: 260px">
             <el-option v-for="c in enabledCategories" :key="c.id" :label="c.name_text" :value="c.id" />
@@ -205,7 +205,7 @@ onMounted(async () => {
           <el-form-item label="封面"><ImageUpload v-model="form.cover" scene="other" :width="160" :height="100" tip="可选，建议 16:10" /></el-form-item>
           <el-form-item label="作者"><el-input v-model="form.author" maxlength="60" style="width: 260px" /></el-form-item>
         </template>
-        <el-form-item v-if="type !== 'help'" label="摘要"><LangInput v-model="form.summary" :languages="languages" type="textarea" :maxlength="500" /></el-form-item>
+        <el-form-item v-if="type !== 'help'" label="摘要"><LangInput v-model="form.summary" :languages="languages" type="textarea" :maxlength="500" ai field-key="summary" /></el-form-item>
         <el-form-item label="正文" required><LangRichText v-model="form.content" :languages="languages" :height="340" ai field-key="content" /></el-form-item>
         <el-form-item label="发布">
           <el-switch v-model="form.status" :active-value="1" :inactive-value="0" active-text="发布" inactive-text="草稿" />
@@ -218,8 +218,8 @@ onMounted(async () => {
         </el-form-item>
         <el-collapse v-if="type === 'article'" style="margin-left: 90px">
           <el-collapse-item title="SEO 设置（可选，不填时用标题和摘要）">
-            <el-form-item label="SEO 标题" label-width="90px"><LangInput v-model="form.seo_title" :languages="languages" :maxlength="255" /></el-form-item>
-            <el-form-item label="SEO 描述" label-width="90px"><LangInput v-model="form.seo_desc" :languages="languages" type="textarea" :maxlength="500" /></el-form-item>
+            <el-form-item label="SEO 标题" label-width="90px"><LangInput v-model="form.seo_title" :languages="languages" :maxlength="255" ai field-key="seo_title" /></el-form-item>
+            <el-form-item label="SEO 描述" label-width="90px"><LangInput v-model="form.seo_desc" :languages="languages" type="textarea" :maxlength="500" ai field-key="seo_desc" /></el-form-item>
           </el-collapse-item>
         </el-collapse>
       </el-form>
@@ -245,7 +245,7 @@ onMounted(async () => {
       </el-table>
       <el-divider content-position="left">{{ catForm.id ? '编辑分类' : '新增分类' }}</el-divider>
       <el-form label-width="80px">
-        <el-form-item label="名称" required><LangInput v-model="catForm.name" :languages="languages" :maxlength="100" /></el-form-item>
+        <el-form-item label="名称" required><LangInput v-model="catForm.name" :languages="languages" :maxlength="100" ai field-key="category_name" /></el-form-item>
         <el-form-item label="排序">
           <el-input-number v-model="catForm.sort" :min="0" :max="9999" />
           <el-switch v-model="catForm.status" :active-value="1" :inactive-value="0" active-text="启用" inactive-text="停用" style="margin-left: 16px" />

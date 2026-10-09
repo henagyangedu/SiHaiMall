@@ -74,6 +74,7 @@ onShow(async () => {
     </view>
 
     <view class="card list">
+      <view class="cell" @click="nav('/pages/article/list?type=article')"><text>{{ t('userMenu.articles') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="nav('/pages/article/list?type=notice')"><text>{{ t('userMenu.notices') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="nav('/pages/article/list?type=help')"><text>{{ t('userMenu.help') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="nav('/pages/protocol/index')"><text>{{ t('userMenu.protocols') }}</text><text class="sub">›</text></view>

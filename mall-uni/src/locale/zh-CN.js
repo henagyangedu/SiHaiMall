@@ -80,5 +80,5 @@ export default {
   },
   points: { title: '我的积分', balance: '当前积分', after: '余 {n}', other: '其他' },
   pointType: { 1: '注册奖励', 2: '签到', 3: '消费获得', 4: '下单抵扣', 5: '系统调整', 6: '退款扣回' },
-  userMenu: { points: '我的积分', refunds: '我的售后', distribution: '分销中心', help: '帮助中心', notices: '公告', protocols: '协议与政策' },
+  userMenu: { articles: '资讯', points: '我的积分', refunds: '我的售后', distribution: '分销中心', help: '帮助中心', notices: '公告', protocols: '协议与政策' },
 }

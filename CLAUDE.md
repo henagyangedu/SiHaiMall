@@ -4,6 +4,7 @@
 - `home/`：后端 API（Laravel 13 + PHP 8.5 + MySQL 8）
 - `admin-web/`：商城管理后台前端（Vue3 + Element Plus + Vite + Pinia）
 - `mall-uni/`：C 端（uni-app，Vue3 + Vite，命令行工程，不依赖 HBuilderX）。`npm run dev:h5` 开发（端口 5180，/api 走代理，后端地址在 `.env.development`），`npm run build:h5` / `build:mp-weixin` 构建
+- `mall-pc/`：PC 端（Vue3 + Vite + Element Plus + vue-router，hash 路由）。`npm run dev` 开发（端口 5190，`/api`、`/uploads` 走代理），`npm run build` 构建到 `dist/`
 - 本项目是 **Laravel**，不是 ThinkPHP；个人全局配置里若有 ThinkPHP 路径（`app/logic` 等），以本文件为准。
 
 ## 业务范围
@@ -47,6 +48,7 @@
 - **内容**：文章、公告、帮助中心共用 `gm_article`（`type` 1/2/3）和 `AdminArticleService`，后台三个菜单页共用 `views/content/ArticlePage.vue`；文章和帮助有一级分类（`gm_article_category`，按 type 各自一套），公告不分类。对外可见 = `status=1` 且 `published_at` 为空或已到（定时发布）。广告位 `gm_ad_position` 按编码取（预置 `home_banner`、`home_middle`、`category_top`，不能删、不能改编码），广告 `gm_ad` 的图片和标题在 `gm_ad_lang` 按语言存，缺当前语言的图时用默认语言的；跳转类型 none/goods/category/article/url。C 端接口都无需登录：`/api/articles`（`type=article|notice|help`）、`/api/articles/{id}`（浏览量 +1）、`/api/article-categories`、`/api/help`、`/api/ads?position=编码,编码`。
 - **消息通知**：业务节点只调 `NotifyService::send(场景, 会员ID, 变量)`，它在事务提交后、响应返回后（`defer`）才发信，失败只写日志。场景、变量和内置中英文模板登记在 `AppSupportMessageScenes`；是否发送和自定义文案在后台“设置 → 消息模板”（存 `gm_message_template` + `_lang`，目前只有 email 渠道，默认全部关闭）。取模板顺序：会员语言 → 默认语言 → 内置模板。模板变量写 `{变量名}`，未知变量原样保留，变量值不会被二次替换。新增场景：在 MessageScenes 登记 + 在业务节点调用 send。
 - **C 端（mall-uni）约定**：接口统一走 `src/utils/request.js`（自动带 `X-Lang`、`X-Currency`、`X-Source` 和令牌，401 跳登录），接口函数集中在 `src/api/index.js`；全局状态是 `src/store` 里的一个 reactive 对象（没用状态库）；界面文案在 `src/locale`（中文、英文，其他语言先回退英文），商品等业务内容的多语言由后端返回。金额、运费、区域价一律用服务端算好的结果，前端不自己算价。模板里不能直接用全局 `uni`，跳转用 `utils/page.js` 的 `nav` / `tab`。平台差异用条件编译（`#ifdef H5` 等）。订单、售后、佣金、提现的状态文字由前端按状态码翻译（`orderStatus.N` 等），不要直接显示后端的 `status_text`（只有中文）；后端返回给买家的提示已支持英文，见“C 端提示多语言”。
+- **PC 端（mall-pc）约定**：和手机端用同一套 `/api` 接口，后端不区分端，只是请求头 `X-Source` 固定为 `pc`（决定可用的支付方式等）。结构照 mall-uni：`src/utils/request.js`（fetch 封装，401 跳登录并带回跳地址）、`src/api/index.js`、`src/store`（一个 reactive 对象，令牌 / 语言 / 币种存 localStorage）。**界面文案和国家列表直接引用 `mall-uni/src` 下的同一份**（Vite 别名 `@shared`），PC 端独有的文案在 `src/locale/pc.js`、用 `t('pc.xxx')`；改通用文案只改 mall-uni 那一份。`App.vue` 给 `router-view` 的 key 带上了地址、语言和币种，所以切语言 / 币种或改筛选条件时页面整个重建，页面里只需在 `onMounted` 取数。商品列表的筛选条件（分类、关键词、排序、页码）都在地址参数里。**富文本（商品详情）用 `v-html` 渲染前必须过 `utils/html.js` 的 `safeHtml`**——后端不过滤富文本。金额、运费、区域价同样只用服务端算好的结果。
 - **C 端提示多语言**：业务代码里的提示一律写中文；买家语言不是中文时，`TranslateApiMessages` 中间件（只作用于 `/api/*`）在响应返回前用 `AppSupportApiMessageTranslator` 翻成英文，处理顶层 `msg`、`data.problems[].msg`、`data.reason`。**新增买家可见的提示要在 ApiMessageTranslator 登记**：固定文案加到 `EXACT`，带变量的加到 `patterns()`，表单字段名加到 `ATTRIBUTES`；`ApiMessageTranslatorTest` 会扫描买家可达的服务，漏登记会失败。没登记的提示原样返回中文。后台管理端不翻译。第三方故障（如短信平台连不上）的详情只写日志，买家只看到通用提示。
 - **买家上传**：`POST /api/upload/image`（需登录；`file` + `scene`=refund/avatar；jpg/png/webp，5MB 以内；每人每天 60 张）。走 `UploadService::memberImage`，文件存到 `member/{会员ID}/{用途}/` 下（`gm_file` 没有会员字段，靠路径区分归属）。**业务接口收到买家提交的图片地址时必须调 `UploadService::assertMemberImages`**，只接受他本人上传的图片（售后凭证、头像都已接入；头像原样提交现有值时不校验，方便以后第三方登录带来的外部头像）。本地存储的图片地址前缀默认是 `APP_URL/uploads`，可用 `.env` 的 `UPLOADS_URL` 覆盖（见“本地访问方式”）。
 - **物流查询**：只经 `Common\ExpressTrackService`（买家 `GET /api/orders/{订单号}/tracks`、后台 `GET /admin-api/order/ship/record/{发货记录ID}/track` 共用）。驱动类型 `express`，目前只有快递100（`Kuaidi100Driver`，实时查询接口，按次计费），后台“设置 → API 配置 → 物流查询”填 customer 和授权 key。结果缓存在发货记录上（`gm_shipping.track_status` 0 暂无 / 1 运输中 / 2 已签收 / 3 异常，`track_data` 存 `{queried_at, traces}`）：30 分钟内不重复查，已签收不再查，后台“刷新”同一包裹 5 分钟最多查一次，服务商出故障后 2 分钟内不重试。没启用、快递公司不支持（如“其它”）、服务商故障时都不报错，返回已有缓存并在 `message` 里说明。改物流单号会清掉缓存。快递公司编码在 `OrderShipService::EXPRESS`，新增快递公司要同时在驱动的 `COMPANY` 里登记对应编码。轨迹文字是快递公司的原文，不翻译。
@@ -69,7 +71,7 @@
 3. ~~短信驱动 + 注册/登录验证码~~（已完成，对接 GM 短信平台，文档见 `docs/短信平台接入文档.md`；**还没和真实平台联调过**，场景标识待平台确认）。邮箱验证码也已完成（发信要先配 `.env` 的 `MAIL_*`，没有用真实邮箱发过）。
 4. ~~退款与售后流程~~（已完成；Stripe/PayPal 真实退款还没用沙箱密钥验证，渠道退款回调已能自动完成售后单，但 Stripe / PayPal 退款事件的解析同样没有用真实报文验证过；后台可以代买家发起售后；买家申请时可上传最多 6 张凭证图片）、~~积分抵扣~~、~~订单导出~~、~~消费得积分与退款扣回~~（均已完成；积分还不影响会员等级。C 端积分明细接口 `GET /api/member/points`，不返回流水的 remark——那是给后台看的中文说明，C 端按 type 翻译）。
 5. ~~物流查询驱动~~（已完成，对接快递100；**还没用真实账号联调过**，快递100 的公司编码和返回格式是按公开文档写的）、电子面单、~~分销（最多 2 级）~~（已完成，含按商品单独设比例 / 不参与分销；还不能按分类或分销员等级设比例）、~~内容~~（已完成：文章、公告、帮助中心、轮播图与广告位）、~~数据中心~~（已完成：概览、趋势、商品排行、订单分布）、应用（公众号/小程序/App）。
-6. uni-app C 端（H5 / 小程序的页面已覆盖全部现有接口：首页、分类、商品详情、购物车、登录注册、短信登录、找回密码、结算下单、订单、支付发起、收货地址、售后、分销中心、公告、帮助中心、协议、个人中心、个人资料、积分明细；只做过截图检查和编译检查，没有在真机或微信开发者工具里跑过，资讯文章的入口在个人中心）、PC 端（未开始）。
+6. uni-app C 端（H5 / 小程序的页面已覆盖全部现有接口：首页、分类、商品详情、购物车、登录注册、短信登录、找回密码、结算下单、订单、支付发起、收货地址、售后、分销中心、公告、帮助中心、协议、个人中心、个人资料、积分明细；只做过截图检查和编译检查，没有在真机或微信开发者工具里跑过，资讯文章的入口在个人中心）、PC 端（`mall-pc`，第一批页面已完成：首页、商品列表 / 搜索、商品详情、购物车、登录注册、结算下单、订单列表与详情（含支付发起、物流轨迹）、个人中心（含收货地址管理）；2026-10-09 用无头 Edge 截图看过各页用真实数据渲染正常，**加购、下单、支付、弹窗这些点击操作没有在浏览器里实际点过**。第二批还没做：售后、分销中心、资讯与帮助、协议、找回密码、个人资料编辑、积分明细）。
 7. ~~二期 AI 翻译（Claude、Qwen）~~（已完成，**没有用真实密钥调用过**：通义千问走 OpenAI 兼容接口，和 OpenAI / DeepSeek 共用 `OpenAiCompatibleDriver`；Claude 走 Anthropic 的 Messages 接口，单独的 `ClaudeDriver`，没有强制 JSON 输出的开关，靠提示词约束 + `TranslateService` 校验重试）。~~分类/品牌/规格名的翻译按钮与批量填充~~（已完成：`LangInput` 加 `ai` 属性即有“AI 翻译”和“翻译到其他语言”按钮，分类、品牌已开；规格在 `SpecEditor` 里有“AI 翻译规格名和规格值”。都只填空着的语言。会员等级、文章 / 公告 / 帮助（标题、摘要、SEO、分类名）、基础设置也已开启。**新页面要用 AI 翻译时，记得把它的编辑权限点加到 `POST /admin-api/translate` 的路由上**，否则非超管会被拒绝。翻译提示词（`AdminTranslateService::PROMPT`）按字段名定规则：`description`、`content` 以及任何含 HTML 标签的字段按富文本处理（保留标签、整篇翻译不缩写），其他字段按短文本处理；译文的标签结构和原文不一致会重试一次，仍不一致就报错，不返回残缺的译文。**改了提示词要把 `PROMPT_VERSION` 加一**，否则 30 天内相同内容会命中旧提示词下的缓存）。
 
 ## 验证状态（重要）
@@ -81,7 +83,7 @@
 
 ## 本地访问方式
 - 这台开发机的浏览器走系统代理，**打不开 `https://gmmall.cc`**（命令行直连是通的）。用户的约定：一律用 `127.0.0.1` 加端口访问，不用管这个域名。
-- 后台：`http://127.0.0.1:5173`（`admin-web` 的 `npm run dev`）；C 端 H5：`http://127.0.0.1:5180`（`mall-uni` 的 `npm run dev:h5`）。两个开发服务器把接口（`/admin-api`、`/api`）和上传的图片（`/uploads`）转发给后端，转发目标是各自 `.env.development` 里的 `VITE_API_PROXY`（目前是 ServBay 的 `https://gmmall.cc`，这是服务器端转发，不受浏览器代理影响）。
+- 后台：`http://127.0.0.1:5173`（`admin-web` 的 `npm run dev`）；C 端 H5：`http://127.0.0.1:5180`（`mall-uni` 的 `npm run dev:h5`）；PC 端：`http://127.0.0.1:5190`（`mall-pc` 的 `npm run dev`）。三个开发服务器把接口（`/admin-api`、`/api`）和上传的图片（`/uploads`）转发给后端，转发目标是各自 `.env.development` 里的 `VITE_API_PROXY`（目前是 ServBay 的 `https://gmmall.cc`，这是服务器端转发，不受浏览器代理影响）。
 - 本机 `home/.env` 设了 `UPLOADS_URL=/uploads`：本地存储的图片地址是不带域名的相对路径，由打开页面的开发服务器代为转发。部署到小程序 / App 需要完整地址的环境时不要用相对路径。
 
 ## 常用命令

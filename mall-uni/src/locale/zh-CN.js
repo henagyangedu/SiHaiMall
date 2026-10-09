@@ -74,5 +74,11 @@ export default {
     newPassword: '新密码（至少 6 位）', resetSubmit: '重置密码', resetDone: '密码已重置，请重新登录', needMobile: '请输入手机号', needCode: '请输入验证码',
     resetUnavailable: '该账号类型暂不支持自助找回密码，请联系客服',
   },
-  userMenu: { refunds: '我的售后', distribution: '分销中心', help: '帮助中心', notices: '公告', protocols: '协议与政策' },
+  profile: {
+    title: '个人资料', avatar: '头像', nickname: '昵称', gender: '性别', gender0: '保密', gender1: '男', gender2: '女', birthday: '生日', notSet: '未设置',
+    account: '账号', phone: '手机号', email: '邮箱', needNickname: '请填写昵称',
+  },
+  points: { title: '我的积分', balance: '当前积分', after: '余 {n}', other: '其他' },
+  pointType: { 1: '注册奖励', 2: '签到', 3: '消费获得', 4: '下单抵扣', 5: '系统调整', 6: '退款扣回' },
+  userMenu: { points: '我的积分', refunds: '我的售后', distribution: '分销中心', help: '帮助中心', notices: '公告', protocols: '协议与政策' },
 }

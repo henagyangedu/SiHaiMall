@@ -20,7 +20,9 @@
     { "path": "pages/distribution/withdraw", "style": { "navigationBarTitleText": "" } },
     { "path": "pages/article/list", "style": { "navigationBarTitleText": "" } },
     { "path": "pages/article/detail", "style": { "navigationBarTitleText": "" } },
-    { "path": "pages/protocol/index", "style": { "navigationBarTitleText": "" } }
+    { "path": "pages/protocol/index", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/user/profile", "style": { "navigationBarTitleText": "" } },
+    { "path": "pages/user/points", "style": { "navigationBarTitleText": "", "enablePullDownRefresh": true } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

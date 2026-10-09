@@ -48,13 +48,15 @@ onShow(async () => {
 
 <template>
   <view>
-    <view class="head" @click="!state.token && toLogin()">
-      <view class="avatar">{{ (state.member?.nickname || '?').slice(0, 1) }}</view>
-      <view v-if="state.member">
+    <view class="head" @click="state.token ? nav('/pages/user/profile') : toLogin()">
+      <image v-if="state.member?.avatar" :src="state.member.avatar" mode="aspectFill" class="avatar" />
+      <view v-else class="avatar">{{ (state.member?.nickname || '?').slice(0, 1) }}</view>
+      <view v-if="state.member" class="who">
         <view class="nick">{{ state.member.nickname }}</view>
-        <view class="meta">{{ t('user.points') }} {{ state.member.points }}</view>
+        <view class="meta" @click.stop="nav('/pages/user/points')">{{ t('user.points') }} {{ state.member.points }} ›</view>
       </view>
       <view v-else class="nick">{{ t('user.notLogin') }}</view>
+      <text v-if="state.member" class="arrow">›</text>
     </view>
 
     <view class="card">
@@ -66,6 +68,7 @@ onShow(async () => {
 
     <view class="card list">
       <view class="cell" @click="needLogin(() => nav('/pages/refund/list'))"><text>{{ t('userMenu.refunds') }}</text><text class="sub">›</text></view>
+      <view class="cell" @click="needLogin(() => nav('/pages/user/points'))"><text>{{ t('userMenu.points') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="needLogin(() => nav('/pages/address/list'))"><text>{{ t('user.address') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="needLogin(() => nav('/pages/distribution/index'))"><text>{{ t('userMenu.distribution') }}</text><text class="sub">›</text></view>
     </view>
@@ -88,7 +91,9 @@ onShow(async () => {
 
 <style lang="scss" scoped>
 .head { background: var(--theme); color: #fff; padding: 60rpx 40rpx; display: flex; align-items: center; }
-.avatar { width: 110rpx; height: 110rpx; border-radius: 50%; background: rgba(255, 255, 255, 0.25); text-align: center; line-height: 110rpx; font-size: 48rpx; margin-right: 28rpx; }
+.avatar { width: 110rpx; height: 110rpx; border-radius: 50%; background: rgba(255, 255, 255, 0.25); text-align: center; line-height: 110rpx; font-size: 48rpx; margin-right: 28rpx; flex: none; }
+.who { flex: 1; min-width: 0; }
+.arrow { font-size: 40rpx; opacity: 0.8; }
 .nick { font-size: 36rpx; font-weight: 600; }
 .meta { font-size: 24rpx; opacity: 0.9; margin-top: 6rpx; }
 .title { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 24rpx; }

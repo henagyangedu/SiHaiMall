@@ -74,5 +74,11 @@ export default {
     newPassword: 'New password (6+ characters)', resetSubmit: 'Reset password', resetDone: 'Password reset. Please sign in again.', needMobile: 'Enter your phone number', needCode: 'Enter the verification code',
     resetUnavailable: 'Self-service reset is not available for this account. Please contact support.',
   },
-  userMenu: { refunds: 'My refunds', distribution: 'Affiliate center', help: 'Help center', notices: 'Notices', protocols: 'Terms & policies' },
+  profile: {
+    title: 'Profile', avatar: 'Photo', nickname: 'Nickname', gender: 'Gender', gender0: 'Prefer not to say', gender1: 'Male', gender2: 'Female', birthday: 'Birthday', notSet: 'Not set',
+    account: 'Account', phone: 'Phone', email: 'Email', needNickname: 'Please enter a nickname',
+  },
+  points: { title: 'My points', balance: 'Points balance', after: 'Balance {n}', other: 'Other' },
+  pointType: { 1: 'Sign-up bonus', 2: 'Check-in', 3: 'Earned from order', 4: 'Used on order', 5: 'Adjustment', 6: 'Refund deduction' },
+  userMenu: { points: 'My points',  refunds: 'My refunds', distribution: 'Affiliate center', help: 'Help center', notices: 'Notices', protocols: 'Terms & policies' },
 }

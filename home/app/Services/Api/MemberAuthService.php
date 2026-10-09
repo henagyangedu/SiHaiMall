@@ -8,6 +8,7 @@ use App\Services\Common\DistributionService;
 use App\Services\Common\EmailCodeService;
 use App\Services\Common\LocaleService;
 use App\Services\Common\SmsCodeService;
+use App\Services\Common\UploadService;
 use App\Support\Exceptions\BusinessException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,7 @@ use Illuminate\Support\Str;
 class MemberAuthService
 {
     public function __construct(private LocaleService $locale, private SmsCodeService $sms, private EmailCodeService $emailCodes,
-        private DistributionService $distribution) {}
+        private DistributionService $distribution, private UploadService $uploads) {}
 
     /** @param array{account:string,password:string,nickname?:string,phone_area?:string,code?:string,invite_code?:string,lang?:string,currency?:string} $d */
     public function register(array $d, string $source, string $ip, string $ua): array
@@ -244,6 +245,10 @@ class MemberAuthService
         }
         if (array_key_exists('avatar', $upd)) {
             $upd['avatar'] = (string) $upd['avatar'];
+            // 换头像只接受本人通过上传接口传的图片；原样提交现有头像（比如第三方登录带来的）不拦
+            if ($upd['avatar'] !== '' && $upd['avatar'] !== (string) $m->avatar) {
+                $this->uploads->assertMemberImages((int) $m->id, [$upd['avatar']]);
+            }
         }
         if (isset($d['lang'])) {
             if (!in_array($d['lang'], $this->locale->codes(), true)) {

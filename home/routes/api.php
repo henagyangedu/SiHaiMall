@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\DistributionController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PayController;
+use App\Http\Controllers\Api\PointController;
 use App\Http\Controllers\Api\ProtocolController;
 use App\Http\Controllers\Api\RefundController;
 use App\Http\Controllers\Api\UploadController;
@@ -54,6 +55,7 @@ Route::middleware('api.token')->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::get('member/profile', [AuthController::class, 'profile']);
     Route::put('member/profile', [AuthController::class, 'updateProfile']);
+    Route::get('member/points', [PointController::class, 'index']);
     Route::put('member/password', [AuthController::class, 'password'])->middleware('throttle:10,1');
 
     // 买家上传图片（售后凭证、头像），另有每人每天的张数上限

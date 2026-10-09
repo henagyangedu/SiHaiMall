@@ -1,0 +1,64 @@
+<?php
+
+return [
+    'accepted' => ':attribute 必须接受。',
+    'alpha_dash' => ':attribute 只能包含字母、数字、短划线和下划线。',
+    'array' => ':attribute 必须是数组。',
+    'between' => [
+        'array' => ':attribute 必须包含 :min 到 :max 项。',
+        'numeric' => ':attribute 必须在 :min 到 :max 之间。',
+        'string' => ':attribute 长度必须在 :min 到 :max 个字符之间。',
+    ],
+    'boolean' => ':attribute 必须是布尔值。',
+    'confirmed' => ':attribute 两次输入不一致。',
+    'date' => ':attribute 不是有效的日期。',
+    'email' => ':attribute 必须是有效的邮箱地址。',
+    'exists' => '所选 :attribute 无效。',
+    'file' => ':attribute 必须是文件。',
+    'gt' => [
+        'numeric' => ':attribute 必须大于 :value。',
+        'string' => ':attribute 长度必须大于 :value 个字符。',
+    ],
+    'gte' => [
+        'numeric' => ':attribute 必须大于或等于 :value。',
+        'string' => ':attribute 长度必须大于或等于 :value 个字符。',
+    ],
+    'in' => '所选 :attribute 无效。',
+    'integer' => ':attribute 必须是整数。',
+    'lt' => [
+        'numeric' => ':attribute 必须小于 :value。',
+        'string' => ':attribute 长度必须小于 :value 个字符。',
+    ],
+    'lte' => [
+        'numeric' => ':attribute 必须小于或等于 :value。',
+        'string' => ':attribute 长度必须小于或等于 :value 个字符。',
+    ],
+    'max' => [
+        'array' => ':attribute 不能超过 :max 项。',
+        'file' => ':attribute 不能大于 :max KB。',
+        'numeric' => ':attribute 不能大于 :max。',
+        'string' => ':attribute 不能超过 :max 个字符。',
+    ],
+    'mimes' => ':attribute 的文件类型必须是：:values。',
+    'min' => [
+        'array' => ':attribute 至少包含 :min 项。',
+        'file' => ':attribute 不能小于 :min KB。',
+        'numeric' => ':attribute 不能小于 :min。',
+        'string' => ':attribute 至少 :min 个字符。',
+    ],
+    'numeric' => ':attribute 必须是数字。',
+    'prohibited' => ':attribute 不允许修改。',
+    'regex' => ':attribute 格式不正确。',
+    'required' => ':attribute 不能为空。',
+    'string' => ':attribute 必须是字符串。',
+    'unique' => ':attribute 已存在。',
+    'uploaded' => ':attribute 上传失败，请检查文件大小是否超过服务器限制。',
+    'password' => [
+        'letters' => ':attribute 必须包含至少一个字母。',
+        'mixed' => ':attribute 必须包含大小写字母。',
+        'numbers' => ':attribute 必须包含至少一个数字。',
+        'symbols' => ':attribute 必须包含至少一个符号。',
+        'uncompromised' => ':attribute 出现在已泄露的数据中，请更换。',
+    ],
+    'attributes' => [],
+];

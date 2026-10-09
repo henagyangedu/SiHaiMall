@@ -1,0 +1,20 @@
+// 把下面内容放进 bootstrap/app.php 的 ->withExceptions(function (Exceptions $exceptions) { ... })
+// 作用：Controller 不写 try/catch，所有异常统一输出 {code,msg,data}
+
+use App\Support\ApiResponse;
+use App\Support\Exceptions\BusinessException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+
+$exceptions->render(function (BusinessException $e, Request $request) {
+    return ApiResponse::fail($e->getMessage(), $e->getCode() ?: 1);
+});
+
+$exceptions->render(function (ValidationException $e, Request $request) {
+    return ApiResponse::fail($e->validator->errors()->first(), 422, $e->errors());
+});
+
+$exceptions->render(function (AuthenticationException $e, Request $request) {
+    return ApiResponse::fail('未登录或登录已过期', 401);
+});

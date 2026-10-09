@@ -1,0 +1,147 @@
+<?php
+
+namespace App\Drivers;
+
+use App\Support\Exceptions\BusinessException;
+
+/**
+ * 第三方接口驱动注册表：每种类型（storage / sms / pay / express / waybill）有哪些驱动、各需要哪些配置项。
+ * 后台“接口配置”页面按这里的 fields 自动生成表单。新增驱动只需在这里登记 + 写实现类。
+ * 字段 type：text 文本 / secret 密钥（加密存储，页面脱敏） / switch 开关
+ */
+class DriverRegistry
+{
+    public static function types(): array
+    {
+        return [
+            'storage' => [
+                'label'   => '系统存储',
+                'drivers' => [
+                    'local' => [
+                        'name'   => '本地存储',
+                        'desc'   => '文件保存在服务器 public/uploads 目录，适合开发和小流量。访问地址依赖 .env 的 APP_URL，务必改成真实站点地址。',
+                        'fields' => [],
+                    ],
+                    'aliyun' => [
+                        'name'   => '阿里云 OSS',
+                        'desc'   => '通过 S3 兼容协议接入阿里云对象存储。',
+                        'fields' => self::s3Fields(
+                            'S3 兼容端点，示例：https://s3.oss-cn-hangzhou.aliyuncs.com（具体地址以阿里云官方文档为准）',
+                            'cn-hangzhou', '', '存储桶名称', false
+                        ),
+                    ],
+                    'tencent' => [
+                        'name'   => '腾讯云 COS',
+                        'desc'   => '通过 S3 兼容协议接入腾讯云对象存储。',
+                        'fields' => self::s3Fields(
+                            'S3 兼容端点，示例：https://cos.ap-guangzhou.myqcloud.com（具体地址以腾讯云官方文档为准）',
+                            'ap-guangzhou', '', '存储桶名称，格式：名称-APPID，如 mall-1250000000', false
+                        ),
+                    ],
+                    'gcs' => [
+                        'name'   => 'Google Cloud Storage',
+                        'desc'   => '通过 GCS 的 S3 互操作模式接入，需要在 Google Cloud 控制台创建 HMAC 密钥。',
+                        'fields' => self::s3Fields(
+                            '默认 https://storage.googleapis.com',
+                            'auto', 'https://storage.googleapis.com', '存储桶名称', false
+                        ),
+                    ],
+                    's3' => [
+                        'name'   => 'S3 兼容存储',
+                        'desc'   => '适用于 AWS S3、Cloudflare R2、MinIO 等任何兼容 S3 协议的服务。',
+                        'fields' => self::s3Fields(
+                            '服务端点，如 https://s3.amazonaws.com 或 https://<账号ID>.r2.cloudflarestorage.com',
+                            'auto', '', '存储桶名称', false
+                        ),
+                    ],
+                ],
+            ],
+            'pay' => [
+                'label'   => '商城支付',
+                'drivers' => [
+                    'stripe' => [
+                        'name'   => 'Stripe（境外银行卡 / 钱包）',
+                        'desc'   => '跳转 Stripe 托管收银台，支持境外信用卡与多种本地支付方式。Webhook 地址：' . self::notifyUrl('stripe') . '（在 Stripe 后台添加该地址，事件勾选 checkout.session.completed、checkout.session.async_payment_succeeded、checkout.session.async_payment_failed、checkout.session.expired，并把生成的签名密钥填到下方）。',
+                        'fields' => [
+                            'secret_key'     => ['label' => 'Secret Key', 'type' => 'secret', 'required' => true, 'default' => '', 'hint' => '以 sk_test_ / sk_live_ 开头；测试环境用 test 密钥。加密保存，页面不再显示'],
+                            'webhook_secret' => ['label' => 'Webhook 签名密钥', 'type' => 'secret', 'required' => true, 'default' => '', 'hint' => '以 whsec_ 开头，在 Stripe 后台添加 Webhook 后获得'],
+                            'currencies'     => ['label' => '限定币种', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选，逗号分隔，如 USD,EUR,GBP；留空表示不限制（以 Stripe 账户实际支持为准）'],
+                            'api_base'       => ['label' => '接口地址', 'type' => 'text', 'required' => false, 'default' => 'https://api.stripe.com', 'hint' => '一般不用改'],
+                            'timeout'        => ['label' => '超时（秒）', 'type' => 'text', 'required' => false, 'default' => '30', 'hint' => ''],
+                            'proxy'          => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。测试服务器在中国大陆时通常需要代理才能访问 Stripe；是否合规请以服务商条款和当地法规为准'],
+                        ],
+                    ],
+                    'paypal' => [
+                        'name'   => 'PayPal',
+                        'desc'   => '跳转 PayPal 授权后由商城收款。Webhook 地址：' . self::notifyUrl('paypal') . '（在 PayPal 开发者后台的应用里添加，事件勾选 Checkout order approved、Payment capture completed / denied / refunded，并把 Webhook ID 填到下方）。',
+                        'fields' => [
+                            'mode'          => ['label' => '环境', 'type' => 'text', 'required' => true, 'default' => 'sandbox', 'hint' => '填 sandbox（沙箱测试）或 live（正式）'],
+                            'client_id'     => ['label' => 'Client ID', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => ''],
+                            'client_secret' => ['label' => 'Client Secret', 'type' => 'secret', 'required' => true, 'default' => '', 'hint' => '加密保存，页面不再显示'],
+                            'webhook_id'    => ['label' => 'Webhook ID', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => '在 PayPal 开发者后台添加 Webhook 后获得'],
+                            'currencies'    => ['label' => '限定币种', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选，逗号分隔，如 USD,EUR；留空则按 PayPal 支持的币种自动判断'],
+                            'timeout'       => ['label' => '超时（秒）', 'type' => 'text', 'required' => false, 'default' => '30', 'hint' => ''],
+                            'proxy'         => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。测试服务器在中国大陆时通常需要代理才能访问 PayPal；是否合规请以服务商条款和当地法规为准'],
+                        ],
+                    ],
+                ],
+            ],
+            'translate' => [
+                'label'   => 'AI 翻译',
+                'drivers' => [
+                    'openai' => [
+                        'name'   => 'OpenAI（GPT）',
+                        'desc'   => '调用 OpenAI 的对话接口翻译商品文案。模型名称在下方自行填写，不在代码里写死，换模型只改配置。',
+                        'fields' => self::llmFields('https://api.openai.com/v1', '接口地址，OpenAI 官方为 https://api.openai.com/v1；若通过中转服务访问，改成中转地址', '模型名称，以 OpenAI 官方文档当前提供的为准'),
+                    ],
+                    'deepseek' => [
+                        'name'   => 'DeepSeek',
+                        'desc'   => '调用 DeepSeek 的 OpenAI 兼容接口翻译商品文案。',
+                        'fields' => self::llmFields('https://api.deepseek.com', '接口地址，DeepSeek 官方为 https://api.deepseek.com', '模型名称，以 DeepSeek 官方文档当前提供的为准'),
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    public static function drivers(string $type): array
+    {
+        return self::types()[$type]['drivers'] ?? throw new BusinessException('未知的接口类型');
+    }
+
+    public static function driver(string $type, string $driver): array
+    {
+        return self::drivers($type)[$driver] ?? throw new BusinessException('未知的驱动：' . $driver);
+    }
+
+    /** 渠道回调地址（需公网可访问的 https 域名；本地开发请用内网穿透） */
+    private static function notifyUrl(string $channel): string
+    {
+        return rtrim((string) config('app.url'), '/') . '/notify/pay/' . $channel;
+    }
+
+    private static function llmFields(string $baseUrl, string $baseHint, string $modelHint): array
+    {
+        return [
+            'base_url'    => ['label' => '接口地址', 'type' => 'text', 'required' => true, 'default' => $baseUrl, 'hint' => $baseHint],
+            'api_key'     => ['label' => 'API Key', 'type' => 'secret', 'required' => true, 'default' => '', 'hint' => '加密保存，页面不再显示；不修改请保持原样'],
+            'model'       => ['label' => '模型名称', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => $modelHint],
+            'temperature' => ['label' => '温度', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。建议 0 到 0.3 让译文稳定；部分新模型不支持自定义温度，留空即可'],
+            'timeout'     => ['label' => '超时（秒）', 'type' => 'text', 'required' => false, 'default' => '60', 'hint' => '长篇详情翻译较慢，建议 60 到 120'],
+            'proxy'       => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选，如 http://127.0.0.1:7890。是否需要代理、是否合规请以服务商条款和当地法规为准'],
+        ];
+    }
+
+    private static function s3Fields(string $endpointHint, string $region, string $endpoint, string $bucketHint, bool $pathStyle): array
+    {
+        return [
+            'endpoint'   => ['label' => '服务端点', 'type' => 'text', 'required' => true, 'default' => $endpoint, 'hint' => $endpointHint],
+            'region'     => ['label' => '地域', 'type' => 'text', 'required' => true, 'default' => $region, 'hint' => '地域代码，以服务商文档为准'],
+            'bucket'     => ['label' => '存储桶', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => $bucketHint],
+            'access_key' => ['label' => 'AccessKey', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => ''],
+            'secret_key' => ['label' => 'SecretKey', 'type' => 'secret', 'required' => true, 'default' => '', 'hint' => '加密保存，页面不再显示；不修改请保持原样'],
+            'path_style' => ['label' => '路径风格访问', 'type' => 'switch', 'required' => false, 'default' => $pathStyle ? 1 : 0, 'hint' => '多数云厂商保持关闭；自建 MinIO 通常需要开启'],
+            'domain'     => ['label' => '访问域名', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '对外访问或 CDN 域名（含 https://）；不填则按存储桶地址生成，此时存储桶需允许公开读取'],
+        ];
+    }
+}

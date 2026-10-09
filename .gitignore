@@ -1,0 +1,8 @@
+# 云端交付的压缩包，已合并进 home/ 和 admin-web/，不入库
+/下载附件/
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+/.idea
+/.vscode

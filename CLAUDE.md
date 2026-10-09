@@ -3,6 +3,7 @@
 ## 目录
 - `home/`：后端 API（Laravel 13 + PHP 8.5 + MySQL 8）
 - `admin-web/`：商城管理后台前端（Vue3 + Element Plus + Vite + Pinia）
+- `mall-uni/`：C 端（uni-app，Vue3 + Vite，命令行工程，不依赖 HBuilderX）。`npm run dev:h5` 开发（端口 5180，/api 走代理，后端地址在 `.env.development`），`npm run build:h5` / `build:mp-weixin` 构建
 - 本项目是 **Laravel**，不是 ThinkPHP；个人全局配置里若有 ThinkPHP 路径（`app/logic` 等），以本文件为准。
 
 ## 业务范围
@@ -41,6 +42,7 @@
 - **协议与政策**：内容存 `gm_config` 的 `protocol` 分组（多语言富文本），后台“设置 → 协议管理”维护，C 端 `GET /api/protocols`（只返回已填写的）和 `GET /api/protocols/{key}`，当前语言没填时回退默认语言。注意 `gm_config.value` 是 TEXT：一个协议所有语言合计编码后不能超过 60000 字节（`ConfigService::save` 会拦截），语言多了或协议很长时需要把该列改成 MEDIUMTEXT。
 - **内容**：文章、公告、帮助中心共用 `gm_article`（`type` 1/2/3）和 `AdminArticleService`，后台三个菜单页共用 `views/content/ArticlePage.vue`；文章和帮助有一级分类（`gm_article_category`，按 type 各自一套），公告不分类。对外可见 = `status=1` 且 `published_at` 为空或已到（定时发布）。广告位 `gm_ad_position` 按编码取（预置 `home_banner`、`home_middle`、`category_top`，不能删、不能改编码），广告 `gm_ad` 的图片和标题在 `gm_ad_lang` 按语言存，缺当前语言的图时用默认语言的；跳转类型 none/goods/category/article/url。C 端接口都无需登录：`/api/articles`（`type=article|notice|help`）、`/api/articles/{id}`（浏览量 +1）、`/api/article-categories`、`/api/help`、`/api/ads?position=编码,编码`。
 - **消息通知**：业务节点只调 `NotifyService::send(场景, 会员ID, 变量)`，它在事务提交后、响应返回后（`defer`）才发信，失败只写日志。场景、变量和内置中英文模板登记在 `AppSupportMessageScenes`；是否发送和自定义文案在后台“设置 → 消息模板”（存 `gm_message_template` + `_lang`，目前只有 email 渠道，默认全部关闭）。取模板顺序：会员语言 → 默认语言 → 内置模板。模板变量写 `{变量名}`，未知变量原样保留，变量值不会被二次替换。新增场景：在 MessageScenes 登记 + 在业务节点调用 send。
+- **C 端（mall-uni）约定**：接口统一走 `src/utils/request.js`（自动带 `X-Lang`、`X-Currency`、`X-Source` 和令牌，401 跳登录），接口函数集中在 `src/api/index.js`；全局状态是 `src/store` 里的一个 reactive 对象（没用状态库）；界面文案在 `src/locale`（中文、英文，其他语言先回退英文），商品等业务内容的多语言由后端返回。金额、运费、区域价一律用服务端算好的结果，前端不自己算价。模板里不能直接用全局 `uni`，跳转用 `utils/page.js` 的 `nav` / `tab`。平台差异用条件编译（`#ifdef H5` 等）。
 - **驱动模式**：`DriverRegistry`（type→驱动→字段）、`DriverManager`、`DriverConfig`（`encrypted:array`）、`DriverConfigService`；后台用通用驱动配置页。
 - **后台权限**：`admin.auth` 令牌（sha256 哈希、滑动过期）；路由 `perm:` 中间件（逗号 = 任一）；敏感操作单独权限点；前端 `v-perm` 和 `hasPerm`。菜单和权限点在 `MenuSeeder`。
 - **C 端**：`api.token`（必须登录）/ `api.token:optional`；价格服务端算，客户端不传价；请求头 `X-Lang`、`X-Currency`、`X-Source`(h5/mp/app/pc)。
@@ -60,7 +62,7 @@
 3. ~~短信驱动 + 注册/登录验证码~~（已完成，对接 GM 短信平台，文档见 `docs/短信平台接入文档.md`；**还没和真实平台联调过**，场景标识待平台确认）。邮箱验证码也已完成（发信要先配 `.env` 的 `MAIL_*`，没有用真实邮箱发过）。
 4. ~~退款与售后流程~~（已完成；Stripe/PayPal 真实退款还没用沙箱密钥验证，渠道退款回调 `refunded` 仍只记录不入账，后台也还不能代买家发起退款）、~~积分抵扣~~、~~订单导出~~（均已完成；“消费得积分”和退款扣回积分还没做）。
 5. 物流查询驱动、电子面单、~~分销（最多 2 级）~~（已完成；佣金比例只有全局的，还不能按商品单独设）、~~内容~~（已完成：文章、公告、帮助中心、轮播图与广告位）、~~数据中心~~（已完成：概览、趋势、商品排行、订单分布）、应用（公众号/小程序/App）。
-6. uni-app C 端、PC 端。
+6. uni-app C 端（进行中：首页、分类、商品详情、购物车、登录注册、结算下单、订单列表与详情、支付发起、收货地址、个人中心已完成；售后、分销中心、文章与帮助、协议、短信登录与找回密码的页面还没做）、PC 端。
 7. 二期 AI 翻译（Claude、Qwen）；分类/品牌/规格名的翻译按钮与批量填充。
 
 ## 验证状态（重要）

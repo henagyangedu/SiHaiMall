@@ -58,6 +58,7 @@ final class ApiMessageTranslator
         '该邮箱已被其他账号使用' => 'This email is already used by another account',
         '该手机号已被其他账号使用' => 'This phone number is already used by another account',
         '目前只支持绑定中国大陆手机号' => 'Only mainland China phone numbers can be linked at the moment',
+        '请在微信里重新发起支付' => 'Please start the payment again in WeChat',
         '暂未开通微信登录' => 'WeChat sign-in is not available yet',
         '微信登录凭证已失效，请重试' => 'Your WeChat sign-in has expired. Please try again.',
         '微信登录暂时不可用，请稍后再试' => 'WeChat sign-in is temporarily unavailable. Please try again later.',

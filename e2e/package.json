@@ -10,7 +10,8 @@
     "admin": "node run.js admin",
     "dist": "node run.js dist",
     "returns": "node run.js returns",
-    "security": "node run.js security"
+    "security": "node run.js security",
+    "wxpay": "node run.js wxpay"
   },
   "devDependencies": {
     "playwright-core": "^1.48.0"

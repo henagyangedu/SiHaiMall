@@ -5,6 +5,7 @@ namespace App\Services\Common;
 use App\Drivers\DriverManager;
 use App\Drivers\Pay\Dto\NotifyResult;
 use App\Drivers\Pay\Dto\PayRequest;
+use App\Drivers\Pay\WechatDriver;
 use App\Models\DriverConfig;
 use App\Models\Order;
 use App\Models\PayNotifyLog;
@@ -64,6 +65,28 @@ class PayService
         }
 
         return $out;
+    }
+
+    /** 微信网页授权跳回页面时带的 state，页面靠它认出“这是为了付款去拿的 code” */
+    public const WECHAT_OAUTH_STATE = 'gmwxpay';
+
+    /**
+     * 在微信里打开的 H5 用微信支付前，页面要先跳到这个地址拿付款人的 code（拿到后随发起支付一起提交）。
+     * 没启用微信支付或没配公众号时返回空串，页面照常发起支付即可（会得到“暂不支持”的提示）。
+     */
+    public function wechatOauthUrl(string $returnUrl): string
+    {
+        if ($returnUrl === '') {
+            throw new BusinessException('支付完成跳转地址不在允许范围内');
+        }
+        $returnUrl = $this->safeReturnUrl($returnUrl);
+        $row = DriverConfig::query()->where('type', 'pay')->where('driver', 'wechat')->where('is_enabled', 1)->first();
+        if (!$row) {
+            return '';
+        }
+        $driver = $this->drivers->payFromConfig('wechat', $row->config ?? []);
+
+        return $driver instanceof WechatDriver ? $driver->oauthUrl($returnUrl, self::WECHAT_OAUTH_STATE) : '';
     }
 
     // ------------------------------------------------------------------ 发起支付

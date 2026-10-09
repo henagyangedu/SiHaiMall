@@ -30,6 +30,12 @@ class PayController extends ApiController
         ));
     }
 
+    /** 在微信里打开的 H5 用微信支付前，先跳到这里返回的地址确认付款人身份 */
+    public function wechatOauthUrl(Request $request)
+    {
+        return ApiResponse::ok($this->service->wechatOauthUrl(mb_substr((string) $request->query('return_url', ''), 0, 500)));
+    }
+
     /** 支付完成页确认 */
     public function confirm(Request $request)
     {

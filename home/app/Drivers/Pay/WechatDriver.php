@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
  * 微信支付（API v3，直连商户）。无需 SDK，直接调 REST 接口。
  *
  * - 场景：小程序里用 JSAPI 支付（scene=mp，付款时由小程序 wx.login 的 code 换 openid）；手机浏览器用 H5 支付（scene=h5）；
+ *   在微信里打开的 H5 也用 JSAPI 支付（scene=h5 且 in_wechat，要配公众号：页面先跳微信的网页授权拿 code，见 oauthUrl）；
  *   电脑浏览器用 Native 扫码支付（scene=pc，返回二维码内容，页面显示二维码让买家用手机微信扫）。
  * - 只支持人民币。
  * - 请求签名：商户 API 证书私钥，SHA256-RSA，签名串为 方法\n路径\n时间戳\n随机串\n报文\n。
@@ -65,7 +66,20 @@ class WechatDriver extends BasePayDriver implements PayDriver
 
         if ($req->scene === 'h5') {
             if (!empty($req->extra['in_wechat'])) {
-                throw new BusinessException('微信内打开的页面暂不支持直接付款，请用手机浏览器打开，或在小程序里付款');
+                // 微信里不能用 H5 支付，要用公众号的 JSAPI 支付
+                $oaId = $this->cfg('oa_app_id');
+                if ($oaId === '' || $this->cfg('oa_app_secret') === '') {
+                    throw new BusinessException('微信内打开的页面暂不支持直接付款，请用手机浏览器打开，或在小程序里付款');
+                }
+                $openid = $this->oaOpenid((string) ($req->extra['wx_code'] ?? ''));
+                $j = $this->call('POST', '/v3/pay/transactions/jsapi', $body + ['appid' => $oaId, 'payer' => ['openid' => $openid]], '发起微信支付');
+                $prepayId = (string) ($j['prepay_id'] ?? '');
+                if ($prepayId === '') {
+                    throw new BusinessException('发起微信支付失败，请稍后重试');
+                }
+
+                // 网页里用 WeixinJSBridge 调起收银台，比小程序多一个 appId 参数
+                return new PayResult(channelTradeNo: $prepayId, clientParams: ['appId' => $oaId] + $this->clientParams($oaId, $prepayId), raw: ['prepay_id' => $prepayId]);
             }
             $appId = $this->cfg('h5_app_id') ?: $this->cfg('mp_app_id');
             if ($appId === '') {
@@ -117,6 +131,46 @@ class WechatDriver extends BasePayDriver implements PayDriver
             'timeStamp' => $ts, 'nonceStr' => $nonce, 'package' => $package, 'signType' => 'RSA',
             'paySign' => $this->sign("{$appId}\n{$ts}\n{$nonce}\n{$package}\n"),
         ];
+    }
+
+    /**
+     * 微信里打开的 H5 付款前要先知道付款人是谁：返回微信网页授权（静默授权，不弹窗）的地址，
+     * 页面跳过去后微信会带着 code 和 state 跳回 $redirect。没有配置公众号时返回空串。
+     */
+    public function oauthUrl(string $redirect, string $state): string
+    {
+        if ($this->cfg('oa_app_id') === '' || $this->cfg('oa_app_secret') === '') {
+            return '';
+        }
+
+        // 参数顺序是微信文档要求的；末尾的 #wechat_redirect 不能少
+        return 'https://open.weixin.qq.com/connect/oauth2/authorize?' . http_build_query([
+            'appid' => $this->cfg('oa_app_id'), 'redirect_uri' => $redirect, 'response_type' => 'code', 'scope' => 'snsapi_base', 'state' => $state,
+        ], '', '&', PHP_QUERY_RFC3986) . '#wechat_redirect';
+    }
+
+    /** 用公众号网页授权拿到的 code 换 openid（只用于这一次付款，不保存） */
+    private function oaOpenid(string $code): string
+    {
+        if ($code === '') {
+            throw new BusinessException('请在微信里重新发起支付');
+        }
+        try {
+            $data = $this->http()->get(rtrim($this->cfg('wx_api_base', 'https://api.weixin.qq.com'), '/') . '/sns/oauth2/access_token', [
+                'appid' => $this->cfg('oa_app_id'), 'secret' => $this->cfg('oa_app_secret'), 'code' => $code, 'grant_type' => 'authorization_code',
+            ])->json();
+        } catch (\Throwable $e) {
+            // 异常信息里可能带着完整的请求地址（含 AppSecret），所以只记录异常类型
+            Log::warning('微信网页授权 code 换 openid 请求失败', ['error' => $e::class]);
+            throw new BusinessException('微信登录状态已失效，请重新发起支付');
+        }
+        $openid = is_array($data) ? (string) ($data['openid'] ?? '') : '';
+        if ($openid === '') {
+            Log::warning('微信网页授权 code 换 openid 失败', ['errcode' => $data['errcode'] ?? null, 'errmsg' => mb_substr((string) ($data['errmsg'] ?? ''), 0, 200)]);
+            throw new BusinessException('微信登录状态已失效，请重新发起支付');
+        }
+
+        return $openid;
     }
 
     /** 用小程序 wx.login 拿到的 code 换 openid（只用于这一次付款，不保存） */

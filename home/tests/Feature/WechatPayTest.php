@@ -163,6 +163,79 @@ class WechatPayTest extends FeatureTestCase
         $this->assertNotSame($r->json('data.trade_no'), $again->json('data.trade_no'));
     }
 
+    /** 给微信支付配上公众号，这样微信里打开的网页也能付款 */
+    private function configureOfficialAccount(): void
+    {
+        $row = DriverConfig::query()->where('driver', 'wechat')->firstOrFail();
+        $row->config = ['oa_app_id' => 'wxoa0000000000001', 'oa_app_secret' => 'oa-secret'] + $row->config;
+        $row->save();
+    }
+
+    public function test_page_opened_inside_wechat_pays_through_the_official_account(): void
+    {
+        $this->configureOfficialAccount();
+        $ua = ['User-Agent' => 'Mozilla/5.0 (iPhone) MicroMessenger/8.0.50'];
+        $back = rtrim((string) config('app.url'), '/').'/h5/#/pages/order/detail?order_no='.$this->order->order_no;
+
+        // 第一步：页面要先跳去微信确认付款人身份
+        $oauth = $this->api('GET', '/pay/wechat/oauth-url?return_url='.rawurlencode($back), [], $this->token, $ua);
+        $oauth->assertJsonPath('code', 0)->assertJsonPath('data.state', 'gmwxpay');
+        $url = (string) $oauth->json('data.url');
+        $this->assertStringStartsWith('https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxoa0000000000001&redirect_uri=', $url);
+        $this->assertStringEndsWith('&response_type=code&scope=snsapi_base&state=gmwxpay#wechat_redirect', $url);
+        parse_str((string) parse_url($url, PHP_URL_QUERY), $q);
+        $this->assertSame($back, $q['redirect_uri']);
+        $this->assertStringNotContainsString('oa-secret', $url);
+
+        // 只能跳回自己的站点；必须登录
+        $this->api('GET', '/pay/wechat/oauth-url?return_url='.rawurlencode('https://evil.example/x'), [], $this->token)->assertJsonPath('code', 1);
+        $this->api('GET', '/pay/wechat/oauth-url', [], $this->token)->assertJsonPath('code', 1);
+        $this->api('GET', '/pay/wechat/oauth-url?return_url='.rawurlencode($back))->assertJsonPath('code', 401);
+
+        // 第二步：带着微信给的 code 发起支付。没带 code 不会去下单
+        Http::fake([
+            'api.weixin.qq.com/sns/oauth2/access_token*' => Http::response(['access_token' => 'AT', 'openid' => 'oOaUser0001', 'scope' => 'snsapi_base']),
+            'api.mch.weixin.qq.com/v3/pay/transactions/jsapi' => Http::response(['prepay_id' => 'wx201410272009395522657a690389285100']),
+        ]);
+        $this->startPay('h5', [], $ua)->assertJsonPath('code', 1)->assertJsonPath('msg', '请在微信里重新发起支付');
+        Http::assertNothingSent();
+
+        $r = $this->startPay('h5', ['wx_code' => 'OA-CODE'], $ua);
+        $r->assertJsonPath('code', 0);
+        $p = $r->json('data.client_params');
+        $this->assertSame(['wxoa0000000000001', 'RSA', 'prepay_id=wx201410272009395522657a690389285100'], [$p['appId'], $p['signType'], $p['package']]);
+        // 调起收银台的签名是对“公众号 AppID、时间戳、随机串、package”签的
+        $ok = openssl_verify("wxoa0000000000001\n{$p['timeStamp']}\n{$p['nonceStr']}\n{$p['package']}\n", base64_decode($p['paySign']), $this->key('merchant_public'), OPENSSL_ALGO_SHA256);
+        $this->assertSame(1, $ok);
+        $this->assertSame('', (string) $r->json('data.redirect_url'));
+
+        Http::assertSent(fn (HttpRequest $req) => str_contains($req->url(), '/sns/oauth2/access_token')
+            && str_contains($req->url(), 'appid=wxoa0000000000001') && str_contains($req->url(), 'code=OA-CODE'));
+        Http::assertSent(function (HttpRequest $req) {
+            $b = json_decode($req->body(), true);
+
+            return str_ends_with($req->url(), '/v3/pay/transactions/jsapi') && $b['appid'] === 'wxoa0000000000001' && $b['payer']['openid'] === 'oOaUser0001';
+        });
+    }
+
+    public function test_inside_wechat_an_expired_code_is_reported_and_without_an_official_account_there_is_no_oauth(): void
+    {
+        $ua = ['User-Agent' => 'Mozilla/5.0 (iPhone) MicroMessenger/8.0.50'];
+        $back = rtrim((string) config('app.url'), '/').'/h5/#/pages/order/detail?order_no='.$this->order->order_no;
+
+        // 没配公众号：没有授权地址，页面照常发起支付，得到“暂不支持”的提示
+        $this->api('GET', '/pay/wechat/oauth-url?return_url='.rawurlencode($back), [], $this->token, $ua)->assertJsonPath('code', 0)->assertJsonPath('data.url', '');
+
+        $this->configureOfficialAccount();
+        Http::fake(['api.weixin.qq.com/sns/oauth2/access_token*' => Http::response(['errcode' => 40163, 'errmsg' => 'code been used'])]);
+        $this->startPay('h5', ['wx_code' => 'USED-CODE'], $ua)->assertJsonPath('code', 1)->assertJsonPath('msg', '微信登录状态已失效，请重新发起支付');
+        Http::assertNotSent(fn (HttpRequest $req) => str_contains($req->url(), 'api.mch.weixin.qq.com'));
+
+        // 手机浏览器（不在微信里）不受影响，仍然走 H5 支付
+        Http::fake(['api.mch.weixin.qq.com/v3/pay/transactions/h5' => Http::response(['h5_url' => 'https://wx.tenpay.com/cgi-bin/mmpayweb-bin/checkmweb?prepay_id=wx1'])]);
+        $this->assertStringStartsWith('https://wx.tenpay.com/', (string) $this->startPay('h5', ['return_url' => $back])->json('data.redirect_url'));
+    }
+
     public function test_pc_payment_returns_a_qr_code_to_scan(): void
     {
         Http::fake(['api.mch.weixin.qq.com/v3/pay/transactions/native' => Http::response(['code_url' => 'weixin://wxpay/bizpayurl?pr=p4lpSuKzz'])]);

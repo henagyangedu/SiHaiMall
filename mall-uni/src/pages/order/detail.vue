@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
-import { getOrder, getOrderTracks, cancelOrder, receiveOrder, getPayChannels, startPay, confirmPay } from '@/api'
+import { getOrder, getOrderTracks, cancelOrder, receiveOrder, getPayChannels, startPay, confirmPay, getWechatOauthUrl } from '@/api'
 import { money } from '@/utils/app'
 import { usePageTitle, confirm, toast, nav } from '@/utils/page'
 
@@ -26,6 +26,24 @@ async function loadTracks() {
   }
 }
 let autoPay = false
+// #ifdef H5
+// 在微信里打开的网页用微信支付：要先跳到微信确认付款人身份（网页授权），微信再带着 code 跳回本页，然后才能调起收银台
+const IN_WECHAT = /MicroMessenger/i.test(navigator.userAgent)
+const WX_OAUTH_STATE = 'gmwxpay'
+// 从微信授权跳回来时带的 code（只能用一次）
+let wxOauthCode = ''
+async function payInWechat(code) {
+  const r = await startPay(orderNo.value, { channel: 'wechat', wx_code: code })
+  uni.setStorageSync(tradeKey(), r.trade_no)
+  await new Promise((resolve) => {
+    const run = () => window.WeixinJSBridge.invoke('getBrandWCPayRequest', r.client_params, () => resolve())
+    if (window.WeixinJSBridge) run()
+    else document.addEventListener('WeixinJSBridgeReady', run, { once: true })
+  })
+  // 付完或取消都回来向后端确认一次（load 里会用记下的支付单号查）
+  load()
+}
+// #endif
 
 // 发起支付后把支付单号记在本地：买家从收银台回来时用它向后端确认是否到账
 const tradeKey = () => `gm_trade_${orderNo.value}`
@@ -56,6 +74,13 @@ async function onPay() {
       returnUrl = window.location.href.replace(/([?&])pay=1/, '$1')
       // #endif
       const channel = channels[tapIndex].channel
+      // #ifdef H5
+      if (channel === 'wechat' && IN_WECHAT) {
+        const o = await getWechatOauthUrl(returnUrl)
+        // 没配公众号时拿不到授权地址：照常往下发起支付，后端会给出“请用手机浏览器打开”的提示
+        if (o.url) { window.location.href = o.url; return }
+      }
+      // #endif
       let wxCode = ''
       // #ifdef MP-WEIXIN
       // 微信支付要知道付款人是谁：取一次登录凭证，后端用它换 openid（只用于这次付款）
@@ -91,9 +116,27 @@ async function onReceive() {
 onLoad((q) => {
   orderNo.value = q.order_no || ''
   autoPay = q.pay === '1'
+  // #ifdef H5
+  // 微信授权跳回来的地址形如 /?code=xxx&state=gmwxpay#/pages/order/detail?order_no=...，code 在 # 前面
+  const back = new URLSearchParams(window.location.search)
+  if (back.get('state') === WX_OAUTH_STATE && back.get('code')) {
+    wxOauthCode = back.get('code')
+    // code 只能用一次：从地址里去掉，免得刷新页面时再拿它付款
+    window.history.replaceState(window.history.state, '', window.location.pathname + window.location.hash)
+  }
+  // #endif
 })
 onShow(async () => {
   await load()
+  // #ifdef H5
+  if (wxOauthCode) {
+    const code = wxOauthCode
+    wxOauthCode = ''
+    autoPay = false
+    if (order.value?.can_pay) payInWechat(code)
+    return
+  }
+  // #endif
   // 从结算页或订单列表点“去支付”进来：直接弹出支付方式
   if (autoPay && order.value?.can_pay) { autoPay = false; onPay() }
 })

@@ -25,6 +25,12 @@ class OrderPayService
         return $this->pay->start((int) $order->id, $memberId, $channel, $scene, $returnUrl, $extra);
     }
 
+    /** 微信里打开的 H5 付款前要先跳转的网页授权地址；不需要或不可用时 url 为空 */
+    public function wechatOauthUrl(string $returnUrl): array
+    {
+        return ['url' => $this->pay->wechatOauthUrl($returnUrl), 'state' => PayService::WECHAT_OAUTH_STATE];
+    }
+
     /** 支付完成页轮询：返回 success / pending / failed / closed */
     public function confirm(int $memberId, string $tradeNo): array
     {

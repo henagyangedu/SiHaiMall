@@ -105,5 +105,6 @@ Route::middleware('api.token')->group(function () {
 
     Route::get('orders/{orderNo}/pay/channels', [PayController::class, 'channels'])->where('orderNo', '[A-Za-z0-9]+');
     Route::post('orders/{orderNo}/pay', [PayController::class, 'start'])->where('orderNo', '[A-Za-z0-9]+')->middleware('throttle:20,1');
+    Route::get('pay/wechat/oauth-url', [PayController::class, 'wechatOauthUrl'])->middleware('throttle:30,1');
     Route::get('pay/{tradeNo}/confirm', [PayController::class, 'confirm'])->where('tradeNo', '[A-Za-z0-9]+');
 });

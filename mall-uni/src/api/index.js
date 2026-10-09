@@ -50,6 +50,7 @@ export const cancelOrder = (orderNo, reason = '') => post(`/orders/${orderNo}/ca
 export const receiveOrder = (orderNo) => post(`/orders/${orderNo}/receive`)
 export const getPayChannels = (orderNo) => get(`/orders/${orderNo}/pay/channels`)
 export const startPay = (orderNo, data) => post(`/orders/${orderNo}/pay`, data)
+export const getWechatOauthUrl = (returnUrl) => get('/pay/wechat/oauth-url', { return_url: returnUrl })
 export const confirmPay = (tradeNo) => get(`/pay/${tradeNo}/confirm`)
 
 // ---- 短信登录、找回密码

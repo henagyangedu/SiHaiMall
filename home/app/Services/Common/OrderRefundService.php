@@ -44,12 +44,12 @@ class OrderRefundService
 
     // ------------------------------------------------------------------ 可退信息
     /**
-     * 订单当前可申请的售后项。
+     * 订单当前可申请的售后项。$byAdmin 为 true 时是商家代买家发起，不受售后申请期限限制。
      * @return array{whole_order:array{allowed:bool,amount:string},items:array<int,array<string,mixed>>,reason:string}
      */
-    public function refundable(Order $order): array
+    public function refundable(Order $order, bool $byAdmin = false): array
     {
-        $why = $this->notApplicableReason($order);
+        $why = $this->notApplicableReason($order, $byAdmin);
         $items = OrderItem::query()->where('order_id', $order->id)->orderBy('id')->get();
         $busy = $this->activeQty((int) $order->id);
         $remain = $this->remainAmount($order);
@@ -77,16 +77,20 @@ class OrderRefundService
 
     // ------------------------------------------------------------------ 买家：申请 / 撤销 / 填写退货物流
     /**
+     * 买家申请售后。$adminId > 0 表示商家代买家发起：不校验订单归属、不受售后申请期限限制，其余规则（数量、金额上限、整单条件）相同。
      * @param array{order_item_id?:int,qty?:int,type?:int,reason:string,images?:string[],amount?:string|null} $d
      */
-    public function apply(int $orderId, int $memberId, array $d): OrderRefund
+    public function apply(int $orderId, int $memberId, array $d, int $adminId = 0): OrderRefund
     {
-        return DB::transaction(function () use ($orderId, $memberId, $d) {
+        return DB::transaction(function () use ($orderId, $memberId, $d, $adminId) {
+            $byAdmin = $adminId > 0;
             $order = Order::query()->lockForUpdate()->find($orderId) ?? throw new BusinessException('订单不存在');
-            if ((int) $order->member_id !== $memberId) {
+            if ($byAdmin) {
+                $memberId = (int) $order->member_id;
+            } elseif ((int) $order->member_id !== $memberId) {
                 throw new BusinessException('订单不存在');
             }
-            if (($why = $this->notApplicableReason($order)) !== null) {
+            if (($why = $this->notApplicableReason($order, $byAdmin)) !== null) {
                 throw new BusinessException($why);
             }
 
@@ -95,7 +99,7 @@ class OrderRefundService
             $remain = $this->remainAmount($order);
 
             if ($itemId === 0) {
-                if (!$this->refundable($order)['whole_order']['allowed']) {
+                if (!$this->refundable($order, $byAdmin)['whole_order']['allowed']) {
                     throw new BusinessException('该订单不能整单退款，请按商品申请售后');
                 }
                 if ($type !== OrderRefund::TYPE_REFUND) {
@@ -123,19 +127,34 @@ class OrderRefundService
 
             $refund = OrderRefund::query()->create([
                 'refund_no' => $this->makeRefundNo(), 'order_id' => $orderId, 'order_item_id' => $itemId, 'member_id' => $memberId,
-                'type' => $type, 'reason' => mb_substr(trim((string) $d['reason']), 0, 255),
+                'type' => $type, 'reason' => mb_substr(($byAdmin ? '商家发起：' : '') . trim((string) $d['reason']), 0, 255),
                 'images' => json_encode(array_values((array) ($d['images'] ?? [])), JSON_UNESCAPED_SLASHES),
                 'qty' => $qty, 'currency' => $order->currency, 'refund_amount' => $amount, 'status' => OrderRefund::PENDING,
             ]);
 
-            $remark = "买家申请售后 {$refund->refund_no}：" . OrderRefund::TYPE_TEXT[$type] . " {$amount} {$order->currency}";
+            $remark = ($byAdmin ? '商家代买家发起售后' : '买家申请售后') . " {$refund->refund_no}：" . OrderRefund::TYPE_TEXT[$type] . " {$amount} {$order->currency}";
+            [$opType, $opId] = $byAdmin ? [OrderStatus::OP_ADMIN, $adminId] : [OrderStatus::OP_MEMBER, $memberId];
             if ((int) $order->status !== OrderStatus::AFTER_SALE) {
-                $this->status->transit($order, [OrderStatus::TO_SHIP, OrderStatus::SHIPPED, OrderStatus::FINISHED], OrderStatus::AFTER_SALE, OrderStatus::OP_MEMBER, $memberId, $remark);
+                $this->status->transit($order, [OrderStatus::TO_SHIP, OrderStatus::SHIPPED, OrderStatus::FINISHED], OrderStatus::AFTER_SALE, $opType, $opId, $remark);
             } else {
-                $this->status->note($order, OrderStatus::OP_MEMBER, $memberId, $remark);
+                $this->status->note($order, $opType, $opId, $remark);
             }
 
             return $refund;
+        });
+    }
+
+    /**
+     * 商家代买家发起售后，并直接视为审核通过：仅退款进入“退款中”（还要再执行退款），退货退款进入“待买家退货”。
+     * @param array{order_item_id?:int,qty?:int,type?:int,reason:string,amount?:string|null} $d
+     */
+    public function applyByAdmin(int $orderId, int $adminId, array $d): OrderRefund
+    {
+        return DB::transaction(function () use ($orderId, $adminId, $d) {
+            $refund = $this->apply($orderId, 0, ['images' => []] + $d, $adminId);
+            $this->approve((int) $refund->id, $adminId);
+
+            return $refund->fresh();
         });
     }
 
@@ -333,7 +352,7 @@ class OrderRefundService
     }
 
     /** 不能申请售后的原因；可以申请返回 null */
-    private function notApplicableReason(Order $order): ?string
+    private function notApplicableReason(Order $order, bool $byAdmin = false): ?string
     {
         if (!in_array((int) $order->pay_status, [OrderStatus::PAY_PAID, OrderStatus::PAY_PART_REFUND], true)) {
             return (int) $order->pay_status === OrderStatus::PAY_REFUNDED ? '订单已全额退款' : '订单还没有支付';
@@ -341,7 +360,8 @@ class OrderRefundService
         if (!in_array((int) $order->status, [OrderStatus::TO_SHIP, OrderStatus::SHIPPED, OrderStatus::FINISHED, OrderStatus::AFTER_SALE], true)) {
             return '订单当前状态不能申请售后';
         }
-        if ($order->finished_at) {
+        // 售后申请期限只限制买家；商家可以为超期的订单发起售后
+        if ($order->finished_at && !$byAdmin) {
             $days = (int) ($this->config->value('trade', 'after_sale_days') ?? 7);
             if ($order->finished_at->copy()->addDays($days)->isPast()) {
                 return $days > 0 ? "订单完成已超过 {$days} 天，不能再申请售后" : '订单已完成，不能再申请售后';

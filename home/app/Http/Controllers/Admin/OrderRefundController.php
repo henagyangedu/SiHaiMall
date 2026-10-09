@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Requests\Admin\RefundApplyRequest;
 use App\Http\Requests\Admin\RefundAuditRequest;
 use App\Http\Requests\Admin\RefundPayRequest;
 use App\Services\Admin\RefundService;
@@ -25,6 +26,18 @@ class OrderRefundController extends BaseAdminController
     public function show(Request $request)
     {
         return ApiResponse::ok($this->service->detail((int) $request->route('id')));
+    }
+
+    /** 订单当前可以发起售后的商品（商家代买家发起用，路由参数是订单 ID） */
+    public function refundable(Request $request)
+    {
+        return ApiResponse::ok($this->service->refundable((int) $request->route('id')));
+    }
+
+    /** 商家代买家发起售后（路由参数是订单 ID） */
+    public function apply(RefundApplyRequest $request)
+    {
+        return ApiResponse::ok($this->service->apply((int) $request->route('id'), $request->validated(), $this->admin($request)));
     }
 
     public function audit(RefundAuditRequest $request)

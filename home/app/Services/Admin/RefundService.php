@@ -91,6 +91,25 @@ class RefundService
         ];
     }
 
+    /** 商家代买家发起售后时，订单当前可退的商品、数量和金额（不受售后申请期限限制） */
+    public function refundable(int $orderId): array
+    {
+        $order = Order::query()->find($orderId) ?? throw new BusinessException('订单不存在');
+
+        return ['order_no' => $order->order_no, 'currency' => $order->currency] + $this->refunds->refundable($order, true);
+    }
+
+    /**
+     * 商家代买家发起售后（直接视为审核通过）。
+     * @return array{id:int,refund_no:string,status:int}
+     */
+    public function apply(int $orderId, array $d, Admin $op): array
+    {
+        $refund = $this->refunds->applyByAdmin($orderId, (int) $op->id, $d);
+
+        return ['id' => (int) $refund->id, 'refund_no' => $refund->refund_no, 'status' => (int) $refund->status];
+    }
+
     public function audit(int $id, bool $pass, ?string $amount, string $rejectReason, Admin $op): void
     {
         if ($pass) {

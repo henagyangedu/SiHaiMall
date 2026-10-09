@@ -4,6 +4,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { listOrder, orderCounts, getOrder, setOrderRemark, changeOrderPrice, cancelOrder, receiveOrder, exportOrders } from '@/api/order'
 import { hasPerm } from '@/utils/perm'
 import OrderDetail from '../OrderDetail.vue'
+import RefundApply from '../RefundApply.vue'
 
 const query = reactive({ order_no: '', keyword: '', status: '', pay_status: '', range: [], page: 1, size: 15 })
 const list = ref([])
@@ -84,6 +85,17 @@ async function onCancel(row) {
   detail.value?.id === row.id ? refresh() : load()
 }
 // 确认收货
+// 代买家发起售后
+const refundDialog = ref(false)
+const refundOrderId = ref(0)
+function onRefund(row) {
+  refundOrderId.value = row.id
+  refundDialog.value = true
+}
+function onRefundDone() {
+  if (drawer.value && detail.value) refresh()
+  else load()
+}
 async function onReceive(row) {
   await ElMessageBox.confirm(`确认订单 ${row.order_no} 已收货？`, '确认收货', { type: 'warning' })
   await receiveOrder(row.id)
@@ -140,13 +152,14 @@ onMounted(load)
         </el-table-column>
         <el-table-column prop="admin_remark" label="商家备注" min-width="140" show-overflow-tooltip />
         <el-table-column prop="created_at" label="下单时间" width="165" />
-        <el-table-column label="操作" width="230" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
             <el-button v-perm="'order:list:detail'" link type="primary" @click="openDetail(row)">详情</el-button>
             <el-button v-perm="'order:list:remark'" link type="primary" @click="onRemark(row.id, row.admin_remark)">备注</el-button>
             <el-button v-if="row.status === 0" v-perm="'order:list:price'" link type="warning" @click="onPrice(row)">改价</el-button>
             <el-button v-if="row.status === 0" v-perm="'order:list:cancel'" link type="danger" @click="onCancel(row)">取消</el-button>
             <el-button v-if="row.status === 2" v-perm="'order:ship:edit'" link type="success" @click="onReceive(row)">确认收货</el-button>
+            <el-button v-if="[1, 2, 3, 5].includes(row.status)" v-perm="'order:refund:apply'" link type="warning" @click="onRefund(row)">售后</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -162,10 +175,13 @@ onMounted(load)
           <el-button v-if="detail.status === 0 && hasPerm('order:list:price')" type="warning" plain @click="onPrice(detail)">改价</el-button>
           <el-button v-if="detail.status === 0 && hasPerm('order:list:cancel')" type="danger" plain @click="onCancel(detail)">取消订单</el-button>
           <el-button v-if="detail.status === 2 && hasPerm('order:ship:edit')" type="success" plain @click="onReceive(detail)">确认收货</el-button>
+          <el-button v-if="[1, 2, 3, 5].includes(detail.status) && hasPerm('order:refund:apply')" type="warning" plain @click="onRefund(detail)">发起售后</el-button>
         </div>
         <el-alert v-if="detail.admin_remark" type="warning" :closable="false" :title="`商家备注：${detail.admin_remark}`" style="margin-bottom: 12px" />
         <OrderDetail :d="detail" />
       </template>
     </el-drawer>
+
+    <RefundApply v-model="refundDialog" :order-id="refundOrderId" @done="onRefundDone" />
   </div>
 </template>

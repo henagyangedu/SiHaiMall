@@ -296,6 +296,9 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::post('notify/{id}/retry', [OrderNotifyController::class, 'retry'])->middleware(['throttle:30,1', 'perm:order:notify:retry']);
 
         // 售后订单：审核、确认收到退货、执行退款各自独立权限点
+        // 商家代买家发起售后（{id} 是订单 ID），发起后直接视为审核通过
+        Route::get('list/{id}/refundable', [OrderRefundController::class, 'refundable'])->middleware('perm:order:refund:apply');
+        Route::post('list/{id}/refund', [OrderRefundController::class, 'apply'])->middleware(['throttle:30,1', 'perm:order:refund:apply']);
         Route::get('refund/list', [OrderRefundController::class, 'index'])->middleware('perm:order:refund:view');
         Route::get('refund/counts', [OrderRefundController::class, 'counts'])->middleware('perm:order:refund:view');
         Route::get('refund/{id}', [OrderRefundController::class, 'show'])->middleware('perm:order:refund:view');

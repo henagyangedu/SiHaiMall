@@ -21,6 +21,10 @@ final class ApiMessageTranslator
         '服务器繁忙，请稍后再试' => 'Something went wrong. Please try again later.',
         '系统繁忙，请重试' => 'The system is busy. Please try again.',
         '操作过于频繁，请稍后再试' => 'Too many attempts. Please try again later.',
+        // 支付宝
+        '支付宝只支持人民币订单' => 'Alipay is only available for orders in CNY',
+        '支付宝暂不支持当前终端' => 'Alipay is not available on this device',
+        '微信内打开的页面不能使用支付宝，请用手机浏览器打开' => 'Alipay cannot be used inside the WeChat browser. Please open this page in your phone\'s browser.',
         // 微信支付
         '微信支付只支持人民币订单' => 'WeChat Pay is only available for orders in CNY',
         '微信支付还没有配置小程序 AppID' => 'WeChat Pay is not available right now',

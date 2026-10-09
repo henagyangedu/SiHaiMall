@@ -106,6 +106,18 @@ class DriverRegistry
                             'proxy'          => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。测试服务器在中国大陆时通常需要代理才能访问 Stripe；是否合规请以服务商条款和当地法规为准'],
                         ],
                     ],
+                    'alipay' => [
+                        'name'   => '支付宝',
+                        'desc'   => '支付宝开放平台（公钥模式）。手机浏览器里用“手机网站支付”，电脑浏览器里用“电脑网站支付”，都要在应用里签约对应产品。只支持人民币订单，小程序里不能使用。异步通知地址：站点域名/notify/pay/alipay，必须是公网可访问的地址。',
+                        'fields' => [
+                            'app_id'            => ['label' => '应用 APPID', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => '开放平台控制台里应用的 APPID'],
+                            'private_key'       => ['label' => '应用私钥', 'type' => 'secret_text', 'required' => true, 'default' => '', 'hint' => '用支付宝密钥工具生成的“应用私钥”全文（一长串字符即可，不需要头尾两行）。加密保存，页面不再显示'],
+                            'alipay_public_key' => ['label' => '支付宝公钥', 'type' => 'textarea', 'required' => true, 'default' => '', 'hint' => '在应用的“接口加签方式”里上传应用公钥后，页面显示的“支付宝公钥”（不是应用公钥），用于验证通知确实来自支付宝'],
+                            'gateway'           => ['label' => '网关地址', 'type' => 'text', 'required' => false, 'default' => 'https://openapi.alipay.com/gateway.do', 'hint' => '正式环境不用改；沙箱环境填 https://openapi-sandbox.dl.alipaydev.com/gateway.do'],
+                            'timeout'           => ['label' => '超时（秒）', 'type' => 'text', 'required' => false, 'default' => '30', 'hint' => ''],
+                            'proxy'             => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。服务器在境外、直连支付宝不稳定时填写'],
+                        ],
+                    ],
                     'wechat' => [
                         'name'   => '微信支付',
                         'desc'   => '微信支付 API v3（直连商户）。小程序里调起支付，手机浏览器里跳转微信付款（H5 支付需在商户平台开通并登记域名）。只支持人民币订单。回调地址：站点域名/notify/pay/wechat，必须是公网可访问的 HTTPS 地址。',

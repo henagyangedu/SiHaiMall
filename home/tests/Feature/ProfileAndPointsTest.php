@@ -10,7 +10,7 @@ use Tests\FeatureTestCase;
 /** C 端个人资料（昵称、头像等）和积分明细 */
 class ProfileAndPointsTest extends FeatureTestCase
 {
-    /** 登记一张“已上传”的头像，返回它的地址（本地存储的地址规则：APP_URL/uploads/路径） */
+    /** 登记一张“已上传”的头像，返回存储驱动给出的地址 */
     private function uploadedAvatar(int $memberId): string
     {
         $path = "member/{$memberId}/avatar/2026/10/09/".str_repeat('a', 32).'.png';
@@ -19,7 +19,7 @@ class ProfileAndPointsTest extends FeatureTestCase
             'size' => 100, 'md5' => str_repeat('0', 32), 'width' => 1, 'height' => 1, 'admin_id' => 0,
         ]);
 
-        return rtrim((string) config('app.url'), '/').'/uploads/'.$path;
+        return app(\App\Drivers\DriverManager::class)->storage()->url($path);
     }
 
     public function test_profile_fields_can_be_updated(): void

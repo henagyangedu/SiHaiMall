@@ -49,7 +49,10 @@ class FlysystemStorageDriver implements StorageDriver
         $path = ltrim($path, '/');
 
         if ($this->code === 'local') {
-            return rtrim((string) config('app.url'), '/') . '/uploads/' . $path;
+            // 默认 APP_URL/uploads；配了 UPLOADS_URL 就用它（可以是 /uploads 这样的相对路径，前端与后端同域或走代理时用）
+            $base = trim((string) config('app.uploads_url'));
+
+            return ($base !== '' ? rtrim($base, '/') : rtrim((string) config('app.url'), '/') . '/uploads') . '/' . $path;
         }
 
         $domain = trim((string) ($this->config['domain'] ?? ''));

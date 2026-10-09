@@ -45,7 +45,7 @@
 - **消息通知**：业务节点只调 `NotifyService::send(场景, 会员ID, 变量)`，它在事务提交后、响应返回后（`defer`）才发信，失败只写日志。场景、变量和内置中英文模板登记在 `AppSupportMessageScenes`；是否发送和自定义文案在后台“设置 → 消息模板”（存 `gm_message_template` + `_lang`，目前只有 email 渠道，默认全部关闭）。取模板顺序：会员语言 → 默认语言 → 内置模板。模板变量写 `{变量名}`，未知变量原样保留，变量值不会被二次替换。新增场景：在 MessageScenes 登记 + 在业务节点调用 send。
 - **C 端（mall-uni）约定**：接口统一走 `src/utils/request.js`（自动带 `X-Lang`、`X-Currency`、`X-Source` 和令牌，401 跳登录），接口函数集中在 `src/api/index.js`；全局状态是 `src/store` 里的一个 reactive 对象（没用状态库）；界面文案在 `src/locale`（中文、英文，其他语言先回退英文），商品等业务内容的多语言由后端返回。金额、运费、区域价一律用服务端算好的结果，前端不自己算价。模板里不能直接用全局 `uni`，跳转用 `utils/page.js` 的 `nav` / `tab`。平台差异用条件编译（`#ifdef H5` 等）。订单、售后、佣金、提现的状态文字由前端按状态码翻译（`orderStatus.N` 等），不要直接显示后端的 `status_text`（只有中文）；后端返回给买家的提示已支持英文，见“C 端提示多语言”。
 - **C 端提示多语言**：业务代码里的提示一律写中文；买家语言不是中文时，`TranslateApiMessages` 中间件（只作用于 `/api/*`）在响应返回前用 `AppSupportApiMessageTranslator` 翻成英文，处理顶层 `msg`、`data.problems[].msg`、`data.reason`。**新增买家可见的提示要在 ApiMessageTranslator 登记**：固定文案加到 `EXACT`，带变量的加到 `patterns()`，表单字段名加到 `ATTRIBUTES`；`ApiMessageTranslatorTest` 会扫描买家可达的服务，漏登记会失败。没登记的提示原样返回中文。后台管理端不翻译。第三方故障（如短信平台连不上）的详情只写日志，买家只看到通用提示。
-- **买家上传**：`POST /api/upload/image`（需登录；`file` + `scene`=refund/avatar；jpg/png/webp，5MB 以内；每人每天 60 张）。走 `UploadService::memberImage`，文件存到 `member/{会员ID}/{用途}/` 下（`gm_file` 没有会员字段，靠路径区分归属）。**业务接口收到买家提交的图片地址时必须调 `UploadService::assertMemberImages`**，只接受他本人上传的图片（售后凭证、头像都已接入；头像原样提交现有值时不校验，方便以后第三方登录带来的外部头像）。本地存储的图片地址以 `.env` 的 `APP_URL` 为前缀，`APP_URL` 必须是浏览器能访问到的站点地址。
+- **买家上传**：`POST /api/upload/image`（需登录；`file` + `scene`=refund/avatar；jpg/png/webp，5MB 以内；每人每天 60 张）。走 `UploadService::memberImage`，文件存到 `member/{会员ID}/{用途}/` 下（`gm_file` 没有会员字段，靠路径区分归属）。**业务接口收到买家提交的图片地址时必须调 `UploadService::assertMemberImages`**，只接受他本人上传的图片（售后凭证、头像都已接入；头像原样提交现有值时不校验，方便以后第三方登录带来的外部头像）。本地存储的图片地址前缀默认是 `APP_URL/uploads`，可用 `.env` 的 `UPLOADS_URL` 覆盖（见“本地访问方式”）。
 - **驱动模式**：`DriverRegistry`（type→驱动→字段）、`DriverManager`、`DriverConfig`（`encrypted:array`）、`DriverConfigService`；后台用通用驱动配置页。
 - **后台权限**：`admin.auth` 令牌（sha256 哈希、滑动过期）；路由 `perm:` 中间件（逗号 = 任一）；敏感操作单独权限点；前端 `v-perm` 和 `hasPerm`。菜单和权限点在 `MenuSeeder`。
 - **C 端**：`api.token`（必须登录）/ `api.token:optional`；价格服务端算，客户端不传价；请求头 `X-Lang`、`X-Currency`、`X-Source`(h5/mp/app/pc)。
@@ -74,6 +74,11 @@
 2. 逐模块冒烟测试：登录 → 商品 → 地址 → 购物车 → 下单 → 取消/超时关闭 → 支付（Stripe/PayPal 沙箱密钥）。
 3. 补 PHPUnit/Pest 测试，重点：金额计算、库存扣减/回补、支付幂等与回调重放。
 4. `cd admin-web && npm install && npm run build` 确认前端能构建（沙箱里没构建过）。
+
+## 本地访问方式
+- 这台开发机的浏览器走系统代理，**打不开 `https://gmmall.cc`**（命令行直连是通的）。用户的约定：一律用 `127.0.0.1` 加端口访问，不用管这个域名。
+- 后台：`http://127.0.0.1:5173`（`admin-web` 的 `npm run dev`）；C 端 H5：`http://127.0.0.1:5180`（`mall-uni` 的 `npm run dev:h5`）。两个开发服务器把接口（`/admin-api`、`/api`）和上传的图片（`/uploads`）转发给后端，转发目标是各自 `.env.development` 里的 `VITE_API_PROXY`（目前是 ServBay 的 `https://gmmall.cc`，这是服务器端转发，不受浏览器代理影响）。
+- 本机 `home/.env` 设了 `UPLOADS_URL=/uploads`：本地存储的图片地址是不带域名的相对路径，由打开页面的开发服务器代为转发。部署到小程序 / App 需要完整地址的环境时不要用相对路径。
 
 ## 常用命令
 - 测试：在 `home/` 下 `php artisan test`（单个文件：`php artisan test tests/Feature/RefundFlowTest.php`）。功能测试连独立的 MySQL 库 `gmmall_test`（`phpunit.xml` 里配置，新环境先 `CREATE DATABASE gmmall_test`），首次运行自动建表，每个测试在事务里跑完回滚；基类会拒绝在库名不以 `_test` 结尾的库上运行。新的功能测试继承 `Tests\FeatureTestCase`，用它的 `makeMember/makeAddress/makeSku/placeOrder/pay/api/adminApi`。

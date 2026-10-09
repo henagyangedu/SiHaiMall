@@ -1,0 +1,415 @@
+<?php
+
+namespace App\Services\Common;
+
+use App\Drivers\DriverManager;
+use App\Drivers\Pay\Dto\RefundRequest;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\OrderRefund;
+use App\Models\PayTrade;
+use App\Support\Exceptions\BusinessException;
+use App\Support\Money;
+use App\Support\OrderStatus;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * 售后/退款的唯一流转入口（C 端申请、后台审核与退款都调这里）。
+ *
+ * 流程：
+ *   仅退款  ：待审核 → 退款中 → 已完成
+ *   退货退款：待审核 → 待买家退货 → 待确认收货 → 退款中 → 已完成
+ *   待审核时商家可拒绝；待审核、待买家退货时买家可撤销。
+ *
+ * 规则：
+ * - 整单退款（order_item_id=0）只用于还没发过货、也没有过售后的已支付订单，退全部实付（含运费）。
+ * - 单品售后按数量申请，可退上限 = 该数量按商品金额占比分摊的实付（不含运费），且不超过订单剩余可退金额；
+ *   商家审核时可以改退款金额（不超过订单剩余可退金额）。
+ * - 有进行中的售后时订单为“售后中”，全部处理完后回到应有状态；商品全部退完则订单关闭。
+ * - 库存：未发货的退款、退货退款完成时回补库存；已发货的仅退款不回补。
+ * - 资金：在线支付的订单调用支付渠道原路退回；线下收款的订单只能登记“线下已退款”。
+ */
+class OrderRefundService
+{
+    public function __construct(
+        private OrderStatusService $status,
+        private OrderStockService $stock,
+        private ConfigService $config,
+        private DriverManager $drivers,
+    ) {}
+
+    // ------------------------------------------------------------------ 可退信息
+    /**
+     * 订单当前可申请的售后项。
+     * @return array{whole_order:array{allowed:bool,amount:string},items:array<int,array<string,mixed>>,reason:string}
+     */
+    public function refundable(Order $order): array
+    {
+        $why = $this->notApplicableReason($order);
+        $items = OrderItem::query()->where('order_id', $order->id)->orderBy('id')->get();
+        $busy = $this->activeQty((int) $order->id);
+        $remain = $this->remainAmount($order);
+        $untouched = !OrderRefund::query()->where('order_id', $order->id)->whereIn('status', [...OrderRefund::ACTIVE, OrderRefund::DONE])->exists();
+
+        $out = [];
+        foreach ($items as $it) {
+            $avail = $why === null ? max((int) $it->qty - (int) $it->refund_qty - ($busy[$it->id] ?? 0), 0) : 0;
+            $out[] = [
+                'item_id' => (int) $it->id, 'title' => $it->title, 'spec_text' => $it->spec_text, 'image' => $it->image,
+                'price' => (string) $it->price, 'qty' => (int) $it->qty, 'refunded_qty' => (int) $it->refund_qty,
+                'available_qty' => $avail, 'can_return' => $avail > 0 && (int) $it->ship_status === 1,
+                'max_amount' => $avail > 0 ? $this->itemMax($order, $it, $avail, $remain) : '0.00',
+            ];
+        }
+
+        $whole = $why === null && $untouched && (int) $order->status === OrderStatus::TO_SHIP
+            && $items->every(fn ($it) => (int) $it->ship_status === 0);
+
+        return [
+            'whole_order' => ['allowed' => $whole, 'amount' => $whole ? (string) $order->pay_amount : '0.00'],
+            'items' => $out, 'reason' => (string) $why,
+        ];
+    }
+
+    // ------------------------------------------------------------------ 买家：申请 / 撤销 / 填写退货物流
+    /**
+     * @param array{order_item_id?:int,qty?:int,type?:int,reason:string,images?:string[],amount?:string|null} $d
+     */
+    public function apply(int $orderId, int $memberId, array $d): OrderRefund
+    {
+        return DB::transaction(function () use ($orderId, $memberId, $d) {
+            $order = Order::query()->lockForUpdate()->find($orderId) ?? throw new BusinessException('订单不存在');
+            if ((int) $order->member_id !== $memberId) {
+                throw new BusinessException('订单不存在');
+            }
+            if (($why = $this->notApplicableReason($order)) !== null) {
+                throw new BusinessException($why);
+            }
+
+            $itemId = (int) ($d['order_item_id'] ?? 0);
+            $type = (int) ($d['type'] ?? OrderRefund::TYPE_REFUND);
+            $remain = $this->remainAmount($order);
+
+            if ($itemId === 0) {
+                if (!$this->refundable($order)['whole_order']['allowed']) {
+                    throw new BusinessException('该订单不能整单退款，请按商品申请售后');
+                }
+                if ($type !== OrderRefund::TYPE_REFUND) {
+                    throw new BusinessException('未发货的订单只能申请仅退款');
+                }
+                $qty = 0;
+                $max = (string) $order->pay_amount;
+            } else {
+                $item = OrderItem::query()->where('order_id', $orderId)->lockForUpdate()->find($itemId) ?? throw new BusinessException('订单商品不存在');
+                $qty = (int) ($d['qty'] ?? 0);
+                $avail = (int) $item->qty - (int) $item->refund_qty - ($this->activeQty($orderId)[$itemId] ?? 0);
+                if ($qty < 1 || $qty > $avail) {
+                    throw new BusinessException($avail > 0 ? "该商品最多还能申请 {$avail} 件" : '该商品已全部申请过售后');
+                }
+                if ($type === OrderRefund::TYPE_RETURN && (int) $item->ship_status !== 1) {
+                    throw new BusinessException('该商品还没有发货，请选择仅退款');
+                }
+                $max = $this->itemMax($order, $item, $qty, $remain);
+            }
+
+            $amount = isset($d['amount']) && $d['amount'] !== '' ? Money::round(number_format((float) $d['amount'], 4, '.', ''), 2) : $max;
+            if (bccomp($amount, '0', 2) <= 0 || bccomp($amount, $max, 2) > 0) {
+                throw new BusinessException("退款金额必须大于 0 且不超过 {$max} {$order->currency}");
+            }
+
+            $refund = OrderRefund::query()->create([
+                'refund_no' => $this->makeRefundNo(), 'order_id' => $orderId, 'order_item_id' => $itemId, 'member_id' => $memberId,
+                'type' => $type, 'reason' => mb_substr(trim((string) $d['reason']), 0, 255),
+                'images' => json_encode(array_values((array) ($d['images'] ?? [])), JSON_UNESCAPED_SLASHES),
+                'qty' => $qty, 'currency' => $order->currency, 'refund_amount' => $amount, 'status' => OrderRefund::PENDING,
+            ]);
+
+            $remark = "买家申请售后 {$refund->refund_no}：" . OrderRefund::TYPE_TEXT[$type] . " {$amount} {$order->currency}";
+            if ((int) $order->status !== OrderStatus::AFTER_SALE) {
+                $this->status->transit($order, [OrderStatus::TO_SHIP, OrderStatus::SHIPPED, OrderStatus::FINISHED], OrderStatus::AFTER_SALE, OrderStatus::OP_MEMBER, $memberId, $remark);
+            } else {
+                $this->status->note($order, OrderStatus::OP_MEMBER, $memberId, $remark);
+            }
+
+            return $refund;
+        });
+    }
+
+    public function cancel(int $refundId, int $memberId): void
+    {
+        DB::transaction(function () use ($refundId, $memberId) {
+            [$refund, $order] = $this->lock($refundId, $memberId);
+            $this->move($refund, [OrderRefund::PENDING, OrderRefund::WAIT_RETURN], OrderRefund::CANCELLED, ['finished_at' => now()]);
+            $this->restoreOrder($order, OrderStatus::OP_MEMBER, $memberId, "买家撤销售后 {$refund->refund_no}");
+        });
+    }
+
+    public function submitReturn(int $refundId, int $memberId, string $express, string $expressNo): void
+    {
+        DB::transaction(function () use ($refundId, $memberId, $express, $expressNo) {
+            [$refund, $order] = $this->lock($refundId, $memberId);
+            $this->move($refund, [OrderRefund::WAIT_RETURN], OrderRefund::WAIT_RECEIVE, [
+                'return_express' => mb_substr(trim($express), 0, 60), 'return_express_no' => mb_substr(trim($expressNo), 0, 60),
+            ]);
+            $this->status->note($order, OrderStatus::OP_MEMBER, $memberId, "买家已寄回商品（售后 {$refund->refund_no}）：{$express} {$expressNo}");
+        });
+    }
+
+    // ------------------------------------------------------------------ 商家：审核 / 确认收货 / 退款
+    /** 同意：仅退款进入“退款中”，退货退款进入“待买家退货”。$amount 为空表示按申请金额 */
+    public function approve(int $refundId, int $adminId, ?string $amount = null): void
+    {
+        DB::transaction(function () use ($refundId, $adminId, $amount) {
+            [$refund, $order] = $this->lock($refundId);
+            $final = (string) $refund->refund_amount;
+            if ($amount !== null && $amount !== '') {
+                $final = Money::round(number_format((float) $amount, 4, '.', ''), 2);
+                // 可退上限：订单剩余可退金额 + 本单已占用的金额
+                $cap = bcadd($this->remainAmount($order), (string) $refund->refund_amount, 2);
+                if (bccomp($final, '0', 2) <= 0 || bccomp($final, $cap, 2) > 0) {
+                    throw new BusinessException("退款金额必须大于 0 且不超过 {$cap} {$order->currency}");
+                }
+            }
+            $to = (int) $refund->type === OrderRefund::TYPE_RETURN ? OrderRefund::WAIT_RETURN : OrderRefund::REFUNDING;
+            $this->move($refund, [OrderRefund::PENDING], $to, ['refund_amount' => $final]);
+            $this->status->note($order, OrderStatus::OP_ADMIN, $adminId, "同意售后 {$refund->refund_no}，退款金额 {$final} {$order->currency}");
+        });
+    }
+
+    public function reject(int $refundId, int $adminId, string $reason): void
+    {
+        DB::transaction(function () use ($refundId, $adminId, $reason) {
+            [$refund, $order] = $this->lock($refundId);
+            $this->move($refund, [OrderRefund::PENDING], OrderRefund::REJECTED, ['reject_reason' => mb_substr(trim($reason), 0, 255), 'finished_at' => now()]);
+            $this->restoreOrder($order, OrderStatus::OP_ADMIN, $adminId, "拒绝售后 {$refund->refund_no}：{$reason}");
+        });
+    }
+
+    /** 商家确认收到退货 */
+    public function confirmReturn(int $refundId, int $adminId): void
+    {
+        DB::transaction(function () use ($refundId, $adminId) {
+            [$refund, $order] = $this->lock($refundId);
+            $this->move($refund, [OrderRefund::WAIT_RECEIVE], OrderRefund::REFUNDING);
+            $this->status->note($order, OrderStatus::OP_ADMIN, $adminId, "已确认收到退货（售后 {$refund->refund_no}）");
+        });
+    }
+
+    /**
+     * 执行退款。$offline=true 表示款项已通过线下或渠道后台退回，这里只登记，不调用支付渠道。
+     * @return array{done:bool,msg:string} done=false 表示渠道受理中，稍后再次执行以查询结果
+     */
+    public function pay(int $refundId, int $adminId, bool $offline = false): array
+    {
+        // 先在事务里校验并取出退款所需信息；调用渠道放在事务外，避免长时间持锁
+        [$refund, $order, $trade] = DB::transaction(function () use ($refundId) {
+            [$refund, $order] = $this->lock($refundId);
+            if ((int) $refund->status !== OrderRefund::REFUNDING) {
+                throw new BusinessException('售后单当前状态不能退款（' . (OrderRefund::STATUS_TEXT[(int) $refund->status] ?? '') . '）');
+            }
+            $trade = PayTrade::query()->where('order_id', $order->id)->where('trade_type', 1)->where('status', PayTrade::SUCCESS)->orderByDesc('id')->first();
+
+            return [$refund, $order, $trade];
+        });
+
+        if ($offline) {
+            $this->finish($refundId, $adminId, 'offline', (string) $refund->refund_no, '线下已退款');
+
+            return ['done' => true, 'msg' => '已登记为线下退款'];
+        }
+        if (!$trade) {
+            throw new BusinessException('该订单没有在线支付记录（线下收款），请线下退款后选择“线下已退款”');
+        }
+
+        $res = $this->drivers->pay((string) $trade->channel)->refund(new RefundRequest(
+            refundNo: (string) $refund->refund_no, tradeNo: (string) $trade->trade_no, channelTradeNo: (string) $trade->channel_trade_no,
+            currency: (string) $refund->currency, amount: (string) $refund->refund_amount, totalAmount: (string) $trade->amount,
+            reason: (string) $refund->reason,
+        ));
+
+        if ($res->success) {
+            $this->finish($refundId, $adminId, (string) $trade->channel, $res->channelRefundNo ?: (string) $refund->refund_no, "已原路退回（{$trade->channel}）");
+
+            return ['done' => true, 'msg' => '退款成功，已原路退回'];
+        }
+        if ($res->pending) {
+            OrderRefund::query()->whereKey($refundId)->where('status', OrderRefund::REFUNDING)->update(['refund_trade_no' => $res->channelRefundNo, 'updated_at' => now()]);
+
+            return ['done' => false, 'msg' => '支付渠道已受理，正在处理中，请稍后再次点击“执行退款”查询结果'];
+        }
+        throw new BusinessException('支付渠道未能完成退款，请到渠道后台核实后重试');
+    }
+
+    // ------------------------------------------------------------------ 内部
+    /** 退款到账后的收尾：售后单完成、写退款流水、累计已退数量、回补库存、扣销量、恢复订单状态 */
+    private function finish(int $refundId, int $adminId, string $channel, string $channelRefundNo, string $remark): void
+    {
+        DB::transaction(function () use ($refundId, $adminId, $channel, $channelRefundNo, $remark) {
+            [$refund, $order] = $this->lock($refundId);
+            $this->move($refund, [OrderRefund::REFUNDING], OrderRefund::DONE, ['refund_trade_no' => $channelRefundNo, 'finished_at' => now()]);
+
+            PayTrade::query()->create([
+                'trade_no' => $refund->refund_no, 'order_id' => $order->id, 'member_id' => $order->member_id, 'channel' => $channel,
+                'channel_trade_no' => $channelRefundNo, 'trade_type' => 2, 'currency' => $refund->currency, 'amount' => $refund->refund_amount,
+                'status' => PayTrade::SUCCESS, 'paid_at' => now(),
+            ]);
+
+            $items = OrderItem::query()->where('order_id', $order->id)->lockForUpdate()->get();
+            if ((int) $refund->order_item_id === 0) {
+                // 整单退款：订单从未发货，全部回补
+                foreach ($items as $it) {
+                    $this->reduceSales($it, (int) $it->qty - (int) $it->refund_qty);
+                    $it->update(['refund_qty' => (int) $it->qty]);
+                }
+                $this->stock->restore($order->order_no, 3, '售后回补');
+            } else {
+                $it = $items->firstWhere('id', (int) $refund->order_item_id);
+                if ($it) {
+                    $qty = (int) $refund->qty;
+                    $it->update(['refund_qty' => min((int) $it->refund_qty + $qty, (int) $it->qty)]);
+                    $this->reduceSales($it, $qty);
+                    if ((int) $refund->type === OrderRefund::TYPE_RETURN || (int) $it->ship_status === 0) {
+                        $this->stock->restoreQty($order->order_no, (int) $it->goods_id, (int) $it->sku_id, $qty, '售后回补');
+                    }
+                }
+            }
+
+            $this->restoreOrder($order, OrderStatus::OP_ADMIN, $adminId, "售后 {$refund->refund_no} 退款完成：{$refund->refund_amount} {$refund->currency}，{$remark}");
+        });
+    }
+
+    /**
+     * 一张售后单结束后（完成/拒绝/撤销）恢复订单状态：还有进行中的售后则保持“售后中”；
+     * 否则商品全部退完 → 已关闭；订单已完成过 → 已完成；还有未发货的 → 待发货；都已发货 → 待收货。支付状态按已退金额更新。
+     */
+    private function restoreOrder(Order $order, int $opType, int $opId, string $remark): void
+    {
+        $refunded = (string) OrderRefund::query()->where('order_id', $order->id)->where('status', OrderRefund::DONE)->sum('refund_amount');
+        $payStatus = match (true) {
+            bccomp($refunded, '0', 2) <= 0 => OrderStatus::PAY_PAID,
+            bccomp($refunded, (string) $order->pay_amount, 2) >= 0 => OrderStatus::PAY_REFUNDED,
+            default => OrderStatus::PAY_PART_REFUND,
+        };
+
+        if (OrderRefund::query()->where('order_id', $order->id)->whereIn('status', OrderRefund::ACTIVE)->exists()) {
+            Order::query()->whereKey($order->id)->update(['pay_status' => $payStatus]);
+            $this->status->note($order, $opType, $opId, $remark);
+
+            return;
+        }
+
+        $left = OrderItem::query()->where('order_id', $order->id)->whereColumn('refund_qty', '<', 'qty')->get();
+        $extra = ['pay_status' => $payStatus];
+        if ($left->isEmpty()) {
+            $to = OrderStatus::CLOSED;
+            $extra['cancel_reason'] = '商品已全部退款';
+        } elseif ($order->finished_at) {
+            // 已完成的订单（含无需发货的虚拟商品订单）售后结束后仍是已完成
+            $to = OrderStatus::FINISHED;
+        } elseif ($left->contains(fn ($it) => (int) $it->ship_status === 0)) {
+            $to = OrderStatus::TO_SHIP;
+        } else {
+            $to = OrderStatus::SHIPPED;
+            $extra['shipped_at'] = $order->shipped_at ?? now();
+        }
+
+        $this->status->transit($order, [OrderStatus::AFTER_SALE], $to, $opType, $opId, $remark, $extra);
+    }
+
+    /** 不能申请售后的原因；可以申请返回 null */
+    private function notApplicableReason(Order $order): ?string
+    {
+        if (!in_array((int) $order->pay_status, [OrderStatus::PAY_PAID, OrderStatus::PAY_PART_REFUND], true)) {
+            return (int) $order->pay_status === OrderStatus::PAY_REFUNDED ? '订单已全额退款' : '订单还没有支付';
+        }
+        if (!in_array((int) $order->status, [OrderStatus::TO_SHIP, OrderStatus::SHIPPED, OrderStatus::FINISHED, OrderStatus::AFTER_SALE], true)) {
+            return '订单当前状态不能申请售后';
+        }
+        if ($order->finished_at) {
+            $days = (int) ($this->config->value('trade', 'after_sale_days') ?? 7);
+            if ($order->finished_at->copy()->addDays($days)->isPast()) {
+                return $days > 0 ? "订单完成已超过 {$days} 天，不能再申请售后" : '订单已完成，不能再申请售后';
+            }
+        }
+
+        return null;
+    }
+
+    /** 订单剩余可退金额 = 实付 - 进行中和已完成的售后金额 */
+    private function remainAmount(Order $order): string
+    {
+        $used = (string) OrderRefund::query()->where('order_id', $order->id)->whereIn('status', [...OrderRefund::ACTIVE, OrderRefund::DONE])->sum('refund_amount');
+
+        return bccomp($used, (string) $order->pay_amount, 2) >= 0 ? '0.00' : bcsub((string) $order->pay_amount, $used, 2);
+    }
+
+    /** 进行中的售后占用的数量 @return array<int,int> order_item_id => qty */
+    private function activeQty(int $orderId): array
+    {
+        return OrderRefund::query()->where('order_id', $orderId)->where('order_item_id', '>', 0)->whereIn('status', OrderRefund::ACTIVE)
+            ->groupBy('order_item_id')->selectRaw('order_item_id, sum(qty) as q')->pluck('q', 'order_item_id')->map(fn ($v) => (int) $v)->all();
+    }
+
+    /** 某商品行退 $qty 件的可退上限：按商品金额占比分摊实付（不含运费），不超过订单剩余可退金额 */
+    private function itemMax(Order $order, OrderItem $item, int $qty, string $remain): string
+    {
+        return self::share((string) $item->price, $qty, (string) $order->goods_amount, (string) $order->pay_amount, (string) $order->shipping_fee, $remain);
+    }
+
+    /** 纯计算：单价 × 数量 占商品总额的比例 × 商品部分的实付（实付 - 运费），四舍五入到分，封顶 $remain */
+    public static function share(string $price, int $qty, string $goodsAmount, string $payAmount, string $shippingFee, string $remain): string
+    {
+        if (bccomp($goodsAmount, '0', 2) <= 0) {
+            return '0.00';
+        }
+        $goodsPaid = bcsub($payAmount, $shippingFee, 2);
+        if (bccomp($goodsPaid, '0', 2) <= 0) {
+            return '0.00';
+        }
+        $share = Money::round(bcdiv(bcmul(Money::mul($price, $qty), $goodsPaid, 4), $goodsAmount, 6), 2);
+
+        return bccomp($share, $remain, 2) > 0 ? bcadd($remain, '0', 2) : $share;
+    }
+
+    private function reduceSales(OrderItem $it, int $qty): void
+    {
+        if ($qty <= 0) {
+            return;
+        }
+        DB::table('goods_sku')->where('id', $it->sku_id)->update(['sales' => DB::raw("GREATEST(sales - {$qty}, 0)")]);
+        DB::table('goods')->where('id', $it->goods_id)->update(['sales' => DB::raw("GREATEST(sales - {$qty}, 0)")]);
+    }
+
+    /** 加锁取售后单和订单（先锁订单再锁售后单，与申请时的加锁顺序一致）。传 $memberId 时校验归属 */
+    private function lock(int $refundId, ?int $memberId = null): array
+    {
+        $orderId = OrderRefund::query()->whereKey($refundId)->value('order_id') ?? throw new BusinessException('售后单不存在');
+        $order = Order::query()->lockForUpdate()->find($orderId) ?? throw new BusinessException('订单不存在');
+        $refund = OrderRefund::query()->lockForUpdate()->find($refundId) ?? throw new BusinessException('售后单不存在');
+        if ($memberId !== null && (int) $refund->member_id !== $memberId) {
+            throw new BusinessException('售后单不存在');
+        }
+
+        return [$refund, $order];
+    }
+
+    /** 售后单状态流转（带前置状态校验） */
+    private function move(OrderRefund $refund, array $from, int $to, array $extra = []): void
+    {
+        if (!in_array((int) $refund->status, $from, true)) {
+            throw new BusinessException('售后单状态已变化（当前：' . (OrderRefund::STATUS_TEXT[(int) $refund->status] ?? '未知') . '），请刷新后重试');
+        }
+        $refund->update(['status' => $to] + $extra);
+    }
+
+    private function makeRefundNo(): string
+    {
+        for ($i = 0; $i < 5; $i++) {
+            $no = 'RF' . date('ymdHis') . random_int(100000, 999999);
+            if (!OrderRefund::query()->where('refund_no', $no)->exists()) {
+                return $no;
+            }
+        }
+        throw new BusinessException('系统繁忙，请重试');
+    }
+}

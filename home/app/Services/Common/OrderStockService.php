@@ -65,6 +65,24 @@ class OrderStockService
         }
     }
 
+    /**
+     * 售后按数量回补单个 SKU（单品退款/退货）。回补量不超过该订单在这个 SKU 上尚未回补的净扣减量，重复调用不会多补。
+     * 必须在事务内调用。
+     */
+    public function restoreQty(string $orderNo, int $goodsId, int $skuId, int $qty, string $remark = '售后回补'): void
+    {
+        $net = -(int) DB::table('stock_log')->where('ref_no', $orderNo)->where('sku_id', $skuId)->whereIn('type', [1, 2, 3])->sum('change_qty');
+        $back = min($qty, max($net, 0));
+        $sku = $back > 0 ? GoodsSku::query()->lockForUpdate()->find($skuId) : null;
+        if (!$sku) {
+            return;
+        }
+        $after = (int) $sku->stock + $back;
+        $sku->update(['stock' => $after]);
+        $this->log($goodsId, $skuId, 3, $back, $after, $orderNo, $remark);
+        $this->skus->refreshTotals($goodsId);
+    }
+
     private function log(int $goodsId, int $skuId, int $type, int $change, int $after, string $ref, string $remark): void
     {
         DB::table('stock_log')->insert([

@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\OptionController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\OrderNotifyController;
+use App\Http\Controllers\Admin\OrderRefundController;
 use App\Http\Controllers\Admin\OrderTradeController;
 use App\Http\Controllers\Admin\OrderShipController;
 use App\Http\Controllers\Admin\RoleController;
@@ -218,6 +219,14 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::get('notify/list', [OrderNotifyController::class, 'index'])->middleware('perm:order:notify:view');
         Route::get('notify/{id}', [OrderNotifyController::class, 'show'])->middleware('perm:order:notify:view');
         Route::post('notify/{id}/retry', [OrderNotifyController::class, 'retry'])->middleware(['throttle:30,1', 'perm:order:notify:retry']);
+
+        // 售后订单：审核、确认收到退货、执行退款各自独立权限点
+        Route::get('refund/list', [OrderRefundController::class, 'index'])->middleware('perm:order:refund:view');
+        Route::get('refund/counts', [OrderRefundController::class, 'counts'])->middleware('perm:order:refund:view');
+        Route::get('refund/{id}', [OrderRefundController::class, 'show'])->middleware('perm:order:refund:view');
+        Route::post('refund/{id}/audit', [OrderRefundController::class, 'audit'])->middleware('perm:order:refund:audit');
+        Route::post('refund/{id}/confirm', [OrderRefundController::class, 'confirm'])->middleware('perm:order:refund:confirm');
+        Route::post('refund/{id}/pay', [OrderRefundController::class, 'pay'])->middleware(['throttle:30,1', 'perm:order:refund:pay']);
 
         Route::get('ship/list', [OrderShipController::class, 'index'])->middleware('perm:order:ship:view');
         Route::get('ship/express', [OrderShipController::class, 'express'])->middleware('perm:order:ship:view,order:ship:do,order:ship:edit');

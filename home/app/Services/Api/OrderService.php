@@ -168,6 +168,9 @@ class OrderService
             'can_cancel' => (int) $o->status === OrderStatus::PENDING,
             'can_pay' => (int) $o->status === OrderStatus::PENDING && !($o->expire_at && $o->expire_at->isPast()),
             'can_receive' => (int) $o->status === OrderStatus::SHIPPED,
+            // 是否可申请售后的精确判断（期限、可退数量）见 GET orders/{orderNo}/refundable
+            'can_refund' => in_array((int) $o->pay_status, [OrderStatus::PAY_PAID, OrderStatus::PAY_PART_REFUND], true)
+                && in_array((int) $o->status, [OrderStatus::TO_SHIP, OrderStatus::SHIPPED, OrderStatus::FINISHED, OrderStatus::AFTER_SALE], true),
         ];
     }
 
@@ -217,6 +220,7 @@ class OrderService
             'items' => collect($items)->map(fn ($i) => [
                 'goods_id' => (int) $i->goods_id, 'sku_id' => (int) $i->sku_id, 'title' => $i->title, 'spec_text' => $i->spec_text,
                 'image' => $i->image, 'price' => (string) $i->price, 'qty' => (int) $i->qty,
+                'item_id' => (int) $i->id, 'refund_qty' => (int) $i->refund_qty,
             ])->values()->all(),
         ];
     }

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\ConfigController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PayController;
+use App\Http\Controllers\Api\RefundController;
 use App\Support\ApiResponse;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +55,14 @@ Route::middleware('api.token')->group(function () {
     Route::get('orders/{orderNo}', [OrderController::class, 'show'])->where('orderNo', '[A-Za-z0-9]+');
     Route::post('orders/{orderNo}/cancel', [OrderController::class, 'cancel'])->where('orderNo', '[A-Za-z0-9]+');
     Route::post('orders/{orderNo}/receive', [OrderController::class, 'receive'])->where('orderNo', '[A-Za-z0-9]+');
+
+    // 售后
+    Route::get('orders/{orderNo}/refundable', [RefundController::class, 'refundable'])->where('orderNo', '[A-Za-z0-9]+');
+    Route::post('orders/{orderNo}/refunds', [RefundController::class, 'apply'])->where('orderNo', '[A-Za-z0-9]+')->middleware('throttle:20,1');
+    Route::get('refunds', [RefundController::class, 'index']);
+    Route::get('refunds/{refundNo}', [RefundController::class, 'show'])->where('refundNo', '[A-Za-z0-9]+');
+    Route::post('refunds/{refundNo}/cancel', [RefundController::class, 'cancel'])->where('refundNo', '[A-Za-z0-9]+');
+    Route::post('refunds/{refundNo}/return', [RefundController::class, 'submitReturn'])->where('refundNo', '[A-Za-z0-9]+');
 
     Route::get('orders/{orderNo}/pay/channels', [PayController::class, 'channels'])->where('orderNo', '[A-Za-z0-9]+');
     Route::post('orders/{orderNo}/pay', [PayController::class, 'start'])->where('orderNo', '[A-Za-z0-9]+')->middleware('throttle:20,1');

@@ -31,11 +31,14 @@ class OrderShipService
     {
         DB::transaction(function () use ($orderId, $d, $op) {
             $o = Order::query()->lockForUpdate()->find($orderId) ?? throw new BusinessException('订单不存在');
-            if ((int) $o->status !== OrderStatus::TO_SHIP || (int) $o->pay_status !== OrderStatus::PAY_PAID) {
+            // 部分退款后剩余的商品仍可发货；售后进行中的订单状态是“售后中”，要等售后处理完
+            if ((int) $o->status !== OrderStatus::TO_SHIP || !in_array((int) $o->pay_status, [OrderStatus::PAY_PAID, OrderStatus::PAY_PART_REFUND], true)) {
                 throw new BusinessException('只有已支付的待发货订单可以发货');
             }
 
-            $pending = DB::table('order_item')->where('order_id', $orderId)->where('ship_status', 0)->lockForUpdate()->pluck('id')->map(fn ($v) => (int) $v)->all();
+            // 已全部退款的商品行不再发货
+            $pending = DB::table('order_item')->where('order_id', $orderId)->where('ship_status', 0)->whereColumn('refund_qty', '<', 'qty')
+                ->lockForUpdate()->pluck('id')->map(fn ($v) => (int) $v)->all();
             $pick = array_values(array_unique(array_map('intval', (array) ($d['item_ids'] ?? []))));
             $pick = $pick === [] ? $pending : $pick;
             if ($pick === [] || array_diff($pick, $pending) !== []) {

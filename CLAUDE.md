@@ -86,6 +86,8 @@
 - 后台：`http://127.0.0.1:5173`（`admin-web` 的 `npm run dev`）；C 端 H5：`http://127.0.0.1:5180`（`mall-uni` 的 `npm run dev:h5`）；PC 端：`http://127.0.0.1:5190`（`mall-pc` 的 `npm run dev`）。三个开发服务器把接口（`/admin-api`、`/api`）和上传的图片（`/uploads`）转发给后端，转发目标是各自 `.env.development` 里的 `VITE_API_PROXY`（目前是 ServBay 的 `https://gmmall.cc`，这是服务器端转发，不受浏览器代理影响）。
 - 本机 `home/.env` 设了 `UPLOADS_URL=/uploads`：本地存储的图片地址是不带域名的相对路径，由打开页面的开发服务器代为转发。部署到小程序 / App 需要完整地址的环境时不要用相对路径。
 
+**分销流程的浏览器实测**（2026-10-09，自动化脚本驱动 Edge，跨 PC 端、后台、手机端，全部通过）：会员在 PC 端申请分销员 → 后台审核通过 → PC 端看到邀请码和邀请链接 → 新访客打开邀请链接，注册页自动带上邀请码并注册 → 下级下单、完成并过售后期后佣金结算给上级 → PC 端概览、佣金明细、团队显示正确（下级名字按设计打码）→ 提现（低于最低金额、缺开户行都会被拦住）→ 后台审核通过并登记打款 → PC 端和手机端的提现记录、金额同步更新。其中下级的下单、收货和结算是用后台脚本推进的，没有在页面上点；二级分销、拒绝申请、驳回提现没有点到。测试后开发库里的测试会员 `smoke@example.com` 是分销员（有佣金和一笔已打款的提现），并多了一个下级账号。
+
 ## 常用命令
 - 测试：在 `home/` 下 `php artisan test`（单个文件：`php artisan test tests/Feature/RefundFlowTest.php`）。功能测试连独立的 MySQL 库 `gmmall_test`（`phpunit.xml` 里配置，新环境先 `CREATE DATABASE gmmall_test`），首次运行自动建表，每个测试在事务里跑完回滚；基类会拒绝在库名不以 `_test` 结尾的库上运行。新的功能测试继承 `Tests\FeatureTestCase`，用它的 `makeMember/makeAddress/makeSku/placeOrder/pay/api/adminApi`。
 - 迁移：`php artisan migrate`；若旧表是手工导入 `gm_mall_step1.sql`，只跑新增迁移用 `--path=`。

@@ -39,6 +39,26 @@ module.exports = async function adminFlow(browser, data) {
     await page.keyboard.press('Escape');
   });
 
+  await step('订单详情：打印小票（生成的小票里有订单号和商品）', async () => {
+    await searchOrder(data.shipped_order_no);
+    await el.row(page, data.shipped_order_no).getByRole('button', { name: '详情' }).click();
+    await el.drawer(page).getByRole('button', { name: '打印小票' }).click();
+    // 小票放在一个隐藏的 iframe 里交给浏览器打印；这里检查它的内容，不检查打印机
+    const frame = page.locator('#gm-print-frame');
+    await frame.waitFor({ state: 'attached' });
+    const html = await frame.getAttribute('srcdoc');
+    if (!html.includes(data.shipped_order_no)) throw new Error('小票里没有订单号');
+    if (!html.includes(data.single.title_default)) throw new Error('小票里没有商品名');
+    await page.keyboard.press('Escape');
+  });
+  await step('小票配置：页面有预览，改抬头后预览跟着变（不保存）', async () => {
+    await go('/setting/receipt');
+    const title = page.locator('.el-form-item', { hasText: '小票抬头' }).locator('input');
+    await title.waitFor();
+    await title.fill('点击测试抬头');
+    await page.waitForFunction(() => (document.querySelector('iframe.paper')?.getAttribute('srcdoc') || '').includes('点击测试抬头'));
+  });
+
   let refundNo = '';
   await step('订单列表：代买家发起整单售后', async () => {
     await searchOrder(data.paid_order_no);

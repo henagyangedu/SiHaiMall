@@ -5,6 +5,7 @@ import { listOrder, orderCounts, getOrder, setOrderRemark, changeOrderPrice, can
 import { hasPerm } from '@/utils/perm'
 import OrderDetail from '../OrderDetail.vue'
 import RefundApply from '../RefundApply.vue'
+import { printOrderReceipt } from '@/utils/receipt'
 
 const query = reactive({ order_no: '', keyword: '', status: '', pay_status: '', range: [], page: 1, size: 15 })
 const list = ref([])
@@ -176,6 +177,7 @@ onMounted(load)
           <el-button v-if="detail.status === 0 && hasPerm('order:list:cancel')" type="danger" plain @click="onCancel(detail)">取消订单</el-button>
           <el-button v-if="detail.status === 2 && hasPerm('order:ship:edit')" type="success" plain @click="onReceive(detail)">确认收货</el-button>
           <el-button v-if="[1, 2, 3, 5].includes(detail.status) && hasPerm('order:refund:apply')" type="warning" plain @click="onRefund(detail)">发起售后</el-button>
+          <el-button v-if="detail.status !== 0 && detail.status !== 4 && hasPerm('order:ship:print')" @click="printOrderReceipt(detail)">打印小票</el-button>
         </div>
         <el-alert v-if="detail.admin_remark" type="warning" :closable="false" :title="`商家备注：${detail.admin_remark}`" style="margin-bottom: 12px" />
         <OrderDetail :d="detail" />

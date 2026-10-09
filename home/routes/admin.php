@@ -108,6 +108,9 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::put('config/trade', [ConfigController::class, 'save'])->defaults('group', 'trade')->middleware('perm:setting:trade:edit');
     Route::get('config/protocol', [ConfigController::class, 'show'])->defaults('group', 'protocol')->middleware('perm:setting:protocol:view');
     Route::put('config/protocol', [ConfigController::class, 'save'])->defaults('group', 'protocol')->middleware('perm:setting:protocol:edit');
+    // 小票配置：打印小票的人（订单详情、发货管理）也要能读到它
+    Route::get('config/receipt', [ConfigController::class, 'show'])->defaults('group', 'receipt')->middleware('perm:setting:receipt:view,order:ship:print,order:list:detail');
+    Route::put('config/receipt', [ConfigController::class, 'save'])->defaults('group', 'receipt')->middleware('perm:setting:receipt:edit');
     Route::get('config/distribution', [ConfigController::class, 'show'])->defaults('group', 'distribution')->middleware('perm:distribution:setting:view');
     Route::put('config/distribution', [ConfigController::class, 'save'])->defaults('group', 'distribution')->middleware('perm:distribution:setting:edit');
 

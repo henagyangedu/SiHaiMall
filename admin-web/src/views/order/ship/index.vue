@@ -4,6 +4,7 @@ import { ElMessage } from 'element-plus'
 import { listShipOrder, getOrder, expressOptions, shipOrder, editExpress } from '@/api/order'
 import { hasPerm } from '@/utils/perm'
 import OrderDetail from '../OrderDetail.vue'
+import { printOrderReceipt } from '@/utils/receipt'
 
 const query = reactive({ order_no: '', keyword: '', status: 1, page: 1, size: 15 })
 const list = ref([])
@@ -66,6 +67,10 @@ async function submitEdit() {
 // ---- 详情
 const drawer = ref(false)
 const detail = ref(null)
+// 打印小票：列表里的数据不全，先取订单详情
+async function onPrint(row) {
+  printOrderReceipt(await getOrder(row.id))
+}
 async function openDetail(row) {
   detail.value = await getOrder(row.id)
   drawer.value = true
@@ -103,11 +108,12 @@ onMounted(async () => {
         <el-table-column label="未发货商品行" width="110"><template #default="{ row }"><el-tag v-if="row.unshipped" type="warning">{{ row.unshipped }} 行</el-tag><el-tag v-else type="success">已全部发出</el-tag></template></el-table-column>
         <el-table-column prop="admin_remark" label="商家备注" min-width="140" show-overflow-tooltip />
         <el-table-column prop="paid_at" label="支付时间" width="165" />
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="270" fixed="right">
           <template #default="{ row }">
             <el-button v-perm="'order:list:detail,order:ship:view'" link type="primary" @click="openDetail(row)">详情</el-button>
             <el-button v-if="row.status === 1 && row.unshipped" v-perm="'order:ship:do'" link type="success" @click="openShip(row)">发货</el-button>
             <el-button v-if="row.status === 2 || row.unshipped === 0" v-perm="'order:ship:edit'" link type="warning" @click="openEdit(row)">改单号</el-button>
+            <el-button v-perm="'order:ship:print'" link @click="onPrint(row)">打印小票</el-button>
           </template>
         </el-table-column>
       </el-table>

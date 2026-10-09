@@ -49,6 +49,16 @@ class ConfigService
             'shipping_policy'        => ['label' => '配送政策', 'type' => 'text', 'lang' => true, 'max' => 30000],
             'distribution_agreement' => ['label' => '分销员协议', 'type' => 'text', 'lang' => true, 'max' => 30000],
         ],
+        // 订单小票：后台用浏览器打印（热敏小票机或普通打印机），这里只管小票上印什么
+        'receipt' => [
+            'title'         => ['label' => '小票抬头', 'type' => 'text', 'max' => 60],
+            'footer'        => ['label' => '页脚文字', 'type' => 'text', 'max' => 200],
+            'paper_width'   => ['label' => '纸张宽度（毫米）', 'type' => 'enum', 'options' => ['58', '80'], 'default' => '80'],
+            'show_price'    => ['label' => '打印金额', 'type' => 'bool', 'default' => 1],
+            'show_address'  => ['label' => '打印收货信息', 'type' => 'bool', 'default' => 1],
+            'show_remark'   => ['label' => '打印买家留言', 'type' => 'bool', 'default' => 1],
+            'show_admin_remark' => ['label' => '打印商家备注', 'type' => 'bool', 'default' => 0],
+        ],
         'distribution' => [
             'enabled'      => ['label' => '开启分销', 'type' => 'bool', 'default' => 0],
             'level'        => ['label' => '分销层级', 'type' => 'int', 'min' => 1, 'max' => 2, 'default' => 1],

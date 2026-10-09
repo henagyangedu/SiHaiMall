@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\OrderShipController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SaleRegionController;
 use App\Http\Controllers\Admin\ShippingTemplateController;
+use App\Http\Controllers\Admin\StatsController;
 use App\Http\Controllers\Admin\StockLogController;
 use App\Http\Controllers\Admin\TranslateController;
 use App\Http\Controllers\Admin\UploadController;
@@ -180,6 +181,14 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::put('{id}', [SaleRegionController::class, 'update'])->middleware('perm:goods:region:edit');
         Route::post('{id}/status', [SaleRegionController::class, 'status'])->middleware('perm:goods:region:edit');
         Route::delete('{id}', [SaleRegionController::class, 'destroy'])->middleware('perm:goods:region:del');
+    });
+
+    // 数据中心（只读统计）
+    Route::prefix('stats')->middleware('perm:data:overview:view')->group(function () {
+        Route::get('overview', [StatsController::class, 'overview']);
+        Route::get('trend', [StatsController::class, 'trend']);
+        Route::get('goods-rank', [StatsController::class, 'goodsRank']);
+        Route::get('breakdown', [StatsController::class, 'breakdown']);
     });
 
     // 分销：分销员、关系、佣金明细、提现（审核、打款各自独立权限点）

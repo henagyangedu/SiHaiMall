@@ -84,6 +84,9 @@ class MenuSeeder extends Seeder
                 ['t' => '提现管理', 'path' => '/distribution/withdraw', 'perm' => 'distribution:withdraw', 'acts' => ['audit', 'paid']],
                 ['t' => '分销设置', 'path' => '/distribution/setting', 'perm' => 'distribution:setting', 'acts' => ['edit']],
             ]],
+            ['t' => '数据', 'path' => '/data', 'icon' => 'DataLine', 'children' => [
+                ['t' => '数据概览', 'path' => '/data/overview', 'perm' => 'data:overview'],
+            ]],
             ['t' => '设置', 'path' => '/setting', 'icon' => 'Setting', 'children' => [
                 ['t' => '系统设置', 'path' => '/setting/system', 'children' => [
                     ['t' => '基础信息', 'path' => '/setting/base', 'perm' => 'setting:base', 'acts' => ['edit']],

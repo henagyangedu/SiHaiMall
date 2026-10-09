@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\OrderNotifyController;
 use App\Http\Controllers\Admin\OrderTradeController;
 use App\Http\Controllers\Admin\OrderShipController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SaleRegionController;
 use App\Http\Controllers\Admin\ShippingTemplateController;
 use App\Http\Controllers\Admin\StockLogController;
 use App\Http\Controllers\Admin\TranslateController;
@@ -92,7 +93,7 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
 
     // 通用下拉选项（只读）：启用的币种
     Route::get('options/currencies', [OptionController::class, 'currencies'])
-        ->middleware('perm:goods:list:view,setting:currency:view,member:list:edit');
+        ->middleware('perm:goods:list:view,goods:region:view,setting:currency:view,member:list:edit');
 
     // 系统设置：基础信息 / 交易设置（分组由 defaults 指定）
     Route::get('config/base', [ConfigController::class, 'show'])->defaults('group', 'base')->middleware('perm:setting:base:view');
@@ -159,6 +160,17 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::post('{id}/sale', [GoodsController::class, 'sale'])->middleware('perm:goods:list:sale');
         Route::post('{id}/stock', [GoodsController::class, 'stock'])->middleware('perm:goods:list:stock');
         Route::delete('{id}', [GoodsController::class, 'destroy'])->middleware('perm:goods:list:del');
+    });
+
+    // 销售区域（区域定价；商品表单读取区域列表：有商品查看权限即可）
+    Route::prefix('sale-region')->group(function () {
+        Route::get('list', [SaleRegionController::class, 'index'])->middleware('perm:goods:region:view');
+        Route::get('options', [SaleRegionController::class, 'options'])->middleware('perm:goods:region:view,goods:list:view');
+        Route::get('cn-divisions', [SaleRegionController::class, 'cnDivisions'])->middleware('perm:goods:region:view');
+        Route::post('/', [SaleRegionController::class, 'store'])->middleware('perm:goods:region:add');
+        Route::put('{id}', [SaleRegionController::class, 'update'])->middleware('perm:goods:region:edit');
+        Route::post('{id}/status', [SaleRegionController::class, 'status'])->middleware('perm:goods:region:edit');
+        Route::delete('{id}', [SaleRegionController::class, 'destroy'])->middleware('perm:goods:region:del');
     });
 
     // 运费模板（商品表单的下拉：有商品查看权限即可读取）

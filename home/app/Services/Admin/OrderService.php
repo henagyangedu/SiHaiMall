@@ -98,6 +98,7 @@ class OrderService
             'id' => (int) $o->id, 'order_no' => $o->order_no, 'status' => (int) $o->status, 'status_text' => OrderStatus::TEXT[(int) $o->status] ?? '',
             'pay_status' => (int) $o->pay_status, 'pay_status_text' => OrderStatus::PAY_TEXT[(int) $o->pay_status] ?? '', 'pay_channel' => $o->pay_channel,
             'currency' => $o->currency, 'rate' => rtrim(rtrim((string) $o->rate, '0'), '.'), 'lang' => $o->lang, 'source' => $o->source,
+            'price_region_name' => (string) $o->price_region_name,
             'goods_amount' => (string) $o->goods_amount, 'shipping_fee' => (string) $o->shipping_fee, 'discount_amount' => (string) $o->discount_amount,
             'points_amount' => (string) $o->points_amount, 'pay_amount' => (string) $o->pay_amount, 'base_pay_amount' => (string) $o->base_pay_amount,
             'remark' => $o->remark, 'admin_remark' => $o->admin_remark, 'cancel_reason' => $o->cancel_reason,

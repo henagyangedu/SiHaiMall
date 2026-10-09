@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * 商品管理：单规格 + 多规格。规格与 SKU 的细节在 GoodsSkuService。
  * 价格口径：sku.price 为基准币种价格；其它币种可在 gm_goods_price 单独定价，未定价则按汇率折算。
+ * 销售区域价存 gm_goods_region_price（区域的定价币种），收货地址命中区域且有区域价时优先使用。
  * 库存只能在新增（含新增规格组合）时设置初始值，之后一律通过 adjustStock 调整并写库存流水。
  * 规格类型（单/多）创建后不可更改，避免库存和订单历史错乱。
  */
@@ -243,7 +244,7 @@ class GoodsService
     private function saveSkus(Goods $goods, array $d, bool $create, Admin $op): void
     {
         if ((int) $d['spec_type'] === 1) {
-            $this->skus->saveSingle($goods, (array) $d['sku'], (array) ($d['prices'] ?? []), $create, $op);
+            $this->skus->saveSingle($goods, (array) $d['sku'], (array) ($d['prices'] ?? []), (array) ($d['region_prices'] ?? []), $create, $op);
         } else {
             $this->skus->saveMulti($goods, $d, $create, $op);
         }

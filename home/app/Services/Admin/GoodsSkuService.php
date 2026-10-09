@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
  *
  * 多规格的载荷约定：
  *   specs: [{id?, name:{lang:text}, values:[{id?, key, name:{lang:text}}]}]
- *   skus : [{id?, value_keys:[key,...], sku_sn, image, price, ..., status, prices:{币种:价格}}]
+ *   skus : [{id?, value_keys:[key,...], sku_sn, image, price, ..., status, prices:{币种:价格}, region_prices:{销售区域ID:价格}}]
  * value 的 key 由前端生成（新增的规格值还没有 ID），SKU 通过 key 引用规格值；已有 SKU 带 id，库存字段对已有 SKU 一律忽略。
  */
 class GoodsSkuService
@@ -33,6 +33,10 @@ class GoodsSkuService
         foreach (DB::table('goods_price')->whereIn('sku_id', $skuRows->pluck('id')->all())->get() as $p) {
             $prices[$p->sku_id][$p->currency] = (string) $p->price;
         }
+        $regionPrices = [];
+        foreach (DB::table('goods_region_price')->whereIn('sku_id', $skuRows->pluck('id')->all())->get() as $p) {
+            $regionPrices[$p->sku_id][(int) $p->region_id] = (string) $p->price;
+        }
 
         $fmt = fn (GoodsSku $s) => [
             'id'           => (int) $s->id,
@@ -47,12 +51,16 @@ class GoodsSkuService
             'volume'       => (string) $s->volume,
             'status'       => (int) $s->status,
             'prices'       => $prices[$s->id] ?? [],
+            'region_prices' => $regionPrices[$s->id] ?? [],
         ];
 
         if ($specType === 1) {
             $s = $skuRows->first();
 
-            return ['sku' => $s ? $fmt($s) : null, 'prices' => $s ? ($prices[$s->id] ?? []) : [], 'specs' => [], 'skus' => []];
+            return [
+                'sku' => $s ? $fmt($s) : null, 'prices' => $s ? ($prices[$s->id] ?? []) : [],
+                'region_prices' => $s ? ($regionPrices[$s->id] ?? []) : [], 'specs' => [], 'skus' => [],
+            ];
         }
 
         $specRows = DB::table('goods_spec')->where('goods_id', $goodsId)->orderBy('sort')->orderBy('id')->get();
@@ -76,7 +84,7 @@ class GoodsSkuService
             ];
         }
 
-        return ['sku' => null, 'prices' => [], 'specs' => $specs, 'skus' => $skus];
+        return ['sku' => null, 'prices' => [], 'region_prices' => [], 'specs' => $specs, 'skus' => $skus];
     }
 
     // ------------------------------------------------------------------ 校验
@@ -151,7 +159,7 @@ class GoodsSkuService
     }
 
     // ------------------------------------------------------------------ 保存：单规格
-    public function saveSingle(Goods $goods, array $sku, array $prices, bool $create, Admin $op): void
+    public function saveSingle(Goods $goods, array $sku, array $prices, array $regionPrices, bool $create, Admin $op): void
     {
         $goodsId = (int) $goods->id;
         $row = GoodsSku::query()->where('goods_id', $goodsId)->orderBy('id')->first();
@@ -168,6 +176,7 @@ class GoodsSkuService
         }
 
         $this->syncPrices((int) $row->id, $prices);
+        $this->syncRegionPrices((int) $row->id, $regionPrices);
         $this->refreshTotals($goodsId);
     }
 
@@ -262,6 +271,7 @@ class GoodsSkuService
             }
             $touched[$skuId] = true;
             $this->syncPrices($skuId, (array) ($sku['prices'] ?? []));
+            $this->syncRegionPrices($skuId, (array) ($sku['region_prices'] ?? []));
         }
 
         // 不再出现的 SKU：被订单引用的只停用（保留历史），否则删除
@@ -273,6 +283,7 @@ class GoodsSkuService
                 $e->update(['status' => 0]);
             } else {
                 DB::table('goods_price')->where('sku_id', $e->id)->delete();
+                DB::table('goods_region_price')->where('sku_id', $e->id)->delete();
                 $e->delete();
             }
         }
@@ -350,6 +361,22 @@ class GoodsSkuService
         foreach ($prices as $code => $p) {
             if (in_array($code, $valid, true) && $p !== null && $p !== '' && (float) $p > 0) {
                 DB::table('goods_price')->insert(['sku_id' => $skuId, 'currency' => $code, 'price' => $this->money($p)]);
+            }
+        }
+    }
+
+    /**
+     * 销售区域价：region_id => 价格（该区域的定价币种）；空值或 0 表示不设区域价，按标准价销售。
+     * 停用的区域也保留已填的价格，区域重新启用后继续生效。
+     */
+    private function syncRegionPrices(int $skuId, array $prices): void
+    {
+        $valid = DB::table('sale_region')->whereNull('deleted_at')->pluck('id')->map(fn ($v) => (int) $v)->all();
+
+        DB::table('goods_region_price')->where('sku_id', $skuId)->delete();
+        foreach ($prices as $regionId => $p) {
+            if (in_array((int) $regionId, $valid, true) && $p !== null && $p !== '' && (float) $p > 0) {
+                DB::table('goods_region_price')->insert(['sku_id' => $skuId, 'region_id' => (int) $regionId, 'price' => $this->money($p)]);
             }
         }
     }

@@ -15,7 +15,7 @@ class CartController extends ApiController
 
     public function index(Request $request)
     {
-        return ApiResponse::ok($this->service->list($this->memberId($request), $this->lang($request), $this->currency($request)));
+        return ApiResponse::ok($this->service->list($this->memberId($request), $this->lang($request), $this->currency($request), $this->region($request)));
     }
 
     public function add(CartAddRequest $request)

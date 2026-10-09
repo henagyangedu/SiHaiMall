@@ -31,6 +31,18 @@ final class Money
         return self::round(bcdiv($amount, $rate, 8), 2);
     }
 
+    /**
+     * 一种币种的金额换算成另一种币种（两个汇率都是 基准→该币种），中间不做舍入，只在结果上按目标币种小数位舍入。
+     */
+    public static function convert(string $amount, string $fromRate, string $toRate, int $decimals): string
+    {
+        if (bccomp($fromRate, '0', 8) <= 0) {
+            return '0.00';
+        }
+
+        return self::fromBase(bcdiv($amount, $fromRate, 8), $toRate, $decimals);
+    }
+
     public static function mul(string $a, int|string $qty): string
     {
         return bcmul($a, (string) $qty, 2);

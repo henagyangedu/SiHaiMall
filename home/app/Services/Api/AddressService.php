@@ -31,6 +31,7 @@ class AddressService
             $data = array_map(fn ($v) => (string) ($v ?? ''), array_intersect_key($d, array_flip(self::FIELDS)));
             $data['phone_area'] = ($data['phone_area'] ?? '') !== '' ? $data['phone_area'] : '86';
             $data['country_code'] = strtoupper((string) ($data['country_code'] ?? 'CN'));
+            $this->assertCnDivision($data);
 
             if ($id > 0) {
                 $addr = $all->firstWhere('id', $id) ?? throw new BusinessException('收货地址不存在');
@@ -70,6 +71,21 @@ class AddressService
                 $next?->forceFill(['is_default' => 1])->save();
             }
         });
+    }
+
+    /** 中国大陆地址的省、市必须取自标准名单（config/cn_divisions.php），否则区域定价无法按省市匹配 */
+    private function assertCnDivision(array $data): void
+    {
+        if ($data['country_code'] !== 'CN') {
+            return;
+        }
+        $cities = config('cn_divisions.' . ($data['province'] ?? ''));
+        if (($data['province'] ?? '') === '' || !is_array($cities)) {
+            throw new BusinessException('请选择正确的省份');
+        }
+        if (!in_array($data['city'] ?? '', $cities, true)) {
+            throw new BusinessException('请选择正确的城市');
+        }
     }
 
     private function makeDefault(int $memberId, int $id): void

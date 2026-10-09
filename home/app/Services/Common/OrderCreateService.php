@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * 下单核心（C 端接口、后台代下单、测试命令共用）。
  * 价格、汇率、标题、规格、重量全部固化到订单快照，之后商品改价/改名不影响历史订单。
+ * 单价由 PriceService::unitPrices 计算；销售区域以收货地址为准，命中的区域记录在订单上。
  * 运费按商品的运费模板计算，规则见 ShippingFeeService。
  */
 class OrderCreateService
@@ -25,6 +26,8 @@ class OrderCreateService
         private OrderStockService $stock,
         private OrderStatusService $status,
         private ShippingFeeService $shippingFee,
+        private PriceService $price,
+        private SaleRegionService $regions,
     ) {}
 
     /**
@@ -47,23 +50,23 @@ class OrderCreateService
 
         return DB::transaction(function () use ($member, $need, $address, $opts, $currency, $cur, $lang, $trade) {
             $skus = $this->loadSkus(array_keys($need));
-            $prices = DB::table('goods_price')->whereIn('sku_id', array_keys($need))->where('currency', $currency)->pluck('price', 'sku_id');
+            $needShip = collect($skus)->contains(fn ($s) => (int) $s->is_virtual === 0);
+            $address = $needShip ? $this->cleanAddress($address) : [];
+            // 区域价以收货地址为准；无需发货的订单没有收货地址，按标准价
+            $region = $needShip ? $this->regions->match($address) : null;
+            $units = $this->price->unitPrices(collect($skus)->map(fn ($s) => (string) $s->price)->all(), $currency, $region);
 
             // ---- 逐行算价（下单币种）
             $goodsAmount = '0.00';
             $rows = [];
-            $needShip = false;
             foreach ($need as $skuId => $qty) {
                 $s = $skus[$skuId];
-                $unit = isset($prices[$skuId])
-                    ? bcadd((string) $prices[$skuId], '0', 2)
-                    : Money::fromBase((string) $s->price, $cur['rate'], $cur['decimals']);
+                $unit = $units[$skuId];
                 if (bccomp($unit, '0', 2) <= 0) {
                     throw new BusinessException('商品价格异常，暂时无法下单：' . $s->goods_sn);
                 }
                 $goodsAmount = bcadd($goodsAmount, Money::mul($unit, $qty), 2);
                 $rows[$skuId] = ['sku' => $s, 'qty' => $qty, 'unit' => $unit];
-                $needShip = $needShip || (int) $s->is_virtual === 0;
             }
 
             $minBase = (string) ($trade['min_order_amount'] ?? '0');
@@ -71,8 +74,7 @@ class OrderCreateService
                 throw new BusinessException('未达到最低下单金额');
             }
 
-            $address = $needShip ? $this->cleanAddress($address) : [];
-            $shipping = $needShip ? $this->calcShipping($rows, $address, $cur) : '0.00';
+            $shipping =$needShip ? $this->calcShipping($rows, $address, $cur) : '0.00';
             $discount = $this->levelDiscount($member, $goodsAmount);
             $pay = bcsub(bcadd($goodsAmount, $shipping, 2), $discount, 2);
             if (bccomp($pay, '0.01', 2) < 0) {
@@ -90,6 +92,7 @@ class OrderCreateService
                 'status' => OrderStatus::PENDING, 'pay_status' => OrderStatus::PAY_UNPAID,
                 'remark' => mb_substr((string) ($opts['remark'] ?? ''), 0, 500),
                 'source_member_id' => (int) ($opts['source_member_id'] ?? 0),
+                'price_region_id' => (int) ($region['id'] ?? 0), 'price_region_name' => (string) ($region['name'] ?? ''),
                 'expire_at' => now()->addMinutes((int) ($trade['order_expire_minutes'] ?? 30)),
             ]);
 

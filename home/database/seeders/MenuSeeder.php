@@ -63,6 +63,7 @@ class MenuSeeder extends Seeder
                 ['t' => '商品列表', 'path' => '/goods/list', 'perm' => 'goods:list', 'acts' => ['add', 'edit', 'del', 'sale', 'stock']],
                 ['t' => '商品分类', 'path' => '/goods/category', 'perm' => 'goods:category', 'acts' => ['add', 'edit', 'del']],
                 ['t' => '商品品牌', 'path' => '/goods/brand', 'perm' => 'goods:brand', 'acts' => ['add', 'edit', 'del']],
+                ['t' => '销售区域', 'path' => '/goods/region', 'perm' => 'goods:region', 'acts' => ['add', 'edit', 'del']],
                 ['t' => '库存流水', 'path' => '/goods/stocklog', 'perm' => 'goods:stocklog', 'acts' => ['export']],
             ]],
             ['t' => '订单', 'path' => '/order', 'icon' => 'Tickets', 'children' => [

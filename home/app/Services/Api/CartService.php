@@ -14,10 +14,10 @@ class CartService
 
     public function __construct(private CatalogService $catalog) {}
 
-    public function list(int $memberId, string $lang, string $currency): array
+    public function list(int $memberId, string $lang, string $currency, ?array $region = null): array
     {
         $rows = Cart::query()->where('member_id', $memberId)->orderByDesc('id')->get();
-        $briefs = $this->catalog->skuBriefs($rows->pluck('sku_id')->all(), $lang, $currency);
+        $briefs = $this->catalog->skuBriefs($rows->pluck('sku_id')->all(), $lang, $currency, $region);
 
         $items = [];
         $total = '0.00';

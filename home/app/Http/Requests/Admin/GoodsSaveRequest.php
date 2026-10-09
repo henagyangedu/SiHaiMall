@@ -77,12 +77,16 @@ class GoodsSaveRequest extends FormRequest
                 'skus.*.status'            => ['nullable', 'in:0,1'],
                 'skus.*.prices'            => ['nullable', 'array'],
                 'skus.*.prices.*'          => ['nullable', 'numeric', 'min:0', 'lt:10000000000'],
+                'skus.*.region_prices'     => ['nullable', 'array'],
+                'skus.*.region_prices.*'   => ['nullable', 'numeric', 'min:0', 'lt:10000000000'],
             ] + $skuRules('skus.*');
         } else {
             $rules += [
                 'sku'      => ['required', 'array'],
                 'prices'   => ['nullable', 'array'],
                 'prices.*' => ['nullable', 'numeric', 'min:0', 'lt:10000000000'],
+                'region_prices'   => ['nullable', 'array'],
+                'region_prices.*' => ['nullable', 'numeric', 'min:0', 'lt:10000000000'],
             ] + $skuRules('sku');
         }
 
@@ -100,7 +104,7 @@ class GoodsSaveRequest extends FormRequest
             'title' => '商品标题', 'title.*' => '商品标题', 'subtitle.*' => '副标题', 'keywords.*' => '关键词',
             'description.*' => '商品详情', 'seo_title.*' => 'SEO 标题', 'seo_desc.*' => 'SEO 描述',
             'images' => '商品图片', 'images.*' => '商品图片', 'video' => '视频地址', 'unit' => '单位', 'sort' => '排序',
-            'sku' => '价格库存', 'prices.*' => '币种定价',
+            'sku' => '价格库存', 'prices.*' => '币种定价', 'region_prices.*' => '区域价', 'skus.*.region_prices.*' => '区域价',
             'specs' => '规格项', 'specs.*.name' => '规格名称', 'specs.*.name.*' => '规格名称',
             'specs.*.values' => '规格值', 'specs.*.values.*.name' => '规格值', 'specs.*.values.*.name.*' => '规格值',
             'specs.*.values.*.key' => '规格值标识',

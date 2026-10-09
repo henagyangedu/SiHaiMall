@@ -36,7 +36,7 @@ const statusType = (s) => ({ 0: 'warning', 1: 'primary', 2: 'primary', 3: 'succe
     <el-table-column label="发货" width="80"><template #default="{ row }"><el-tag size="small" :type="row.ship_status ? 'success' : 'info'">{{ row.ship_status ? '已发' : '未发' }}</el-tag></template></el-table-column>
   </el-table>
   <div class="sum">
-    <div>商品金额：{{ d.goods_amount }}</div>
+    <div>商品金额：{{ d.goods_amount }}<span v-if="d.price_region_name" style="color: #909399; font-size: 12px">（按销售区域“{{ d.price_region_name }}”定价）</span></div>
     <div>运费：{{ d.shipping_fee }}</div>
     <div>优惠：-{{ d.discount_amount }}</div>
     <div v-if="Number(d.points_amount) > 0">积分抵扣：-{{ d.points_amount }}</div>

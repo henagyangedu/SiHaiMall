@@ -5,6 +5,7 @@ import { getGoods, createGoods, updateGoods } from '@/api/goods'
 import { categoryTree } from '@/api/category'
 import { brandOptions } from '@/api/brand'
 import { shippingTemplateOptions } from '@/api/shipping'
+import { saleRegionOptions } from '@/api/saleRegion'
 import { currencyOptions } from '@/api/option'
 import { languageOptions } from '@/api/language'
 import { translateText } from '@/api/translate'
@@ -33,6 +34,7 @@ const languages = ref([])
 const categories = ref([])
 const brands = ref([])
 const shippingTemplates = ref([])
+const saleRegions = ref([])
 const currencies = ref([])
 const baseCurrency = computed(() => currencies.value.find((c) => c.is_base === 1))
 const otherCurrencies = computed(() => currencies.value.filter((c) => c.is_base !== 1))
@@ -40,7 +42,7 @@ const defaultLang = computed(() => languages.value.find((l) => l.is_default)?.co
 
 const newSku = (keys) => ({
   id: 0, keys, sku_sn: '', image: '', price: 0, market_price: 0, cost_price: 0,
-  stock: 0, warn_stock: 0, weight: 0, volume: 0, status: 1, prices: {},
+  stock: 0, warn_stock: 0, weight: 0, volume: 0, status: 1, prices: {}, region_prices: {},
 })
 const emptyForm = () => ({
   id: 0, category_id: null, brand_id: 0, shipping_template_id: 0, goods_sn: '',
@@ -48,6 +50,7 @@ const emptyForm = () => ({
   images: [], video: '', unit: '', is_virtual: 0, is_on_sale: 0, sort: 0, spec_type: 1,
   sku: { sku_sn: '', price: 0, market_price: 0, cost_price: 0, stock: 0, warn_stock: 0, weight: 0, volume: 0 },
   prices: {},
+  region_prices: {},
   specs: [],
   skus: [],
 })
@@ -63,11 +66,14 @@ async function loadAll() {
   loading.value = true
   tab.value = props.initTab || 'base'
   try {
-    const [langs, cats, bs, curs, tpls] = await Promise.all([languageOptions(), categoryTree(), brandOptions(), currencyOptions(), shippingTemplateOptions()])
+    const [langs, cats, bs, curs, tpls, regions] = await Promise.all([
+      languageOptions(), categoryTree(), brandOptions(), currencyOptions(), shippingTemplateOptions(), saleRegionOptions(),
+    ])
     languages.value = langs
     categories.value = cats
     brands.value = bs
     shippingTemplates.value = tpls
+    saleRegions.value = regions
     currencies.value = curs
 
     Object.assign(form, emptyForm())
@@ -76,6 +82,7 @@ async function loadAll() {
       Object.assign(form, d, {
         sku: { ...emptyForm().sku, ...(d.sku || {}) },
         prices: numPrices(d.prices),
+        region_prices: numPrices(d.region_prices),
         specs: (d.specs || []).map((s) => ({
           id: s.id,
           name: { ...s.name },
@@ -85,7 +92,7 @@ async function loadAll() {
           id: r.id, keys: r.value_ids.map((i) => `v${i}`), sku_sn: r.sku_sn, image: r.image,
           price: Number(r.price), market_price: Number(r.market_price), cost_price: Number(r.cost_price),
           stock: r.stock, warn_stock: r.warn_stock, weight: Number(r.weight), volume: Number(r.volume),
-          status: r.status, prices: numPrices(r.prices),
+          status: r.status, prices: numPrices(r.prices), region_prices: numPrices(r.region_prices),
         })),
       })
       for (const k of ['price', 'market_price', 'cost_price', 'weight', 'volume']) form.sku[k] = Number(form.sku[k] || 0)
@@ -128,6 +135,7 @@ async function submit() {
     if (form.spec_type === 1) {
       payload.sku = { ...form.sku }
       payload.prices = { ...form.prices }
+      payload.region_prices = { ...form.region_prices }
       if (isEdit.value) delete payload.sku.stock // 库存只能通过“调整库存”修改
     } else {
       payload.specs = form.specs.map((s) => ({
@@ -139,7 +147,7 @@ async function submit() {
         const o = {
           id: r.id || null, value_keys: r.keys, sku_sn: r.sku_sn, image: r.image,
           price: r.price, market_price: r.market_price, cost_price: r.cost_price,
-          warn_stock: r.warn_stock, weight: r.weight, volume: r.volume, status: r.status, prices: { ...r.prices },
+          warn_stock: r.warn_stock, weight: r.weight, volume: r.volume, status: r.status, prices: { ...r.prices }, region_prices: { ...r.region_prices },
         }
         if (!r.id) o.stock = r.stock // 已有规格组合的库存只能“调整”
         return o
@@ -305,6 +313,17 @@ async function onStockDone() {
               </div>
             </el-form-item>
 
+            <el-form-item v-if="saleRegions.length" label="销售区域价">
+              <div class="price-grid">
+                <div v-for="r in saleRegions" :key="r.id" class="price-row">
+                  <span class="region">{{ r.name }}</span>
+                  <el-input-number v-model="form.region_prices[r.id]" :min="0" :precision="2" :controls="false" placeholder="留空按标准价" style="width: 200px" />
+                  <span class="hint-inline">{{ r.currency }}</span>
+                </div>
+                <div class="hint-inline" style="margin-left: 0">收货地址属于该区域时按区域价销售，留空则按上面的标准价。区域在 商品 → 销售区域 里维护</div>
+              </div>
+            </el-form-item>
+
             <el-form-item label="库存">
               <el-input-number v-if="!isEdit" v-model="form.sku.stock" :min="0" :max="99999999" />
               <template v-else>
@@ -323,7 +342,7 @@ async function onStockDone() {
           <template v-else>
             <el-form-item label="规格设置" required><SpecEditor v-model="form.specs" :languages="languages" /></el-form-item>
             <el-form-item v-if="form.skus.length" label="规格明细" required>
-              <SkuTable :rows="form.skus" :specs="form.specs" :languages="languages" :currencies="otherCurrencies" :base-code="baseCurrency?.code || ''" @adjust="openSkuStock" />
+              <SkuTable :rows="form.skus" :specs="form.specs" :languages="languages" :currencies="otherCurrencies" :regions="saleRegions" :base-code="baseCurrency?.code || ''" @adjust="openSkuStock" />
             </el-form-item>
           </template>
         </el-tab-pane>
@@ -355,4 +374,5 @@ async function onStockDone() {
 .price-grid { display: flex; flex-direction: column; gap: 8px; }
 .price-row { display: flex; align-items: center; }
 .cur { width: 50px; font-weight: 600; }
+.region { width: 120px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>

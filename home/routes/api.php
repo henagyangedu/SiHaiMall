@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 // C 端接口（前缀 /api）。H5 / 小程序 / App / PC 共用，来源端用请求头 X-Source 区分
 Route::get('ping', fn () => ApiResponse::ok(['time' => now()->toDateTimeString()]));
 Route::get('config/init', [ConfigController::class, 'init']);
+Route::get('config/cn-divisions', [ConfigController::class, 'cnDivisions']);
 
 // ---- 无需登录（登录后带会员语言/币种偏好）
 Route::middleware('api.token:optional')->group(function () {

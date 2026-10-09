@@ -3,12 +3,13 @@ import { ref, computed } from 'vue'
 import ImageUpload from '@/components/ImageUpload.vue'
 import { hasPerm } from '@/utils/perm'
 
-// SKU 表。rows：[{ id, keys, sku_sn, image, price, market_price, cost_price, stock, warn_stock, weight, volume, status, prices }]
+// SKU 表。rows：[{ id, keys, sku_sn, image, price, market_price, cost_price, stock, warn_stock, weight, volume, status, prices, region_prices }]
 const props = defineProps({
   rows: { type: Array, required: true },
   specs: { type: Array, required: true },
   languages: { type: Array, default: () => [] },
   currencies: { type: Array, default: () => [] }, // 非基准币种
+  regions: { type: Array, default: () => [] }, // 启用的销售区域 [{ id, name, currency }]
   baseCode: { type: String, default: '' },
 })
 const emit = defineEmits(['adjust'])
@@ -77,6 +78,9 @@ function applyBatch() {
       <el-table-column v-for="c in currencies" :key="c.code" :label="`${c.code} 定价`" width="115">
         <template #default="{ row }"><el-input-number v-model="row.prices[c.code]" size="small" :min="0" :precision="2" :controls="false" placeholder="自动折算" style="width: 100%" /></template>
       </el-table-column>
+      <el-table-column v-for="r in regions" :key="`r${r.id}`" :label="`${r.name}(${r.currency})`" width="125">
+        <template #default="{ row }"><el-input-number v-model="row.region_prices[r.id]" size="small" :min="0" :precision="2" :controls="false" placeholder="按标准价" style="width: 100%" /></template>
+      </el-table-column>
       <el-table-column label="库存" width="130">
         <template #default="{ row }">
           <template v-if="row.id">
@@ -99,7 +103,7 @@ function applyBatch() {
         <template #default="{ row }"><el-switch v-model="row.status" :active-value="1" :inactive-value="0" size="small" /></template>
       </el-table-column>
     </el-table>
-    <div class="tip">共 {{ rows.length }} 个规格组合；停用的组合不可购买。已有组合的库存只能点“调整”修改，新增组合可直接填写初始库存。</div>
+    <div class="tip">共 {{ rows.length }} 个规格组合；停用的组合不可购买。已有组合的库存只能点“调整”修改，新增组合可直接填写初始库存。<template v-if="regions.length">销售区域价留空表示该区域按标准价销售。</template></div>
   </div>
 </template>
 

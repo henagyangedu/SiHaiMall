@@ -8,6 +8,7 @@ use App\Services\Common\OrderCloseService;
 use App\Services\Common\OrderCreateService;
 use App\Services\Common\OrderStatusService;
 use App\Services\Common\PriceService;
+use App\Services\Common\SaleRegionService;
 use App\Services\Common\ShippingFeeService;
 use App\Support\Exceptions\BusinessException;
 use App\Support\Money;
@@ -33,17 +34,32 @@ class OrderService
         private AddressService $addresses,
         private PriceService $price,
         private ShippingFeeService $shippingFee,
+        private SaleRegionService $regions,
     ) {}
 
     /**
-     * 结算预览（不占库存、不落库）。运费按所选地址（未选则默认地址）计算；还没有收货地址时运费为 0，
+     * 结算预览（不占库存、不落库）。区域价和运费按所选地址（未选则默认地址）计算；还没有收货地址时按标准价、运费为 0，
      * 以 need_address=true 且 address=null 提示前端先填地址；地址不在配送范围时写入 problems。
      * @param array{cart_ids?:int[],items?:array<int,array{sku_id:int,qty:int}>,address_id?:int} $d
      */
     public function checkout(Member $m, array $d, string $lang, string $currency): array
     {
         $lines = $this->resolveLines($m->id, $d);
-        $briefs = $this->catalog->skuBriefs(array_column($lines, 'sku_id'), $lang, $currency);
+        $skuIds = array_column($lines, 'sku_id');
+        $briefs = $this->catalog->skuBriefs($skuIds, $lang, $currency);
+
+        // 需要发货时先确定收货地址：区域价和运费都以它为准（与 OrderCreateService 一致）
+        $address = null;
+        $region = null;
+        if (collect($briefs)->contains(fn ($b) => $b['valid'] && !$b['is_virtual'])) {
+            $address = !empty($d['address_id'])
+                ? $this->addresses->find($m->id, (int) $d['address_id'])
+                : collect($this->addresses->list($m->id))->first();
+            $region = $address ? $this->regions->match($address->only(['country_code', 'province', 'city'])) : null;
+            if ($region) {
+                $briefs = $this->catalog->skuBriefs($skuIds, $lang, $currency, $region);
+            }
+        }
 
         $items = [];
         $goods = '0.00';
@@ -71,13 +87,6 @@ class OrderService
         }
 
         $discount = $this->creator->levelDiscount($m, $goods);
-        $address = null;
-        if ($needShip) {
-            $address = !empty($d['address_id'])
-                ? $this->addresses->find($m->id, (int) $d['address_id'])
-                : collect($this->addresses->list($m->id))->first();
-        }
-
         $shipping = '0.00';
         if ($address) {
             $cur = $this->price->currency($currency);
@@ -92,6 +101,7 @@ class OrderService
             'items' => $items, 'currency' => $currency, 'goods_amount' => $goods, 'shipping_fee' => $shipping,
             'discount_amount' => $discount, 'pay_amount' => bcsub(bcadd($goods, $shipping, 2), $discount, 2),
             'need_address' => $needShip, 'address' => $address, 'problems' => $problems,
+            'price_region' => $region ? ['id' => $region['id'], 'name' => $region['name']] : null,
         ];
     }
 

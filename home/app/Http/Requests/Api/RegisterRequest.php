@@ -19,6 +19,7 @@ class RegisterRequest extends FormRequest
             'nickname'   => ['nullable', 'string', 'max:60'],
             'phone_area' => ['nullable', 'string', 'max:8'],
             'code'       => ['nullable', 'string', 'max:8'],
+            'invite_code' => ['nullable', 'string', 'max:20'],
             'lang'       => ['nullable', 'string', 'max:10'],
             'currency'   => ['nullable', 'string', 'max:10'],
         ];
@@ -27,7 +28,7 @@ class RegisterRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'account' => '账号', 'password' => '密码', 'nickname' => '昵称', 'code' => '验证码',
+            'account' => '账号', 'password' => '密码', 'nickname' => '昵称', 'code' => '验证码', 'invite_code' => '邀请码',
         ];
     }
 }

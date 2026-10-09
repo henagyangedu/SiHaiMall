@@ -16,7 +16,7 @@ class MenuSeeder extends Seeder
         'remark' => '备注', 'price' => '改价', 'cancel' => '取消订单', 'do' => '发货', 'print' => '打印',
         'audit' => '审核', 'confirm' => '确认收货', 'pay' => '执行退款', 'retry' => '重新处理',
         'status' => '禁用/启用', 'balance' => '调整余额', 'points' => '调整积分', 'sale' => '上下架',
-        'stock' => '修改库存', 'rate' => '更新汇率', 'test' => '测试', 'reset' => '重置密码',
+        'stock' => '修改库存', 'rate' => '更新汇率', 'test' => '测试', 'reset' => '重置密码', 'paid' => '登记打款',
     ];
 
     public function run(): void
@@ -77,6 +77,12 @@ class MenuSeeder extends Seeder
                 ['t' => '会员列表', 'path' => '/member/list', 'perm' => 'member:list', 'acts' => ['detail', 'edit', 'status', 'balance', 'points', 'export']],
                 ['t' => '会员等级', 'path' => '/member/level', 'perm' => 'member:level', 'acts' => ['add', 'edit', 'del']],
                 ['t' => '积分记录', 'path' => '/member/points', 'perm' => 'member:points'],
+            ]],
+            ['t' => '分销', 'path' => '/distribution', 'icon' => 'Share', 'children' => [
+                ['t' => '分销员', 'path' => '/distribution/distributor', 'perm' => 'distribution:distributor', 'acts' => ['audit', 'status', 'edit']],
+                ['t' => '佣金明细', 'path' => '/distribution/commission', 'perm' => 'distribution:commission'],
+                ['t' => '提现管理', 'path' => '/distribution/withdraw', 'perm' => 'distribution:withdraw', 'acts' => ['audit', 'paid']],
+                ['t' => '分销设置', 'path' => '/distribution/setting', 'perm' => 'distribution:setting', 'acts' => ['edit']],
             ]],
             ['t' => '设置', 'path' => '/setting', 'icon' => 'Setting', 'children' => [
                 ['t' => '系统设置', 'path' => '/setting/system', 'children' => [

@@ -4,6 +4,7 @@ namespace App\Services\Api;
 
 use App\Models\Member;
 use App\Models\MemberToken;
+use App\Services\Common\DistributionService;
 use App\Services\Common\EmailCodeService;
 use App\Services\Common\LocaleService;
 use App\Services\Common\SmsCodeService;
@@ -21,9 +22,10 @@ use Illuminate\Support\Str;
  */
 class MemberAuthService
 {
-    public function __construct(private LocaleService $locale, private SmsCodeService $sms, private EmailCodeService $emailCodes) {}
+    public function __construct(private LocaleService $locale, private SmsCodeService $sms, private EmailCodeService $emailCodes,
+        private DistributionService $distribution) {}
 
-    /** @param array{account:string,password:string,nickname?:string,phone_area?:string,code?:string,lang?:string,currency?:string} $d */
+    /** @param array{account:string,password:string,nickname?:string,phone_area?:string,code?:string,invite_code?:string,lang?:string,currency?:string} $d */
     public function register(array $d, string $source, string $ip, string $ua): array
     {
         $account = trim($d['account']);
@@ -59,6 +61,9 @@ class MemberAuthService
                 $this->emailCodes->verify('register', $account, (string) $d['code']);
             }
 
+            // 邀请码：填了就必须有效，绑定后成为推荐人的下级（分销关系）
+            $parentId = trim((string) ($d['invite_code'] ?? '')) !== '' ? $this->distribution->parentIdFromInvite((string) $d['invite_code']) : 0;
+
             $lang = in_array($d['lang'] ?? '', $this->locale->codes(), true) ? $d['lang'] : $this->locale->defaultLang();
             $currency = in_array($d['currency'] ?? '', $this->locale->currencyCodes(), true) ? $d['currency'] : $this->locale->baseCurrency();
 
@@ -72,6 +77,7 @@ class MemberAuthService
                 'lang'            => $lang,
                 'currency'        => $currency,
                 'register_source' => $source,
+                'parent_id'       => $parentId,
                 'level_id'        => 1,
                 'status'          => 1,
             ]);

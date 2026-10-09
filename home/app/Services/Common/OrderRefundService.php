@@ -38,6 +38,7 @@ class OrderRefundService
         private ConfigService $config,
         private DriverManager $drivers,
         private OrderPointsService $points,
+        private DistributionService $distribution,
     ) {}
 
     // ------------------------------------------------------------------ 可退信息
@@ -275,6 +276,9 @@ class OrderRefundService
                     }
                 }
             }
+
+            // 分销佣金按最新的已退金额重算（商品全部退完则作废）
+            $this->distribution->onRefund($order);
 
             $this->restoreOrder($order, OrderStatus::OP_ADMIN, $adminId, "售后 {$refund->refund_no} 退款完成：{$refund->refund_amount} {$refund->currency}，{$remark}");
         });

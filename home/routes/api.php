@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\ConfigController;
+use App\Http\Controllers\Api\DistributionController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PayController;
 use App\Http\Controllers\Api\RefundController;
@@ -70,6 +71,14 @@ Route::middleware('api.token')->group(function () {
     Route::get('refunds/{refundNo}', [RefundController::class, 'show'])->where('refundNo', '[A-Za-z0-9]+');
     Route::post('refunds/{refundNo}/cancel', [RefundController::class, 'cancel'])->where('refundNo', '[A-Za-z0-9]+');
     Route::post('refunds/{refundNo}/return', [RefundController::class, 'submitReturn'])->where('refundNo', '[A-Za-z0-9]+');
+
+    // 分销中心
+    Route::get('distribution/summary', [DistributionController::class, 'summary']);
+    Route::post('distribution/apply', [DistributionController::class, 'apply'])->middleware('throttle:10,1');
+    Route::get('distribution/commissions', [DistributionController::class, 'commissions']);
+    Route::get('distribution/team', [DistributionController::class, 'team']);
+    Route::get('distribution/withdraws', [DistributionController::class, 'withdraws']);
+    Route::post('distribution/withdraws', [DistributionController::class, 'withdrawApply'])->middleware('throttle:10,1');
 
     Route::get('orders/{orderNo}/pay/channels', [PayController::class, 'channels'])->where('orderNo', '[A-Za-z0-9]+');
     Route::post('orders/{orderNo}/pay', [PayController::class, 'start'])->where('orderNo', '[A-Za-z0-9]+')->middleware('throttle:20,1');

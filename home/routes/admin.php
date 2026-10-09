@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ConfigController;
 use App\Http\Controllers\Admin\CurrencyController;
+use App\Http\Controllers\Admin\DistributionController;
 use App\Http\Controllers\Admin\DriverController;
 use App\Http\Controllers\Admin\GoodsController;
 use App\Http\Controllers\Admin\LanguageController;
@@ -101,6 +102,8 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::put('config/base', [ConfigController::class, 'save'])->defaults('group', 'base')->middleware('perm:setting:base:edit');
     Route::get('config/trade', [ConfigController::class, 'show'])->defaults('group', 'trade')->middleware('perm:setting:trade:view');
     Route::put('config/trade', [ConfigController::class, 'save'])->defaults('group', 'trade')->middleware('perm:setting:trade:edit');
+    Route::get('config/distribution', [ConfigController::class, 'show'])->defaults('group', 'distribution')->middleware('perm:distribution:setting:view');
+    Route::put('config/distribution', [ConfigController::class, 'save'])->defaults('group', 'distribution')->middleware('perm:distribution:setting:edit');
 
     // 接口配置：短信
     Route::get('driver/sms', [DriverController::class, 'index'])->defaults('type', 'sms')->middleware('perm:setting:api_sms:view');
@@ -177,6 +180,20 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::put('{id}', [SaleRegionController::class, 'update'])->middleware('perm:goods:region:edit');
         Route::post('{id}/status', [SaleRegionController::class, 'status'])->middleware('perm:goods:region:edit');
         Route::delete('{id}', [SaleRegionController::class, 'destroy'])->middleware('perm:goods:region:del');
+    });
+
+    // 分销：分销员、关系、佣金明细、提现（审核、打款各自独立权限点）
+    Route::prefix('distribution')->group(function () {
+        Route::get('distributor/list', [DistributionController::class, 'distributors'])->middleware('perm:distribution:distributor:view');
+        Route::post('distributor/{id}/audit', [DistributionController::class, 'audit'])->middleware('perm:distribution:distributor:audit');
+        Route::post('distributor/{id}/status', [DistributionController::class, 'status'])->middleware('perm:distribution:distributor:status');
+        Route::post('distributor/{id}/appoint', [DistributionController::class, 'appoint'])->middleware('perm:distribution:distributor:audit');
+        Route::get('relation/{id}', [DistributionController::class, 'relation'])->middleware('perm:distribution:distributor:view');
+        Route::put('relation/{id}', [DistributionController::class, 'setParent'])->middleware('perm:distribution:distributor:edit');
+        Route::get('commission/list', [DistributionController::class, 'commissions'])->middleware('perm:distribution:commission:view');
+        Route::get('withdraw/list', [DistributionController::class, 'withdraws'])->middleware('perm:distribution:withdraw:view');
+        Route::post('withdraw/{id}/audit', [DistributionController::class, 'withdrawAudit'])->middleware('perm:distribution:withdraw:audit');
+        Route::post('withdraw/{id}/pay', [DistributionController::class, 'withdrawPaid'])->middleware('perm:distribution:withdraw:paid');
     });
 
     // 运费模板（商品表单的下拉：有商品查看权限即可读取）

@@ -36,6 +36,7 @@
 - **积分抵扣**：只经 `OrderPointsService`（结算预览和下单共用 `quote`）。交易设置里开关（默认关）、兑换比例 `points_per_unit`（多少积分抵 1 元基准币种）、上限 `points_max_percent`（占“商品金额 - 会员折扣”的百分比，运费不参与）。抵扣金额固化在订单 `points_amount`，实扣积分记流水（type=4，ref_no=订单号）；订单取消、超时关闭、商品全部退款时 `giveBack` 按流水净额退还（幂等），部分退款不退。恒等式：商品 + 运费 - 优惠 - 积分 = 应付。
 - **短信验证码**：只经 `SmsCodeService`（`send` / `verify`），用途 register / login / reset。验证码由短信平台生成并校验（驱动 `GmSmsDriver` 调平台的 verify-code 接口），商城不存验证码；本地限流：同号 60 秒一次、每天 10 次，同 IP 每小时 20 次，同号同用途错 5 次锁 10 分钟。只支持中国大陆手机号。后台启用短信驱动后，手机号注册必须带验证码（境外手机号不能注册，用邮箱），并开放短信登录和短信找回密码；未启用时手机号注册不校验。C 端用 `config/init` 的 `sms_enabled` 判断。**密钥只存 `gm_driver_config`（加密），不要写进代码、.env 示例或日志。**
 - **邮箱验证码**：只经 `EmailCodeService`（`send` / `verify`），用途 register / reset。验证码由商城生成，缓存里只存 HMAC 哈希，10 分钟有效、校验通过即失效、按用途隔离；限流与防爆破规则同短信。开关是基础设置的 `email_verify_enabled`（默认关）：开启后邮箱注册必须带验证码，并开放邮箱找回密码。发信走 Laravel 邮件配置，邮件模板 `App\Mail\VerifyCodeMail`（中文语言发中文，其余发英文）。C 端用 `config/init` 的 `email_verify_enabled` 判断。
+- **分销**：规则只在 `Common\DistributionService`。关系：注册时凭邀请码（`inviteCode`，会员 ID + 校验位，不占字段）绑定 `member.parent_id`，之后只能后台改（防成环）。资格：会员申请、后台审核（`gm_distributor`，同时是佣金账户），后台也可直接指定。层级 1 或 2 级：一级 = 买家的直接上级，二级 = 上级的上级；上级不是正常状态的分销员就跳过、不顺延，自购不返佣。计佣：`OrderPaidService::markPaid` 里调 `onOrderPaid` 生成待结算佣金，基数 = 商品 - 会员折扣 - 积分抵扣（不含运费）折基准币种，`(order_id, level)` 唯一保证幂等。退款：`OrderRefundService::finish` 里调 `onRefund` 按已退商品款占比重算，全部退完作废，已结算的也扣回。结算：`mall:distribution-settle`（订单完成且过售后期、无进行中售后）转为可提现并写 `gm_distribution_log`。提现：申请时可提现 → 提现中，后台审核、线下打款后登记；收款信息加密存储。配置在 `distribution` 分组（默认关闭）。
 - **驱动模式**：`DriverRegistry`（type→驱动→字段）、`DriverManager`、`DriverConfig`（`encrypted:array`）、`DriverConfigService`；后台用通用驱动配置页。
 - **后台权限**：`admin.auth` 令牌（sha256 哈希、滑动过期）；路由 `perm:` 中间件（逗号 = 任一）；敏感操作单独权限点；前端 `v-perm` 和 `hasPerm`。菜单和权限点在 `MenuSeeder`。
 - **C 端**：`api.token`（必须登录）/ `api.token:optional`；价格服务端算，客户端不传价；请求头 `X-Lang`、`X-Currency`、`X-Source`(h5/mp/app/pc)。
@@ -47,14 +48,14 @@
 - 模板里不要在数据未填充时读取 `settings.x[code].y` 这类深层路径（会抛错并导致切换页面后内容区残留）。
 
 ## 已完成
-管理员/角色/菜单权限、系统设置、存储驱动、商品（分类/品牌/规格/SKU/分币种定价）、AI 翻译（GPT、DeepSeek，开关式启用）、会员（等级/积分/余额）、订单核心与后台管理（发货、超时关闭、自动收货）、支付框架（Stripe、PayPal，含回调/补偿/流水页面）、C 端 API v1（注册登录、商品、地址、购物车、结算、下单、订单、支付发起/确认）、运费模板（后台管理页、商品绑定、结算预览与下单计费）、区域定价（销售区域管理、商品区域价、按收货地址取价）、售后与退款（C 端申请/撤销/退货物流接口、后台售后订单页）、下单积分抵扣、订单导出 CSV。
+管理员/角色/菜单权限、系统设置、存储驱动、商品（分类/品牌/规格/SKU/分币种定价）、AI 翻译（GPT、DeepSeek，开关式启用）、会员（等级/积分/余额）、订单核心与后台管理（发货、超时关闭、自动收货）、支付框架（Stripe、PayPal，含回调/补偿/流水页面）、C 端 API v1（注册登录、商品、地址、购物车、结算、下单、订单、支付发起/确认）、运费模板（后台管理页、商品绑定、结算预览与下单计费）、区域定价（销售区域管理、商品区域价、按收货地址取价）、售后与退款（C 端申请/撤销/退货物流接口、后台售后订单页）、下单积分抵扣、订单导出 CSV、短信与邮箱验证码、分销（邀请关系、分销员审核、佣金、结算、提现）。
 
 ## 待办（建议顺序）
 1. ~~运费模板~~（已完成，见“已完成”）。
 2. 支付宝、微信支付驱动（微信需小程序 openid，需先做微信登录）。
 3. ~~短信驱动 + 注册/登录验证码~~（已完成，对接 GM 短信平台，文档见 `docs/短信平台接入文档.md`；**还没和真实平台联调过**，场景标识待平台确认）。邮箱验证码也已完成（发信要先配 `.env` 的 `MAIL_*`，没有用真实邮箱发过）。
 4. ~~退款与售后流程~~（已完成；Stripe/PayPal 真实退款还没用沙箱密钥验证，渠道退款回调 `refunded` 仍只记录不入账，后台也还不能代买家发起退款）、~~积分抵扣~~、~~订单导出~~（均已完成；“消费得积分”和退款扣回积分还没做）。
-5. 物流查询驱动、电子面单、分销（最多 2 级）、内容、数据中心、应用（公众号/小程序/App）。
+5. 物流查询驱动、电子面单、~~分销（最多 2 级）~~（已完成；佣金比例只有全局的，还不能按商品单独设）、内容、数据中心、应用（公众号/小程序/App）。
 6. uni-app C 端、PC 端。
 7. 二期 AI 翻译（Claude、Qwen）；分类/品牌/规格名的翻译按钮与批量填充。
 
@@ -67,7 +68,7 @@
 
 ## 常用命令
 - 迁移：`php artisan migrate`；若旧表是手工导入 `gm_mall_step1.sql`，只跑新增迁移用 `--path=`。
-- 定时任务：`mall:close-expired-orders`、`mall:auto-receive`、`mall:pay-compensate`（需配置调度）。
+- 定时任务：`mall:close-expired-orders`、`mall:auto-receive`、`mall:pay-compensate`、`mall:distribution-settle`，调度已写在 `routes/console.php`；服务器上要加一条每分钟执行 `php artisan schedule:run` 的 cron 才会生效。
 - 联调命令：`mall:dev-order {member_id} {sku_id} {qty}`（造测试订单，`--paid` 模拟已付）、`mall:dev-pay {order_no} {stripe|paypal}`（发起支付，`--confirm` 确认入账）。
    ## 附件目录
    - `下载附件/` 只存放云端交付的压缩包（gm_*.zip 等）。已解压并合并进 `home/` 和 `admin-web/`，不要从这里读取代码，也不要修改或删除里面的文件。以 `home/`、`admin-web/` 里的代码为准。

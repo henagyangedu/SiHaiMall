@@ -39,6 +39,13 @@ class ConfigService
             'points_per_unit'      => ['label' => '多少积分抵 1 元（基准币种）', 'type' => 'int', 'min' => 1, 'max' => 1000000, 'default' => 100],
             'points_max_percent'   => ['label' => '积分最多抵扣商品金额的百分比', 'type' => 'int', 'min' => 1, 'max' => 99, 'default' => 50],
         ],
+        'distribution' => [
+            'enabled'      => ['label' => '开启分销', 'type' => 'bool', 'default' => 0],
+            'level'        => ['label' => '分销层级', 'type' => 'int', 'min' => 1, 'max' => 2, 'default' => 1],
+            'rate_1'       => ['label' => '一级佣金比例（%）', 'type' => 'decimal', 'min' => 0, 'max' => 50, 'default' => '10'],
+            'rate_2'       => ['label' => '二级佣金比例（%）', 'type' => 'decimal', 'min' => 0, 'max' => 50, 'default' => '5'],
+            'min_withdraw' => ['label' => '最低提现金额', 'type' => 'decimal', 'min' => 0, 'default' => '100'],
+        ],
     ];
 
     /** 可公开给 C 端的配置项 */
@@ -134,7 +141,7 @@ class ConfigService
             $rules[$key] = match ($def['type']) {
                 'bool'    => ['sometimes', 'in:0,1'],
                 'int'     => ['sometimes', 'integer', 'min:' . ($def['min'] ?? 0), 'max:' . ($def['max'] ?? 2147483647)],
-                'decimal' => ['sometimes', 'numeric', 'min:' . ($def['min'] ?? 0)],
+                'decimal' => ['sometimes', 'numeric', 'min:' . ($def['min'] ?? 0), 'max:' . ($def['max'] ?? 9999999999)],
                 'enum'    => ['sometimes', 'in:' . implode(',', $def['options'])],
                 default   => array_filter(['sometimes', 'nullable', 'string', "max:{$max}", !empty($def['email']) ? 'email' : null]),
             };

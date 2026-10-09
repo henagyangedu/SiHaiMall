@@ -17,6 +17,7 @@ class OrderPaidService
         private OrderStatusService $status,
         private OrderStockService $stock,
         private ConfigService $config,
+        private DistributionService $distribution,
     ) {}
 
     /** @return bool true=本次完成了支付状态变更；false=订单已处理过 */
@@ -51,6 +52,9 @@ class OrderPaidService
                 DB::table('goods_sku')->where('id', $it->sku_id)->increment('sales', (int) $it->qty);
                 DB::table('goods')->where('id', $it->goods_id)->increment('sales', (int) $it->qty);
             }
+
+            // 分销佣金：支付成功即生成“待结算”佣金
+            $this->distribution->onOrderPaid($order);
 
             return true;
         });

@@ -50,6 +50,7 @@ class DemoImportService
     public function __construct(
         private CategoryService $categories, private BrandService $brands, private GoodsService $goods,
         private ArticleService $articles, private AdService $ads, private LocaleService $locale, private DriverManager $drivers,
+        private GoodsExtraService $extra,
     ) {}
 
     /** 清单文件的位置；测试里会换成临时文件，免得动到真实的清单 */
@@ -129,6 +130,17 @@ class DemoImportService
             }
             if (($g['brand'] ?? '') !== '' && !in_array($g['brand'], $codes('brands'), true)) {
                 $problems[] = "{$at}：brand 引用了不存在的品牌 {$g['brand']}";
+            }
+            foreach ((array) ($g['related'] ?? []) as $code) {
+                if ($code === ($g['code'] ?? null)) {
+                    $problems[] = "{$at}：related 里不能写商品自己";
+                } elseif (!in_array($code, $codes('goods'), true)) {
+                    $problems[] = "{$at}：related 引用了不存在的商品 " . json_encode($code);
+                }
+            }
+            foreach ((array) ($g['params'] ?? []) as $n => $p) {
+                $needDefault("{$at} 的第 " . ($n + 1) . ' 个参数', $p['name'] ?? null, 'name ');
+                $needDefault("{$at} 的第 " . ($n + 1) . ' 个参数', $p['value'] ?? null, 'value ');
             }
             foreach ($this->priceCurrencies($g) as $cur) {
                 if (!in_array($cur, $currencies, true)) {
@@ -228,6 +240,11 @@ class DemoImportService
                 // 销量是展示用的假数字，后台表单里没有这个字段，所以直接写
                 if (($sales = (int) ($g['sales'] ?? 0)) > 0) {
                     DB::table('goods')->where('id', $goods->id)->update(['sales' => $sales]);
+                }
+            }
+            foreach ((array) ($data['goods'] ?? []) as $g) {
+                if (!empty($g['related'])) {
+                    $this->extra->saveRelated($this->ids['goods'][$g['code']], array_map(fn ($code) => $this->ids['goods'][$code], (array) $g['related']));
                 }
             }
             foreach ((array) ($data['article_categories'] ?? []) as $c) {
@@ -381,6 +398,7 @@ class DemoImportService
             'category_id' => $categoryId, 'brand_id' => $brandId, 'goods_sn' => 'DEMO-' . ($g['code'] ?? ''),
             'title' => $g['title'] ?? null, 'subtitle' => $g['subtitle'] ?? [], 'keywords' => $g['keywords'] ?? [], 'description' => $g['description'] ?? [],
             'images' => $images, 'unit' => (string) ($g['unit'] ?? ''), 'is_on_sale' => 1, 'sort' => (int) ($g['sort'] ?? 0),
+            'params' => array_map(fn ($p) => ['name' => $p['name'] ?? null, 'value' => $p['value'] ?? null], (array) ($g['params'] ?? [])),
         ];
         if (empty($g['specs'])) {
             return $base + ['spec_type' => 1, 'sku' => $sku($g) + ['sku_sn' => 'DEMO-' . ($g['code'] ?? '')], 'prices' => (array) ($g['prices'] ?? [])];

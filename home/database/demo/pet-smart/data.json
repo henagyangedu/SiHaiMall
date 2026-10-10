@@ -302,7 +302,92 @@
         }
       ],
       "code": "feeder-5l-cam",
-      "images": 3
+      "images": 3,
+      "params": [
+        {
+          "name": {
+            "zh-CN": "粮桶容量",
+            "en": "Hopper capacity"
+          },
+          "value": {
+            "zh-CN": "5 升",
+            "en": "5 L"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "摄像头",
+            "en": "Camera"
+          },
+          "value": {
+            "zh-CN": "1080p",
+            "en": "1080p"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "每日餐数",
+            "en": "Meals per day"
+          },
+          "value": {
+            "zh-CN": "最多 10 餐",
+            "en": "Up to 10"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "单份出粮量",
+            "en": "Portion size"
+          },
+          "value": {
+            "zh-CN": "约 5 克",
+            "en": "Approx. 5 g"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "适用粮粒",
+            "en": "Kibble size"
+          },
+          "value": {
+            "zh-CN": "3–12 毫米干粮",
+            "en": "3–12 mm dry kibble"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "供电",
+            "en": "Power"
+          },
+          "value": {
+            "zh-CN": "5V 插电（备用电池需另购）",
+            "en": "5V mains (backup batteries sold separately)"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "联网",
+            "en": "Connectivity"
+          },
+          "value": {
+            "zh-CN": "2.4GHz 无线网络",
+            "en": "2.4GHz Wi-Fi"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "适用宠物",
+            "en": "Suitable for"
+          },
+          "value": {
+            "zh-CN": "单猫或小型犬家庭",
+            "en": "One cat or a small dog"
+          }
+        }
+      ],
+      "related": [
+        "feeder-bowl-kit"
+      ]
     },
     {
       "market_price": "286.00",
@@ -329,7 +414,10 @@
       "prices": {
         "USD": "35.99"
       },
-      "unit": "件"
+      "unit": "件",
+      "related": [
+        "feeder-bowl-kit"
+      ]
     },
     {
       "market_price": "461.00",
@@ -356,7 +444,10 @@
       "prices": {
         "USD": "56.99"
       },
-      "unit": "件"
+      "unit": "件",
+      "related": [
+        "feeder-bowl-kit"
+      ]
     },
     {
       "brand": "mivqelo",
@@ -426,7 +517,72 @@
         }
       ],
       "code": "fountain-2l",
-      "images": 3
+      "images": 3,
+      "params": [
+        {
+          "name": {
+            "zh-CN": "容量",
+            "en": "Capacity"
+          },
+          "value": {
+            "zh-CN": "2 升 / 3 升可选",
+            "en": "2 L or 3 L"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "出水方式",
+            "en": "Flow modes"
+          },
+          "value": {
+            "zh-CN": "红外感应出水，可切换持续循环",
+            "en": "Infrared-triggered, with a continuous-flow option"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "感应距离",
+            "en": "Sensor range"
+          },
+          "value": {
+            "zh-CN": "约 1 米",
+            "en": "Approx. 1 m"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "滤芯",
+            "en": "Filter"
+          },
+          "value": {
+            "zh-CN": "棉层 + 活性炭 + 树脂",
+            "en": "Cotton, activated carbon and resin"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "供电",
+            "en": "Power"
+          },
+          "value": {
+            "zh-CN": "5V",
+            "en": "5V"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "适用宠物",
+            "en": "Suitable for"
+          },
+          "value": {
+            "zh-CN": "室内猫犬",
+            "en": "Indoor cats and dogs"
+          }
+        }
+      ],
+      "related": [
+        "fountain-filter-6"
+      ]
     },
     {
       "brand": "orvexuli",
@@ -496,7 +652,10 @@
         }
       ],
       "code": "fountain-steel-3l",
-      "images": 4
+      "images": 4,
+      "related": [
+        "fountain-filter-6"
+      ]
     },
     {
       "market_price": "74.00",
@@ -620,7 +779,83 @@
         }
       ],
       "code": "litter-box-pro",
-      "images": 4
+      "images": 4,
+      "params": [
+        {
+          "name": {
+            "zh-CN": "内舱容积",
+            "en": "Chamber volume"
+          },
+          "value": {
+            "zh-CN": "68 升",
+            "en": "68 L"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "集便仓",
+            "en": "Waste drawer"
+          },
+          "value": {
+            "zh-CN": "8 升",
+            "en": "8 L"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "入口直径",
+            "en": "Entry diameter"
+          },
+          "value": {
+            "zh-CN": "25 厘米",
+            "en": "25 cm"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "适用体重",
+            "en": "Cat weight"
+          },
+          "value": {
+            "zh-CN": "1.5–8 千克的成年猫",
+            "en": "Adult cats, 1.5–8 kg"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "额定功率",
+            "en": "Rated power"
+          },
+          "value": {
+            "zh-CN": "24 瓦",
+            "en": "24 W"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "适用猫砂",
+            "en": "Litter type"
+          },
+          "value": {
+            "zh-CN": "结团矿砂",
+            "en": "Clumping mineral litter"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "清理时机",
+            "en": "Cleaning delay"
+          },
+          "value": {
+            "zh-CN": "离盆后 5 分钟",
+            "en": "5 minutes after the cat leaves"
+          }
+        }
+      ],
+      "related": [
+        "litter-bag-40",
+        "litter-scoop-set"
+      ]
     },
     {
       "brand": "nuvrilo",
@@ -690,7 +925,10 @@
         }
       ],
       "code": "litter-box-open",
-      "images": 5
+      "images": 5,
+      "related": [
+        "litter-scoop-set"
+      ]
     },
     {
       "market_price": "199.00",
@@ -717,7 +955,10 @@
       "prices": {
         "USD": "24.99"
       },
-      "unit": "件"
+      "unit": "件",
+      "related": [
+        "carbon-pad-4"
+      ]
     },
     {
       "brand": "mivqelo",
@@ -868,7 +1109,82 @@
       "prices": {
         "USD": "38.99"
       },
-      "unit": "件"
+      "unit": "件",
+      "params": [
+        {
+          "name": {
+            "zh-CN": "视频",
+            "en": "Video"
+          },
+          "value": {
+            "zh-CN": "1080p",
+            "en": "1080p"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "转动范围",
+            "en": "Pan and tilt"
+          },
+          "value": {
+            "zh-CN": "水平 350°，俯仰 60°",
+            "en": "350° pan, 60° tilt"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "夜视",
+            "en": "Night vision"
+          },
+          "value": {
+            "zh-CN": "红外，约 5 米",
+            "en": "Infrared, roughly 5 m"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "本地存储",
+            "en": "Local storage"
+          },
+          "value": {
+            "zh-CN": "最大 128GB 存储卡（需另购）",
+            "en": "Cards up to 128GB (sold separately)"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "语音",
+            "en": "Audio"
+          },
+          "value": {
+            "zh-CN": "双向语音",
+            "en": "Two-way audio"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "供电",
+            "en": "Power"
+          },
+          "value": {
+            "zh-CN": "5V 插电",
+            "en": "5V mains"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "联网",
+            "en": "Connectivity"
+          },
+          "value": {
+            "zh-CN": "2.4GHz 无线网络",
+            "en": "2.4GHz Wi-Fi"
+          }
+        }
+      ],
+      "related": [
+        "camera-wall-mount"
+      ]
     },
     {
       "brand": "qevlumi",
@@ -938,7 +1254,10 @@
         }
       ],
       "code": "pet-camera-treat",
-      "images": 5
+      "images": 5,
+      "related": [
+        "camera-wall-mount"
+      ]
     },
     {
       "market_price": "111.00",
@@ -965,7 +1284,10 @@
       "prices": {
         "USD": "13.99"
       },
-      "unit": "件"
+      "unit": "件",
+      "related": [
+        "ball-shell-kit"
+      ]
     },
     {
       "brand": "zelqora",
@@ -1116,7 +1438,10 @@
       "prices": {
         "USD": "60.99"
       },
-      "unit": "件"
+      "unit": "件",
+      "related": [
+        "tracker-collar-holder"
+      ]
     },
     {
       "market_price": "86.00",
@@ -1143,7 +1468,10 @@
       "prices": {
         "USD": "10.99"
       },
-      "unit": "件"
+      "unit": "件",
+      "related": [
+        "tracker-collar-holder"
+      ]
     },
     {
       "brand": "qevlumi",
@@ -1364,7 +1692,62 @@
       "prices": {
         "USD": "30.99"
       },
-      "unit": "件"
+      "unit": "件",
+      "params": [
+        {
+          "name": {
+            "zh-CN": "称量范围",
+            "en": "Weighing range"
+          },
+          "value": {
+            "zh-CN": "0.2–20 千克",
+            "en": "0.2–20 kg"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "显示分度",
+            "en": "Display increment"
+          },
+          "value": {
+            "zh-CN": "10 克",
+            "en": "10 g"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "平台尺寸",
+            "en": "Platform size"
+          },
+          "value": {
+            "zh-CN": "55×32 厘米",
+            "en": "55 × 32 cm"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "供电",
+            "en": "Power"
+          },
+          "value": {
+            "zh-CN": "两节七号电池（需另购）",
+            "en": "Two AAA batteries (sold separately)"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "适用宠物",
+            "en": "Suitable for"
+          },
+          "value": {
+            "zh-CN": "猫和中小型犬",
+            "en": "Cats and small to medium dogs"
+          }
+        }
+      ],
+      "related": [
+        "scale-grip-mat"
+      ]
     },
     {
       "market_price": "111.00",
@@ -1461,7 +1844,10 @@
         }
       ],
       "code": "activity-tag-lite",
-      "images": 3
+      "images": 3,
+      "related": [
+        "activity-strap-kit"
+      ]
     },
     {
       "market_price": "336.00",
@@ -1488,7 +1874,10 @@
       "prices": {
         "USD": "41.99"
       },
-      "unit": "件"
+      "unit": "件",
+      "related": [
+        "activity-strap-kit"
+      ]
     },
     {
       "brand": "nuvrilo",
@@ -1612,7 +2001,11 @@
       "prices": {
         "USD": "45.99"
       },
-      "unit": "件"
+      "unit": "件",
+      "related": [
+        "bed-cover-round",
+        "bed-cable-sleeve"
+      ]
     },
     {
       "brand": "orvexuli",
@@ -1682,7 +2075,52 @@
         }
       ],
       "code": "heated-mat-flat",
-      "images": 5
+      "images": 5,
+      "params": [
+        {
+          "name": {
+            "zh-CN": "尺寸",
+            "en": "Size"
+          },
+          "value": {
+            "zh-CN": "45×35 厘米 / 60×45 厘米可选",
+            "en": "45 × 35 cm or 60 × 45 cm"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "供电",
+            "en": "Power"
+          },
+          "value": {
+            "zh-CN": "24V",
+            "en": "24V"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "温度",
+            "en": "Temperature"
+          },
+          "value": {
+            "zh-CN": "三档，30–38°C",
+            "en": "Three settings, 30–38°C"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "定时",
+            "en": "Timer"
+          },
+          "value": {
+            "zh-CN": "4 小时",
+            "en": "4 hours"
+          }
+        }
+      ],
+      "related": [
+        "bed-cable-sleeve"
+      ]
     },
     {
       "market_price": "286.00",

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getGoods, createGoods, updateGoods } from '@/api/goods'
+import { getGoods, createGoods, updateGoods, listGoods } from '@/api/goods'
 import { categoryTree } from '@/api/category'
 import { brandOptions } from '@/api/brand'
 import { shippingTemplateOptions } from '@/api/shipping'
@@ -54,8 +54,37 @@ const emptyForm = () => ({
   region_prices: {},
   specs: [],
   skus: [],
+  // 规格参数：[{ name: {语言: 文字}, value: {语言: 文字} }]；配套商品：related_ids 是商品 ID，related 是带名称的同一批（给选择框显示）
+  params: [],
+  related_ids: [],
+  related: [],
 })
 const form = reactive(emptyForm())
+
+// ---- 规格参数：增、删、上移下移
+const MAX_PARAMS = 30
+const addParam = () => form.params.push({ name: {}, value: {} })
+function moveParam(i, step) {
+  const j = i + step
+  if (j < 0 || j >= form.params.length) return
+  const [row] = form.params.splice(i, 1)
+  form.params.splice(j, 0, row)
+}
+
+// ---- 配套商品：输入名称搜索
+const relatedOptions = ref([])
+const relatedLoading = ref(false)
+async function searchRelated(keyword) {
+  relatedLoading.value = true
+  try {
+    const d = await listGoods({ keyword, size: 20 })
+    // 已经选中的要留在选项里，否则选择框里只显示一个数字；商品自己不能选
+    const picked = relatedOptions.value.filter((g) => form.related_ids.includes(g.id))
+    relatedOptions.value = [...picked, ...d.list.filter((g) => g.id !== props.id && !picked.some((p) => p.id === g.id)).map((g) => ({ id: g.id, title: g.title }))]
+  } finally {
+    relatedLoading.value = false
+  }
+}
 
 function simplify(nodes) {
   return nodes.map((n) => ({ id: n.id, name_text: n.name_text, disabled: n.status !== 1, children: simplify(n.children || []) }))
@@ -78,14 +107,18 @@ async function loadAll() {
     currencies.value = curs
 
     Object.assign(form, emptyForm())
+    relatedOptions.value = []
     if (props.id) {
       const d = await getGoods(props.id)
+      relatedOptions.value = (d.related || []).map((g) => ({ id: g.id, title: g.title }))
       Object.assign(form, d, {
         sku: { ...emptyForm().sku, ...(d.sku || {}) },
         prices: numPrices(d.prices),
         region_prices: numPrices(d.region_prices),
         commission_rate_1: Number(d.commission_rate_1 || 0),
         commission_rate_2: Number(d.commission_rate_2 || 0),
+        params: (d.params || []).map((p) => ({ name: { ...p.name }, value: { ...p.value } })),
+        related_ids: [...(d.related_ids || [])],
         specs: (d.specs || []).map((s) => ({
           id: s.id,
           name: { ...s.name },
@@ -135,6 +168,7 @@ async function submit() {
       seo_title: form.seo_title, seo_desc: form.seo_desc,
       images: form.images, video: form.video, unit: form.unit,
       is_virtual: form.is_virtual, is_on_sale: form.is_on_sale, sort: form.sort, spec_type: form.spec_type,
+      params: form.params, related_ids: form.related_ids,
     }
     if (form.spec_type === 1) {
       payload.sku = { ...form.sku }
@@ -365,6 +399,33 @@ async function onStockDone() {
           </template>
         </el-tab-pane>
 
+        <el-tab-pane label="参数与配套" name="extra">
+          <el-form-item label="规格参数">
+            <div class="params">
+              <div class="hint-block">买家在商品详情页看到的参数表，如“粮桶容量 / 5L”。一行一个，最多 {{ MAX_PARAMS }} 行；名称和值都没填的空行会被忽略。</div>
+              <div v-for="(p, i) in form.params" :key="i" class="param-row">
+                <div class="param-col"><LangInput v-model="p.name" :languages="languages" :maxlength="100" ai field-key="param_name" placeholder="参数名称" /></div>
+                <div class="param-col wide"><LangInput v-model="p.value" :languages="languages" :maxlength="500" ai field-key="param_value" placeholder="参数值" /></div>
+                <div class="param-ops">
+                  <el-button link :disabled="i === 0" @click="moveParam(i, -1)">上移</el-button>
+                  <el-button link :disabled="i === form.params.length - 1" @click="moveParam(i, 1)">下移</el-button>
+                  <el-button link type="danger" @click="form.params.splice(i, 1)">删除</el-button>
+                </div>
+              </div>
+              <el-button :disabled="form.params.length >= MAX_PARAMS" @click="addParam">＋ 添加一行参数</el-button>
+            </div>
+          </el-form-item>
+          <el-form-item label="配套商品">
+            <el-select v-model="form.related_ids" multiple filterable remote :remote-method="searchRelated" :loading="relatedLoading" :multiple-limit="12"
+              placeholder="输入商品名称搜索，最多 12 个" style="width: 100%" @focus="relatedOptions.length <= form.related_ids.length && searchRelated('')">
+              <el-option v-for="g in relatedOptions" :key="g.id" :label="g.title" :value="g.id" />
+            </el-select>
+            <div class="hint-block">
+              这个商品的耗材、配件，会显示在它的详情页上，顺序就是这里选择的顺序。只需要在设备上设置：被选中的耗材和配件，自己的详情页会自动出现“适用设备”。
+            </div>
+          </el-form-item>
+        </el-tab-pane>
+
         <el-tab-pane label="商品详情" name="detail">
           <el-form-item label-width="0"><LangRichText v-model="form.description" :languages="languages" :height="420" ai field-key="description" /></el-form-item>
         </el-tab-pane>
@@ -388,6 +449,12 @@ async function onStockDone() {
 
 <style scoped>
 .hint-inline { margin-left: 10px; color: #909399; font-size: 12px; }
+.hint-block { color: #909399; font-size: 12px; line-height: 1.6; width: 100%; margin: 4px 0 8px; }
+.params { width: 100%; }
+.param-row { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px dashed #ebeef5; }
+.param-col { flex: 1; min-width: 0; }
+.param-col.wide { flex: 1.6; }
+.param-ops { flex: none; width: 150px; padding-top: 4px; }
 .ai-bar { margin-bottom: 12px; padding: 8px 12px; background: #fdf6ec; border-radius: 6px; display: flex; align-items: center; }
 .price-grid { display: flex; flex-direction: column; gap: 8px; }
 .price-row { display: flex; align-items: center; }

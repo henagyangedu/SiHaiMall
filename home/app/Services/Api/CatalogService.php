@@ -137,6 +137,10 @@ class CatalogService
             'sales' => (int) $g->sales + (int) $g->virtual_sales,
             'currency' => $cur['code'], 'symbol' => $cur['symbol'],
             'specs' => $specOut,
+            // 规格参数；配套的耗材和配件；反过来，把这个商品设为配套的那些设备（“适用设备”）
+            'params' => $this->params($id, $lang),
+            'related' => $this->relatedGoods(DB::table('goods_relation')->where('goods_id', $id)->orderBy('sort')->orderBy('id')->limit(12)->pluck('related_goods_id')->all(), $lang, $currency, $region),
+            'fits' => $this->relatedGoods(DB::table('goods_relation')->where('related_goods_id', $id)->orderByDesc('id')->limit(12)->pluck('goods_id')->all(), $lang, $currency, $region),
             // 不返回成本价
             'skus' => $skus->map(fn ($s) => [
                 'id' => (int) $s->id, 'spec_value_ids' => array_values(array_filter(array_map('intval', explode(',', (string) $s->spec_value_ids)))),
@@ -144,6 +148,35 @@ class CatalogService
                 'stock' => (int) $s->stock, 'weight' => (string) $s->weight,
             ])->all(),
         ];
+    }
+
+    /** 商品的规格参数（当前语言，缺的回退默认语言）。@return array<int,array{name:string,value:string}> */
+    private function params(int $goodsId, string $lang): array
+    {
+        $ids = DB::table('goods_param')->where('goods_id', $goodsId)->orderBy('sort')->orderBy('id')->pluck('id')->all();
+        $texts = $this->trans->fetch('goods_param_lang', 'param_id', $ids, ['name', 'value']);
+        $out = [];
+        foreach ($ids as $id) {
+            $name = $this->trans->resolve($texts[$id]['name'] ?? [], $lang);
+            $value = $this->trans->resolve($texts[$id]['value'] ?? [], $lang);
+            if ($name !== '' && $value !== '') {
+                $out[] = ['name' => $name, 'value' => $value];
+            }
+        }
+
+        return $out;
+    }
+
+    /** 按给定顺序取一组商品的卡片信息；下架、删除的自动不出现 */
+    private function relatedGoods(array $ids, string $lang, string $currency, ?array $region): array
+    {
+        $ids = array_map('intval', $ids);
+        if ($ids === []) {
+            return [];
+        }
+        $rows = collect($this->goodsList(['ids' => $ids, 'size' => 50], $lang, $currency, $region)['list'])->keyBy('id');
+
+        return array_values(array_filter(array_map(fn ($id) => $rows->get($id), $ids)));
     }
 
     // ------------------------------------------------------------------ 供购物车 / 结算复用

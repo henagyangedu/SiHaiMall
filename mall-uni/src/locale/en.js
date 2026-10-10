@@ -50,6 +50,7 @@ export default {
   refundType: { 1: 'Refund only', 2: 'Return & refund' },
   commissionStatus: { 0: 'Pending', 1: 'Settled', 2: 'Void' },
   withdrawStatus: { 0: 'Under review', 1: 'Approved', 2: 'Paid', 3: 'Declined' },
+  extra: { params: 'Specifications', related: 'Accessories & refills', fits: 'Works with' },
   coupon: {
     title: 'Coupons', receivable: 'Available', unused: 'Unused', used: 'Used', expired: 'Expired', receive: 'Claim', received: 'Claimed', receiveOk: 'Coupon claimed', empty: 'No coupons',
     noThreshold: 'No minimum', over: 'Orders over {n}', reduce: '{n} off', zhe: '{pct}% off', max: 'up to {n} off', validTo: 'Valid until {time}', validDays: 'Valid for {n} days after claiming',

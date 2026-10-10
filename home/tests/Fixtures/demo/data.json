@@ -3,32 +3,77 @@
   "categories": [
     {
       "code": "feeding",
-      "name": { "zh-CN": "智能喂养", "en": "Smart Feeding" },
+      "name": {
+        "zh-CN": "智能喂养",
+        "en": "Smart Feeding"
+      },
       "children": [
-        { "code": "feeder", "name": { "zh-CN": "自动喂食器", "en": "Automatic Feeders" } },
-        { "code": "fountain", "name": { "zh-CN": "智能饮水机", "en": "Water Fountains" } }
+        {
+          "code": "feeder",
+          "name": {
+            "zh-CN": "自动喂食器",
+            "en": "Automatic Feeders"
+          }
+        },
+        {
+          "code": "fountain",
+          "name": {
+            "zh-CN": "智能饮水机",
+            "en": "Water Fountains"
+          }
+        }
       ]
     },
     {
       "code": "cleaning",
-      "name": { "zh-CN": "智能清洁", "en": "Smart Cleaning" },
+      "name": {
+        "zh-CN": "智能清洁",
+        "en": "Smart Cleaning"
+      },
       "children": [
-        { "code": "litter-box", "name": { "zh-CN": "智能猫砂盆", "en": "Self-Cleaning Litter Boxes" } }
+        {
+          "code": "litter-box",
+          "name": {
+            "zh-CN": "智能猫砂盆",
+            "en": "Self-Cleaning Litter Boxes"
+          }
+        }
       ]
     }
   ],
   "brands": [
-    { "code": "pawlink", "name": { "zh-CN": "PawLink 爪联", "en": "PawLink" } },
-    { "code": "furhome", "name": { "zh-CN": "FurHome 毛屋", "en": "FurHome" } }
+    {
+      "code": "pawlink",
+      "name": {
+        "zh-CN": "PawLink 爪联",
+        "en": "PawLink"
+      }
+    },
+    {
+      "code": "furhome",
+      "name": {
+        "zh-CN": "FurHome 毛屋",
+        "en": "FurHome"
+      }
+    }
   ],
   "goods": [
     {
       "code": "feeder-5l-cam",
       "category": "feeder",
       "brand": "pawlink",
-      "title": { "zh-CN": "PawLink 可视自动喂食器 5L", "en": "PawLink 5L Automatic Feeder with Camera" },
-      "subtitle": { "zh-CN": "1080P 摄像头，手机远程喂食，双向语音", "en": "1080p camera, remote feeding from your phone, two-way audio" },
-      "keywords": { "zh-CN": "喂食器,自动喂食,摄像头", "en": "feeder,automatic,camera" },
+      "title": {
+        "zh-CN": "PawLink 可视自动喂食器 5L",
+        "en": "PawLink 5L Automatic Feeder with Camera"
+      },
+      "subtitle": {
+        "zh-CN": "1080P 摄像头，手机远程喂食，双向语音",
+        "en": "1080p camera, remote feeding from your phone, two-way audio"
+      },
+      "keywords": {
+        "zh-CN": "喂食器,自动喂食,摄像头",
+        "en": "feeder,automatic,camera"
+      },
       "description": {
         "zh-CN": "<p>出门在外也能准时开饭。</p><ul><li>5L 大粮桶，成猫可用约 20 天</li><li>1080P 广角摄像头，夜视</li><li>App 定时定量，每天最多 10 餐</li><li>断电可用电池供电</li></ul>",
         "en": "<p>Meals on time, even when you are away.</p><ul><li>5L hopper, about 20 days for an adult cat</li><li>1080p wide-angle camera with night vision</li><li>Schedule up to 10 meals a day in the app</li><li>Battery backup during power cuts</li></ul>"
@@ -39,15 +84,45 @@
       "market_price": "799.00",
       "stock": 200,
       "weight": "2.6",
-      "prices": { "USD": "89.99" },
-      "sales": 1280
+      "prices": {
+        "USD": "89.99"
+      },
+      "sales": 1280,
+      "params": [
+        {
+          "name": {
+            "zh-CN": "粮桶容量",
+            "en": "Hopper capacity"
+          },
+          "value": {
+            "zh-CN": "5 升",
+            "en": "5 L"
+          }
+        },
+        {
+          "name": {
+            "zh-CN": "摄像头",
+            "en": "Camera"
+          },
+          "value": {
+            "zh-CN": "1080P，夜视",
+            "en": "1080p with night vision"
+          }
+        }
+      ]
     },
     {
       "code": "fountain-2l",
       "category": "fountain",
       "brand": "furhome",
-      "title": { "zh-CN": "FurHome 无线水泵智能饮水机", "en": "FurHome Smart Water Fountain with Wireless Pump" },
-      "subtitle": { "zh-CN": "水电分离，四重过滤，缺水提醒", "en": "Pump isolated from water, 4-stage filter, low-water alert" },
+      "title": {
+        "zh-CN": "FurHome 无线水泵智能饮水机",
+        "en": "FurHome Smart Water Fountain with Wireless Pump"
+      },
+      "subtitle": {
+        "zh-CN": "水电分离，四重过滤，缺水提醒",
+        "en": "Pump isolated from water, 4-stage filter, low-water alert"
+      },
       "description": {
         "zh-CN": "<p>水电分离设计，清洗时整机可冲洗。</p><p>滤芯建议每 30 天更换一次，App 会提醒。</p>",
         "en": "<p>The pump never touches the water, so the whole tank can be rinsed.</p><p>Replace the filter every 30 days. The app will remind you.</p>"
@@ -56,25 +131,103 @@
       "images": 3,
       "specs": [
         {
-          "name": { "zh-CN": "颜色", "en": "Color" },
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          },
           "values": [
-            { "key": "white", "name": { "zh-CN": "奶白", "en": "Cream White" } },
-            { "key": "green", "name": { "zh-CN": "薄荷绿", "en": "Mint Green" } }
+            {
+              "key": "white",
+              "name": {
+                "zh-CN": "奶白",
+                "en": "Cream White"
+              }
+            },
+            {
+              "key": "green",
+              "name": {
+                "zh-CN": "薄荷绿",
+                "en": "Mint Green"
+              }
+            }
           ]
         },
         {
-          "name": { "zh-CN": "容量", "en": "Capacity" },
+          "name": {
+            "zh-CN": "容量",
+            "en": "Capacity"
+          },
           "values": [
-            { "key": "2l", "name": { "zh-CN": "2L", "en": "2L" } },
-            { "key": "3l", "name": { "zh-CN": "3L", "en": "3L" } }
+            {
+              "key": "2l",
+              "name": {
+                "zh-CN": "2L",
+                "en": "2L"
+              }
+            },
+            {
+              "key": "3l",
+              "name": {
+                "zh-CN": "3L",
+                "en": "3L"
+              }
+            }
           ]
         }
       ],
       "skus": [
-        { "values": ["white", "2l"], "price": "199.00", "market_price": "259.00", "stock": 150, "weight": "1.2", "prices": { "USD": "29.99" } },
-        { "values": ["white", "3l"], "price": "239.00", "market_price": "299.00", "stock": 120, "weight": "1.5", "prices": { "USD": "35.99" } },
-        { "values": ["green", "2l"], "price": "199.00", "market_price": "259.00", "stock": 80, "weight": "1.2", "prices": { "USD": "29.99" } },
-        { "values": ["green", "3l"], "price": "239.00", "market_price": "299.00", "stock": 60, "weight": "1.5", "prices": { "USD": "35.99" } }
+        {
+          "values": [
+            "white",
+            "2l"
+          ],
+          "price": "199.00",
+          "market_price": "259.00",
+          "stock": 150,
+          "weight": "1.2",
+          "prices": {
+            "USD": "29.99"
+          }
+        },
+        {
+          "values": [
+            "white",
+            "3l"
+          ],
+          "price": "239.00",
+          "market_price": "299.00",
+          "stock": 120,
+          "weight": "1.5",
+          "prices": {
+            "USD": "35.99"
+          }
+        },
+        {
+          "values": [
+            "green",
+            "2l"
+          ],
+          "price": "199.00",
+          "market_price": "259.00",
+          "stock": 80,
+          "weight": "1.2",
+          "prices": {
+            "USD": "29.99"
+          }
+        },
+        {
+          "values": [
+            "green",
+            "3l"
+          ],
+          "price": "239.00",
+          "market_price": "299.00",
+          "stock": 60,
+          "weight": "1.5",
+          "prices": {
+            "USD": "35.99"
+          }
+        }
       ],
       "sales": 3560
     },
@@ -82,8 +235,14 @@
       "code": "litter-box-pro",
       "category": "litter-box",
       "brand": "pawlink",
-      "title": { "zh-CN": "PawLink 全自动智能猫砂盆 Pro", "en": "PawLink Self-Cleaning Litter Box Pro" },
-      "subtitle": { "zh-CN": "自动铲屎，体重与如厕记录，多猫识别", "en": "Auto scooping, weight and visit tracking, multi-cat recognition" },
+      "title": {
+        "zh-CN": "PawLink 全自动智能猫砂盆 Pro",
+        "en": "PawLink Self-Cleaning Litter Box Pro"
+      },
+      "subtitle": {
+        "zh-CN": "自动铲屎，体重与如厕记录，多猫识别",
+        "en": "Auto scooping, weight and visit tracking, multi-cat recognition"
+      },
       "description": {
         "zh-CN": "<p>猫咪离开后自动清理，集便仓可用约 14 天。</p><p>多重安全感应，猫咪靠近立即停止转动。</p>",
         "en": "<p>Cleans itself after every visit. The waste drawer lasts about 14 days.</p><p>Multiple safety sensors stop the drum the moment a cat comes close.</p>"
@@ -94,21 +253,46 @@
       "market_price": "2299.00",
       "stock": 60,
       "weight": "9.5",
-      "prices": { "USD": "279.00" },
-      "sales": 430
+      "prices": {
+        "USD": "279.00"
+      },
+      "sales": 430,
+      "related": [
+        "fountain-2l"
+      ]
     }
   ],
   "article_categories": [
-    { "code": "guides", "type": "article", "name": { "zh-CN": "养宠指南", "en": "Pet Care Guides" } },
-    { "code": "device-help", "type": "help", "name": { "zh-CN": "设备使用", "en": "Using Your Device" } }
+    {
+      "code": "guides",
+      "type": "article",
+      "name": {
+        "zh-CN": "养宠指南",
+        "en": "Pet Care Guides"
+      }
+    },
+    {
+      "code": "device-help",
+      "type": "help",
+      "name": {
+        "zh-CN": "设备使用",
+        "en": "Using Your Device"
+      }
+    }
   ],
   "articles": [
     {
       "code": "choose-feeder",
       "type": "article",
       "category": "guides",
-      "title": { "zh-CN": "自动喂食器怎么选？看这四点就够了", "en": "How to Choose an Automatic Feeder: Four Things That Matter" },
-      "summary": { "zh-CN": "粮桶容量、出粮精度、防卡粮和断电保护。", "en": "Hopper size, portion accuracy, anti-jam design and power backup." },
+      "title": {
+        "zh-CN": "自动喂食器怎么选？看这四点就够了",
+        "en": "How to Choose an Automatic Feeder: Four Things That Matter"
+      },
+      "summary": {
+        "zh-CN": "粮桶容量、出粮精度、防卡粮和断电保护。",
+        "en": "Hopper size, portion accuracy, anti-jam design and power backup."
+      },
       "content": {
         "zh-CN": "<p>挑喂食器先看家里几只宠物、每次出门多久。</p><h3>一、粮桶容量</h3><p>单猫家庭 3–5L 足够。</p><h3>二、出粮精度</h3><p>每份克数越小越好控制体重。</p>",
         "en": "<p>Start with how many pets you have and how long you are usually away.</p><h3>1. Hopper size</h3><p>3–5L is plenty for a single cat.</p><h3>2. Portion accuracy</h3><p>Smaller portions make weight control easier.</p>"
@@ -119,7 +303,10 @@
     {
       "code": "holiday-shipping",
       "type": "notice",
-      "title": { "zh-CN": "节假日发货安排", "en": "Holiday Shipping Schedule" },
+      "title": {
+        "zh-CN": "节假日发货安排",
+        "en": "Holiday Shipping Schedule"
+      },
       "content": {
         "zh-CN": "<p>节假日期间订单照常接收，节后按付款顺序发出。</p>",
         "en": "<p>We keep taking orders during the holidays and ship them in payment order afterwards.</p>"
@@ -129,7 +316,10 @@
       "code": "connect-wifi",
       "type": "help",
       "category": "device-help",
-      "title": { "zh-CN": "设备连不上 Wi-Fi 怎么办？", "en": "My device will not connect to Wi-Fi" },
+      "title": {
+        "zh-CN": "设备连不上 Wi-Fi 怎么办？",
+        "en": "My device will not connect to Wi-Fi"
+      },
       "content": {
         "zh-CN": "<p>设备只支持 2.4GHz 网络。请确认路由器开启了 2.4GHz，并让手机先连上它再配网。</p>",
         "en": "<p>The device only works on 2.4GHz networks. Make sure your router has 2.4GHz enabled and connect your phone to it before pairing.</p>"
@@ -139,13 +329,25 @@
   "banners": [
     {
       "position": "home_banner",
-      "title": { "zh-CN": "新品上市 全自动智能猫砂盆 Pro", "en": "New: Self-Cleaning Litter Box Pro" },
-      "link": { "type": "goods", "value": "litter-box-pro" }
+      "title": {
+        "zh-CN": "新品上市 全自动智能猫砂盆 Pro",
+        "en": "New: Self-Cleaning Litter Box Pro"
+      },
+      "link": {
+        "type": "goods",
+        "value": "litter-box-pro"
+      }
     },
     {
       "position": "home_banner",
-      "title": { "zh-CN": "智能喂养专区 出门也安心", "en": "Smart Feeding: Peace of Mind When You Are Away" },
-      "link": { "type": "category", "value": "feeding" }
+      "title": {
+        "zh-CN": "智能喂养专区 出门也安心",
+        "en": "Smart Feeding: Peace of Mind When You Are Away"
+      },
+      "link": {
+        "type": "category",
+        "value": "feeding"
+      }
     }
   ]
 }

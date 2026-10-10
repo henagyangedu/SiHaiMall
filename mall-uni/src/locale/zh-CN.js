@@ -50,6 +50,7 @@ export default {
   refundType: { 1: '仅退款', 2: '退货退款' },
   commissionStatus: { 0: '待结算', 1: '已结算', 2: '已作废' },
   withdrawStatus: { 0: '待审核', 1: '待打款', 2: '已打款', 3: '已拒绝' },
+  extra: { params: '规格参数', related: '配套耗材与配件', fits: '适用设备' },
   coupon: {
     title: '优惠券', receivable: '可领取', unused: '未使用', used: '已使用', expired: '已过期', receive: '领取', received: '已领取', receiveOk: '领取成功', empty: '暂无优惠券',
     noThreshold: '无门槛', over: '满 {n} 可用', reduce: '减 {n}', zhe: '{zhe} 折', max: '最多减 {n}', validTo: '有效期至 {time}', validDays: '领取后 {n} 天内有效',

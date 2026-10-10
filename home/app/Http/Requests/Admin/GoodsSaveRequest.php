@@ -47,6 +47,16 @@ class GoodsSaveRequest extends FormRequest
             'is_virtual'    => ['nullable', 'in:0,1'],
             'is_on_sale'    => ['nullable', 'in:0,1'],
             'sort'          => ['nullable', 'integer', 'min:0', 'max:9999'],
+
+            // 规格参数：一行一个，名称和值都是多语言
+            'params'           => ['nullable', 'array', 'max:30'],
+            'params.*.name'    => ['nullable', 'array'],
+            'params.*.name.*'  => ['nullable', 'string', 'max:100'],
+            'params.*.value'   => ['nullable', 'array'],
+            'params.*.value.*' => ['nullable', 'string', 'max:500'],
+            // 配套商品（耗材、配件）的商品 ID，顺序就是展示顺序
+            'related_ids'      => ['nullable', 'array', 'max:12'],
+            'related_ids.*'    => ['integer', 'min:1'],
         ];
 
         $skuRules = fn (string $p) => [

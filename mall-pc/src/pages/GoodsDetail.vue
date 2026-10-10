@@ -11,6 +11,7 @@ import { needLogin } from '@/utils/request'
 import { refreshCartCount } from '@/utils/app'
 import { safeHtml } from '@/utils/html'
 import GoodsReviews from '@/components/GoodsReviews.vue'
+import GoodsCard from '@/components/GoodsCard.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -150,6 +151,21 @@ onMounted(async () => {
       </div>
     </div>
 
+    <!-- 配套的耗材和配件；如果这个商品本身是配件，则是适用的设备 -->
+    <template v-for="[key, list] in [['related', goods.related], ['fits', goods.fits]]" :key="key">
+      <div v-if="list && list.length" class="panel">
+        <div class="panel-title">{{ t(`extra.${key}`) }}</div>
+        <div class="rel-grid"><GoodsCard v-for="g in list.slice(0, 8)" :key="g.id" :g="g" class="rel-card" /></div>
+      </div>
+    </template>
+
+    <div v-if="goods.params && goods.params.length" class="panel">
+      <div class="panel-title">{{ t('extra.params') }}</div>
+      <div class="params">
+        <div v-for="(p, i) in goods.params" :key="i" class="param"><span class="param-name">{{ p.name }}</span><span class="param-value">{{ p.value }}</span></div>
+      </div>
+    </div>
+
     <div v-if="goods.description" class="panel">
       <div class="panel-title">{{ t('goods.description') }}</div>
       <!-- 详情是后台富文本编辑器保存的内容，后端不过滤，渲染前必须先清洗（见 utils/html.js） -->
@@ -185,6 +201,12 @@ onMounted(async () => {
 .coupons { cursor: pointer; }
 .cp-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .cp-tag { padding: 2px 10px; border-radius: 4px; border: 1px solid var(--theme); color: var(--theme); font-size: 12px; }
+.rel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.rel-card { border: 1px solid var(--line); }
+.params { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 40px; }
+.param { display: flex; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.param-name { width: 140px; flex: none; color: var(--sub); }
+.param-value { flex: 1; min-width: 0; word-break: break-all; }
 .extras { display: flex; gap: 28px; margin-top: 18px; }
 .extra { display: inline-flex; align-items: center; gap: 6px; color: #6a665e; font-size: 14px; cursor: pointer; }
 .extra:hover, .extra.on { color: var(--theme); }

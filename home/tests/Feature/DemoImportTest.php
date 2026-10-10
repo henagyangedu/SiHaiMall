@@ -117,6 +117,13 @@ class DemoImportTest extends FeatureTestCase
         $this->assertSame([2, 4], [count($detail['specs']), count($detail['skus'])]);
         $this->assertSame(410, (int) DB::table('goods_sku')->where('goods_id', $fountain->id)->sum('stock'));
 
+        // 规格参数和配套商品：数据里用 code 引用的配套商品已经换成真实的商品，反过来的“适用设备”也有了
+        $this->assertSame(['粮桶容量', '摄像头'], array_column($zh['params'], 'name'));
+        $this->assertSame('Hopper capacity', $en['params'][0]['name']);
+        $litterDetail = $this->api('GET', '/goods/'.Goods::query()->where('goods_sn', 'DEMO-litter-box-pro')->value('id'))->json('data');
+        $this->assertSame([(int) $fountain->id], array_column($litterDetail['related'], 'id'));
+        $this->assertSame([(int) $litterDetail['id']], array_column($detail['fits'], 'id'));
+
         // 占位图是一张写着商品名的 SVG
         $svg = $this->stored[collect(array_keys($this->stored))->first(fn ($p) => str_contains($p, 'goods-feeder-5l-cam-1'))];
         $this->assertStringContainsString('<svg', $svg);
@@ -188,10 +195,12 @@ class DemoImportTest extends FeatureTestCase
         $data['articles'][0]['type'] = 'blog';
         $data['banners'][0]['link'] = ['type' => 'goods', 'value' => 'ghost'];
         $data['banners'][1]['position'] = 'nowhere';
+        $data['goods'][2]['related'] = ['litter-box-pro', 'no-such-goods'];   // 写了自己、写了不存在的
+        $data['goods'][0]['params'] = [['name' => ['en' => 'English only'], 'value' => ['zh-CN' => '有值']]];
 
         $problems = app(DemoImportService::class)->check($data);
         $text = implode("\n", $problems);
-        foreach (['no-such-category', 'JPY', 'goods[feeder-5l-cam]', 'SKU 重复', 'goods[litter-box-pro]', 'Bad Code!', 'code 重复：litter-box-pro', 'articles[choose-feeder]', 'ghost', 'position 不存在'] as $needle) {
+        foreach (['no-such-category', 'JPY', 'goods[feeder-5l-cam]', 'SKU 重复', 'goods[litter-box-pro]', 'Bad Code!', 'code 重复：litter-box-pro', 'articles[choose-feeder]', 'ghost', 'position 不存在', 'related 里不能写商品自己', 'no-such-goods', '第 1 个参数'] as $needle) {
             $this->assertStringContainsString($needle, $text);
         }
 

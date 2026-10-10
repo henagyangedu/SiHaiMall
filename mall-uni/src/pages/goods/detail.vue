@@ -143,6 +143,22 @@ watch(() => [state.lang, state.currency], load)
       </view>
     </view>
 
+    <!-- 配套的耗材和配件；如果这个商品本身是配件，则是适用的设备 -->
+    <view v-for="[key, list] in [['related', goods.related], ['fits', goods.fits]]" :key="key">
+      <view v-if="list && list.length" class="card">
+        <view class="section">{{ t(`extra.${key}`) }}</view>
+        <scroll-view scroll-x class="rel-scroll">
+          <view class="rel-list">
+            <view v-for="g in list" :key="g.id" class="rel-item" @click="nav(`/pages/goods/detail?id=${g.id}`)">
+              <image :src="g.cover" mode="aspectFill" class="rel-img" lazy-load />
+              <view class="rel-title ellipsis-2">{{ g.title }}</view>
+              <view class="price">{{ g.symbol }}{{ g.price }}</view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
     <view v-if="goods.review" class="card reviews">
       <view class="section rv-head" @click="goods.review.count && nav(`/pages/review/list?goods_id=${goods.id}`)">
         <text>{{ t('review.title') }}（{{ goods.review.count }}）</text>
@@ -151,6 +167,13 @@ watch(() => [state.lang, state.currency], load)
       <ReviewItem v-for="r in reviews" :key="r.id" :review="r" />
       <view v-if="!goods.review.count" class="sub rv-empty">{{ t('review.empty') }}</view>
       <view v-else-if="goods.review.count > reviews.length" class="rv-more" @click="nav(`/pages/review/list?goods_id=${goods.id}`)">{{ t('review.viewAll', { n: goods.review.count }) }}</view>
+    </view>
+
+    <view v-if="goods.params && goods.params.length" class="card">
+      <view class="section">{{ t('extra.params') }}</view>
+      <view v-for="(p, i) in goods.params" :key="i" class="param">
+        <text class="param-name">{{ p.name }}</text><text class="param-value">{{ p.value }}</text>
+      </view>
     </view>
 
     <view v-if="goods.description" class="card">
@@ -178,6 +201,15 @@ watch(() => [state.lang, state.currency], load)
 .swiper { height: 750rpx; background: #fff; }
 .img { width: 100%; height: 100%; }
 .big { font-size: 44rpx; }
+.rel-scroll { white-space: nowrap; margin-top: 16rpx; }
+.rel-list { display: inline-flex; gap: 20rpx; }
+.rel-item { width: 220rpx; white-space: normal; }
+.rel-img { width: 220rpx; height: 190rpx; border-radius: 16rpx; background: var(--cream-deep); display: block; }
+.rel-title { margin: 10rpx 0 4rpx; font-size: 24rpx; line-height: 1.4; height: 68rpx; }
+.param { display: flex; padding: 16rpx 0; border-bottom: 2rpx solid var(--line); font-size: 26rpx; }
+.param:last-child { border-bottom: none; }
+.param-name { width: 200rpx; flex: none; color: var(--sub); }
+.param-value { flex: 1; min-width: 0; word-break: break-all; }
 .coupons { display: flex; align-items: center; }
 .cp-label { color: var(--theme); font-weight: 600; margin-right: 20rpx; flex: none; }
 .cp-list { flex: 1; min-width: 0; display: flex; gap: 12rpx; overflow: hidden; }

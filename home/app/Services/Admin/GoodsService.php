@@ -30,6 +30,7 @@ class GoodsService
         private TranslationService $trans,
         private LocaleService $locale,
         private GoodsSkuService $skus,
+        private GoodsExtraService $extra,
     ) {}
 
     // ------------------------------------------------------------------ 列表
@@ -130,7 +131,7 @@ class GoodsService
             $out[$field] = $texts[$field] ?? [];
         }
 
-        return $out + $this->skus->load($id, (int) $g->spec_type);
+        return $out + $this->skus->load($id, (int) $g->spec_type) + $this->extra->load($id);
     }
 
     // ------------------------------------------------------------------ 新增 / 编辑
@@ -160,6 +161,7 @@ class GoodsService
 
             $this->saveTexts((int) $goods->id, $d);
             $this->saveSkus($goods, $d, true, $op);
+            $this->extra->save((int) $goods->id, $d);
 
             return $goods;
         });
@@ -193,6 +195,7 @@ class GoodsService
 
             $this->saveTexts($id, $d);
             $this->saveSkus($goods, $d, false, $op);
+            $this->extra->save($id, $d);
 
             return $goods;
         });

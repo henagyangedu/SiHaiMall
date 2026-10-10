@@ -103,6 +103,10 @@ function onBuy() {
   if (!ready()) return
   needLogin(() => router.push({ name: 'checkout', query: { sku_id: sku.value.id, qty: qty.value } }))
 }
+// 购买套餐：套餐里的每件商品各 1 件，直接去结算
+function buyBundle(b) {
+  needLogin(() => router.push({ name: 'checkout', query: { sku_ids: b.items.map((i) => i.sku_id).join(',') } }))
+}
 
 onMounted(async () => {
   try {
@@ -174,6 +178,30 @@ onMounted(async () => {
       </div>
     </div>
 
+    <!-- 搭配套餐：和这个商品一起买立减。点“购买套餐”带着这几件直接去结算，优惠在结算页算 -->
+    <div v-if="goods.bundles && goods.bundles.length" class="panel bundles">
+      <div class="panel-title">{{ t('bundle.title') }}</div>
+      <div v-for="b in goods.bundles" :key="b.id" class="bundle">
+        <div class="b-items">
+          <template v-for="(i, k) in b.items" :key="i.sku_id">
+            <span v-if="k" class="b-plus">+</span>
+            <router-link :to="{ name: 'goods-detail', params: { id: i.goods_id } }" class="b-item">
+              <img :src="i.image" alt="" class="b-img" />
+              <div class="ellipsis-2 b-name">{{ i.title }}</div>
+              <div v-if="i.spec_text" class="sub ellipsis">{{ i.spec_text }}</div>
+              <div class="b-unit">{{ goods.symbol }}{{ i.price }}</div>
+            </router-link>
+          </template>
+        </div>
+        <div class="b-side">
+          <div class="sub">{{ t('bundle.total') }} <s>{{ goods.symbol }}{{ b.total }}</s></div>
+          <div>{{ t('bundle.price') }} <span class="price b-price">{{ goods.symbol }}{{ b.bundle_price }}</span></div>
+          <div class="b-save">{{ t('bundle.save', { n: goods.symbol + b.reduce }) }}</div>
+          <el-button type="primary" @click="buyBundle(b)">{{ t('bundle.buy') }}</el-button>
+        </div>
+      </div>
+    </div>
+
     <!-- 配套的耗材和配件；如果这个商品本身是配件，则是适用的设备 -->
     <template v-for="[key, list] in [['related', goods.related], ['fits', goods.fits]]" :key="key">
       <div v-if="list && list.length" class="panel">
@@ -233,6 +261,18 @@ onMounted(async () => {
 .param-value { flex: 1; min-width: 0; word-break: break-all; }
 .extras { display: flex; gap: 28px; margin-top: 18px; }
 .extra { display: inline-flex; align-items: center; gap: 6px; color: #6a665e; font-size: 14px; cursor: pointer; }
+.bundle { display: flex; align-items: center; gap: 24px; padding: 16px 0; border-top: 1px solid var(--line); }
+.bundle:first-of-type { border-top: none; padding-top: 0; }
+.b-items { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; overflow-x: auto; }
+.b-item { width: 140px; flex: none; }
+.b-img { width: 140px; height: 120px; object-fit: cover; border-radius: 8px; background: var(--cream-deep); display: block; margin-bottom: 8px; }
+.b-name { font-size: 13px; line-height: 1.5; height: 39px; }
+.b-item:hover .b-name { color: var(--theme); }
+.b-unit { margin-top: 4px; }
+.b-plus { color: var(--sub); font-size: 22px; flex: none; }
+.b-side { width: 200px; flex: none; text-align: right; line-height: 2; }
+.b-price { font-size: 22px; }
+.b-save { color: var(--theme); font-size: 13px; margin-bottom: 8px; }
 .extra:hover, .extra.on { color: var(--theme); }
 .extra.plain { cursor: default; }
 .extra.plain:hover { color: #6a665e; }

@@ -214,6 +214,7 @@ onMounted(async () => {
       <div class="sum">
         <div class="kv"><span class="sub">{{ t('checkout.goods') }}</span><span>{{ money(order.goods_amount, order.currency) }}</span></div>
         <div class="kv"><span class="sub">{{ t('checkout.shipping') }}</span><span>{{ Number(order.shipping_fee) > 0 ? money(order.shipping_fee, order.currency) : t('checkout.free') }}</span></div>
+        <div v-if="Number(order.bundle_amount) > 0" class="kv"><span class="sub">{{ t('bundle.row') }}</span><span>-{{ money(order.bundle_amount, order.currency) }}</span></div>
         <div v-if="Number(order.discount_amount) > 0" class="kv"><span class="sub">{{ t('checkout.discount') }}</span><span>-{{ money(order.discount_amount, order.currency) }}</span></div>
         <div v-if="Number(order.coupon_amount) > 0" class="kv"><span class="sub">{{ t('coupon.row') }}</span><span>-{{ money(order.coupon_amount, order.currency) }}</span></div>
         <div v-if="Number(order.points_amount) > 0" class="kv"><span class="sub">{{ t('checkout.points') }}</span><span>-{{ money(order.points_amount, order.currency) }}</span></div>

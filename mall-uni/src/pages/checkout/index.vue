@@ -10,7 +10,7 @@ import { usePageTitle, toast, nav } from '@/utils/page'
 const { t } = useI18n()
 usePageTitle('checkout.title')
 
-// 两种入口：购物车结算（cart_ids）或商品页立即购买（sku_id + qty）
+// 三种入口：购物车结算（cart_ids）、购买套餐（sku_ids，每样 1 件）、商品页立即购买（sku_id + qty）
 const source = ref({})
 const addressId = ref(0)
 const usePoints = ref(false)
@@ -66,7 +66,9 @@ async function submit() {
 onLoad((q) => {
   source.value = q.cart_ids
     ? { cart_ids: String(q.cart_ids).split(',').map(Number) }
-    : { items: [{ sku_id: Number(q.sku_id), qty: Number(q.qty || 1) }] }
+    : q.sku_ids
+      ? { items: String(q.sku_ids).split(',').map(Number).filter(Boolean).map((id) => ({ sku_id: id, qty: 1 })) }
+      : { items: [{ sku_id: Number(q.sku_id), qty: Number(q.qty || 1) }] }
 })
 // 从地址列表选完地址回来时重新计算
 onShow(() => {
@@ -105,6 +107,7 @@ onShow(() => {
     <view class="card">
       <view class="kv"><text>{{ t('checkout.goods') }}</text><text>{{ money(data.goods_amount, data.currency) }}</text></view>
       <view class="kv"><text>{{ t('checkout.shipping') }}</text><text>{{ Number(data.shipping_fee) > 0 ? money(data.shipping_fee, data.currency) : t('checkout.free') }}</text></view>
+      <view v-if="Number(data.bundle_amount) > 0" class="kv bundle-row"><text>{{ t('bundle.row') }}</text><text class="price">-{{ money(data.bundle_amount, data.currency) }}</text></view>
       <view v-if="Number(data.discount_amount) > 0" class="kv"><text>{{ t('checkout.discount') }}</text><text class="price">-{{ money(data.discount_amount, data.currency) }}</text></view>
       <view v-if="data.coupons.length" class="kv" @click="chooseCoupon">
         <text>{{ t('coupon.row') }}</text>

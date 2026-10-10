@@ -190,6 +190,7 @@ onShow(async () => {
       </view>
       <view class="kv"><text class="sub">{{ t('checkout.goods') }}</text><text>{{ money(order.goods_amount, order.currency) }}</text></view>
       <view class="kv"><text class="sub">{{ t('checkout.shipping') }}</text><text>{{ money(order.shipping_fee, order.currency) }}</text></view>
+      <view v-if="Number(order.bundle_amount) > 0" class="kv"><text class="sub">{{ t('bundle.row') }}</text><text>-{{ money(order.bundle_amount, order.currency) }}</text></view>
       <view v-if="Number(order.discount_amount) > 0" class="kv"><text class="sub">{{ t('checkout.discount') }}</text><text>-{{ money(order.discount_amount, order.currency) }}</text></view>
       <view v-if="Number(order.coupon_amount) > 0" class="kv"><text class="sub">{{ t('coupon.row') }}</text><text>-{{ money(order.coupon_amount, order.currency) }}</text></view>
       <view v-if="Number(order.points_amount) > 0" class="kv"><text class="sub">{{ t('checkout.points') }}</text><text>-{{ money(order.points_amount, order.currency) }}</text></view>

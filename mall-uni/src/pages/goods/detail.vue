@@ -117,6 +117,10 @@ function onBuy() {
   if (!ready()) return
   needLogin(() => uni.navigateTo({ url: `/pages/checkout/index?sku_id=${sku.value.id}&qty=${qty.value}` }))
 }
+// 购买套餐：套餐里的每件商品各 1 件，直接去结算
+function buyBundle(b) {
+  needLogin(() => uni.navigateTo({ url: `/pages/checkout/index?sku_ids=${b.items.map((i) => i.sku_id).join(',')}` }))
+}
 
 onLoad((q) => {
   id.value = Number(q.id || 0)
@@ -157,6 +161,29 @@ watch(() => [state.lang, state.currency], load)
           <view class="st" :class="{ off: qty <= 1 }" @click="step(-1)">−</view>
           <view class="num">{{ qty }}</view>
           <view class="st" :class="{ off: qty >= maxQty }" @click="step(1)">＋</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 搭配套餐：和这个商品一起买立减。点“购买套餐”带着这几件直接去结算，优惠在结算页算 -->
+    <view v-if="goods.bundles && goods.bundles.length" class="card bundles">
+      <view class="section">{{ t('bundle.title') }}</view>
+      <view v-for="b in goods.bundles" :key="b.id" class="bundle">
+        <scroll-view scroll-x class="rel-scroll">
+          <view class="rel-list">
+            <view v-for="i in b.items" :key="i.sku_id" class="b-item" @click="nav(`/pages/goods/detail?id=${i.goods_id}`)">
+              <image :src="i.image" mode="aspectFill" class="b-img" />
+              <view class="ellipsis-2 b-name">{{ i.title }}</view>
+              <view class="sub">{{ goods.symbol }}{{ i.price }}</view>
+            </view>
+          </view>
+        </scroll-view>
+        <view class="b-foot">
+          <view>
+            <view><text class="sub">{{ t('bundle.price') }}　</text><text class="price b-price">{{ goods.symbol }}{{ b.bundle_price }}</text></view>
+            <view class="sub">{{ t('bundle.total') }} {{ goods.symbol }}{{ b.total }}　<text class="b-save">{{ t('bundle.save', { n: goods.symbol + b.reduce }) }}</text></view>
+          </view>
+          <view class="btn small" @click="buyBundle(b)">{{ t('bundle.buy') }}</view>
         </view>
       </view>
     </view>
@@ -223,6 +250,13 @@ watch(() => [state.lang, state.currency], load)
 .swiper { height: 750rpx; background: #fff; }
 .img { width: 100%; height: 100%; }
 .big { font-size: 44rpx; }
+.bundle + .bundle { border-top: 2rpx solid var(--line); margin-top: 24rpx; padding-top: 8rpx; }
+.b-item { width: 180rpx; white-space: normal; }
+.b-img { width: 180rpx; height: 160rpx; border-radius: 16rpx; background: var(--cream-deep); display: block; }
+.b-name { margin-top: 8rpx; font-size: 24rpx; line-height: 1.4; height: 68rpx; }
+.b-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 20rpx; }
+.b-price { font-size: 34rpx; }
+.b-save { color: var(--theme); }
 .rel-scroll { white-space: nowrap; margin-top: 16rpx; }
 .rel-list { display: inline-flex; gap: 20rpx; }
 .rel-item { width: 220rpx; white-space: normal; }

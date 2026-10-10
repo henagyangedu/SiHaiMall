@@ -100,6 +100,7 @@ class MenuSeeder extends Seeder
             ]],
             ['t' => '营销', 'path' => '/marketing', 'icon' => 'Present', 'children' => [
                 ['t' => '优惠券', 'path' => '/marketing/coupon', 'perm' => 'marketing:coupon', 'acts' => ['add', 'edit', 'del', 'grant']],
+                ['t' => '搭配套餐', 'path' => '/marketing/bundle', 'perm' => 'marketing:bundle', 'acts' => ['add', 'edit', 'del']],
             ]],
             ['t' => '分销', 'path' => '/distribution', 'icon' => 'Share', 'children' => [
                 ['t' => '分销员', 'path' => '/distribution/distributor', 'perm' => 'distribution:distributor', 'acts' => ['audit', 'status', 'edit']],

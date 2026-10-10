@@ -2,6 +2,7 @@
 
 namespace App\Services\Api;
 
+use App\Services\Common\BundleService;
 use App\Services\Common\LocaleService;
 use App\Services\Common\PriceService;
 use App\Services\Common\TranslationService;
@@ -16,6 +17,7 @@ class CatalogService
         private TranslationService $trans,
         private PriceService $price,
         private LocaleService $locale,
+        private BundleService $bundles,
     ) {}
 
     // ------------------------------------------------------------------ 分类
@@ -149,6 +151,8 @@ class CatalogService
             'params' => $this->params($id, $lang),
             'related' => $this->relatedGoods(DB::table('goods_relation')->where('goods_id', $id)->orderBy('sort')->orderBy('id')->limit(12)->pluck('related_goods_id')->all(), $lang, $currency, $region),
             'fits' => $this->relatedGoods(DB::table('goods_relation')->where('related_goods_id', $id)->orderByDesc('id')->limit(12)->pluck('goods_id')->all(), $lang, $currency, $region),
+            // 包含这个商品的搭配套餐（只在基准币种下有；套餐里有下架或缺货的商品就不显示）
+            'bundles' => $this->bundlesFor($id, $lang, $currency, $region),
             // 不返回成本价
             'skus' => $skus->map(fn ($s) => [
                 'id' => (int) $s->id, 'spec_value_ids' => array_values(array_filter(array_map('intval', explode(',', (string) $s->spec_value_ids)))),
@@ -159,6 +163,39 @@ class CatalogService
     }
 
     /** 商品的规格参数（当前语言，缺的回退默认语言）。@return array<int,array{name:string,value:string}> */
+    /**
+     * 商品详情页的“搭配套餐”：每个套餐列出里面的商品、原价合计、套餐价。
+     * 这里只是展示，真正的优惠在结算时由 BundleService::quote 按整张订单算（买家同时凑了别的套餐时结果可能不同）。
+     */
+    private function bundlesFor(int $goodsId, string $lang, string $currency, ?array $region): array
+    {
+        if (strtoupper($currency) !== strtoupper($this->locale->baseCurrency())) {
+            return [];
+        }
+        $list = $this->bundles->forGoods($goodsId);
+        $briefs = $this->skuBriefs(array_values(array_unique(array_merge([], ...array_column($list, 'sku_ids')))), $lang, $currency, $region);
+
+        $out = [];
+        foreach ($list as $b) {
+            $items = [];
+            foreach ($b['sku_ids'] as $skuId) {
+                $s = $briefs[$skuId] ?? null;
+                if (!$s || !$s['valid'] || $s['stock'] <= 0) {
+                    continue 2;
+                }
+                $items[] = ['sku_id' => $s['sku_id'], 'goods_id' => $s['goods_id'], 'title' => $s['title'], 'spec_text' => $s['spec_text'], 'image' => $s['image'], 'price' => $s['price']];
+            }
+            $total = array_reduce($items, fn ($c, $i) => bcadd($c, $i['price'], 2), '0.00');
+            $reduce = BundleService::perSet($b['reduce_amount'], array_column($items, 'price'));
+            if (bccomp($reduce, '0', 2) <= 0) {
+                continue;
+            }
+            $out[] = ['id' => $b['id'], 'items' => $items, 'total' => $total, 'reduce' => $reduce, 'bundle_price' => bcsub($total, $reduce, 2)];
+        }
+
+        return array_slice($out, 0, 5);
+    }
+
     private function params(int $goodsId, string $lang): array
     {
         $ids = DB::table('goods_param')->where('goods_id', $goodsId)->orderBy('sort')->orderBy('id')->pluck('id')->all();

@@ -30,6 +30,7 @@ class OrderCreateService
         private SaleRegionService $regions,
         private OrderPointsService $points,
         private CouponService $coupons,
+        private BundleService $bundles,
     ) {}
 
     /**
@@ -77,13 +78,20 @@ class OrderCreateService
             }
 
             $shipping = $needShip ? $this->calcShipping($rows, $address, $cur) : '0.00';
-            $discount = $this->levelDiscount($member, $goodsAmount);
+            // 套餐优惠：排在最前面。减的钱摊到套餐里的商品行上，后面的会员折扣、优惠券、积分都按摊完之后的金额算
+            $bundle = $this->bundles->quote(array_map(fn ($r) => ['qty' => $r['qty'], 'unit' => $r['unit']], $rows), $currency);
+            $afterBundle = bcsub($goodsAmount, $bundle['amount'], 2);
+            $discount = $this->levelDiscount($member, $afterBundle);
             // 优惠券：在会员折扣之后、积分抵扣之前。锁住这张券并确认这一单能用（见 CouponService）
             $coupon = ['id' => 0, 'amount' => '0.00'];
             if (!empty($opts['member_coupon_id'])) {
+                $couponLines = [];
+                foreach ($rows as $skuId => $r) {
+                    $couponLines[] = ['goods_id' => (int) $r['sku']->goods_id, 'category_id' => (int) $r['sku']->category_id,
+                        'amount' => bcsub(Money::mul($r['unit'], $r['qty']), $bundle['shares'][$skuId] ?? '0.00', 2)];
+                }
                 $coupon = $this->coupons->useForOrder(
-                    (int) $member->id, (int) $opts['member_coupon_id'],
-                    array_map(fn ($r) => ['goods_id' => (int) $r['sku']->goods_id, 'category_id' => (int) $r['sku']->category_id, 'amount' => Money::mul($r['unit'], $r['qty'])], array_values($rows)),
+                    (int) $member->id, (int) $opts['member_coupon_id'], $couponLines,
                     fn (string $amount) => bcsub($amount, $this->levelDiscount($member, $amount), 2), $currency, $this->locale->baseCurrency()
                 );
             }
@@ -91,13 +99,13 @@ class OrderCreateService
             $points = ['points' => 0, 'amount' => '0.00'];
             if (!empty($opts['use_points'])) {
                 $locked = Member::query()->lockForUpdate()->find($member->id);
-                $points = $this->points->quote($locked, bcsub(bcsub($goodsAmount, $discount, 2), $coupon['amount'], 2), $cur['rate'], $cur['decimals']);
+                $points = $this->points->quote($locked, bcsub(bcsub($afterBundle, $discount, 2), $coupon['amount'], 2), $cur['rate'], $cur['decimals']);
             }
-            // 恒等式：商品 + 运费 - 会员折扣 - 优惠券 - 积分 = 应付
-            $pay = bcsub(bcsub(bcsub(bcadd($goodsAmount, $shipping, 2), $discount, 2), $coupon['amount'], 2), $points['amount'], 2);
+            // 恒等式：商品 + 运费 - 套餐优惠 - 会员折扣 - 优惠券 - 积分 = 应付
+            $pay = bcsub(bcsub(bcsub(bcadd($afterBundle, $shipping, 2), $discount, 2), $coupon['amount'], 2), $points['amount'], 2);
             if (bccomp($pay, '0.01', 2) < 0) {
                 $pay = '0.01'; // 支付渠道不接受 0 元单
-                $discount = bcsub(bcsub(bcsub(bcadd($goodsAmount, $shipping, 2), $coupon['amount'], 2), $points['amount'], 2), $pay, 2);
+                $discount = bcsub(bcsub(bcsub(bcadd($afterBundle, $shipping, 2), $coupon['amount'], 2), $points['amount'], 2), $pay, 2);
             }
 
             $orderNo = $this->makeOrderNo();
@@ -106,7 +114,9 @@ class OrderCreateService
                 'source' => (string) ($opts['source'] ?? $member->register_source ?: ''),
                 'lang' => $lang, 'currency' => $currency, 'rate' => $cur['rate'],
                 'goods_amount' => $goodsAmount, 'shipping_fee' => $shipping, 'discount_amount' => $discount,
-                'points_amount' => $points['amount'], 'coupon_amount' => $coupon['amount'], 'member_coupon_id' => $coupon['id'], 'pay_amount' => $pay, 'base_pay_amount' => Money::toBase($pay, $cur['rate']),
+                'points_amount' => $points['amount'], 'coupon_amount' => $coupon['amount'], 'member_coupon_id' => $coupon['id'],
+                'bundle_amount' => $bundle['amount'], 'bundle_info' => $bundle['applied'] ? json_encode($bundle['applied'], JSON_UNESCAPED_UNICODE) : null,
+                'pay_amount' => $pay, 'base_pay_amount' => Money::toBase($pay, $cur['rate']),
                 'status' => OrderStatus::PENDING, 'pay_status' => OrderStatus::PAY_UNPAID,
                 'remark' => mb_substr((string) ($opts['remark'] ?? ''), 0, 500),
                 'source_member_id' => (int) ($opts['source_member_id'] ?? 0),

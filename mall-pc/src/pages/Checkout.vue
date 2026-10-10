@@ -12,9 +12,13 @@ const route = useRoute()
 const router = useRouter()
 
 // 两种入口：购物车结算（cart_ids）或商品页立即购买（sku_id + qty）
+// 三种入口：购物车结算（cart_ids）、购买套餐（sku_ids，每样 1 件）、立即购买（sku_id + qty）
+const ids = (v) => String(v).split(',').map(Number).filter(Boolean)
 const source = route.query.cart_ids
-  ? { cart_ids: String(route.query.cart_ids).split(',').map(Number).filter(Boolean) }
-  : { items: [{ sku_id: Number(route.query.sku_id), qty: Number(route.query.qty || 1) }] }
+  ? { cart_ids: ids(route.query.cart_ids) }
+  : route.query.sku_ids
+    ? { items: ids(route.query.sku_ids).map((id) => ({ sku_id: id, qty: 1 })) }
+    : { items: [{ sku_id: Number(route.query.sku_id), qty: Number(route.query.qty || 1) }] }
 
 const addresses = ref([])
 const addressId = ref(0)
@@ -124,6 +128,7 @@ onMounted(async () => {
         <div class="right">
           <div class="kv"><span>{{ t('checkout.goods') }}</span><span>{{ money(data.goods_amount, data.currency) }}</span></div>
           <div class="kv"><span>{{ t('checkout.shipping') }}</span><span>{{ Number(data.shipping_fee) > 0 ? money(data.shipping_fee, data.currency) : t('checkout.free') }}</span></div>
+          <div v-if="Number(data.bundle_amount) > 0" class="kv bundle-row"><span>{{ t('bundle.row') }}</span><span class="price">-{{ money(data.bundle_amount, data.currency) }}</span></div>
           <div v-if="Number(data.discount_amount) > 0" class="kv"><span>{{ t('checkout.discount') }}</span><span class="price">-{{ money(data.discount_amount, data.currency) }}</span></div>
           <div v-if="data.coupons.length" class="kv coupon-row">
             <el-select :model-value="data.member_coupon_id" size="small" class="coupon-pick" @change="onCoupon">

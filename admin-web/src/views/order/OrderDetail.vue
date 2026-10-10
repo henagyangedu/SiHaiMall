@@ -58,6 +58,7 @@ const statusType = (s) => ({ 0: 'warning', 1: 'primary', 2: 'primary', 3: 'succe
   <div class="sum">
     <div>商品金额：{{ d.goods_amount }}<span v-if="d.price_region_name" style="color: #909399; font-size: 12px">（按销售区域“{{ d.price_region_name }}”定价）</span></div>
     <div>运费：{{ d.shipping_fee }}</div>
+    <div v-if="Number(d.bundle_amount) > 0">套餐优惠：-{{ d.bundle_amount }}<span style="color: #909399; font-size: 12px">（{{ (d.bundles || []).map((b) => `${b.name} ×${b.sets}`).join('、') }}）</span></div>
     <div>优惠：-{{ d.discount_amount }}</div>
     <div v-if="Number(d.coupon_amount) > 0">优惠券：-{{ d.coupon_amount }}</div>
     <div v-if="Number(d.points_amount) > 0">积分抵扣：-{{ d.points_amount }}</div>

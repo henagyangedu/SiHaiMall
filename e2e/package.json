@@ -18,7 +18,8 @@
     "restock": "node run.js restock",
     "messages": "node run.js messages",
     "broadcast": "node run.js broadcast",
-    "invoice": "node run.js invoice"
+    "invoice": "node run.js invoice",
+    "bundle": "node run.js bundle"
   },
   "devDependencies": {
     "playwright-core": "^1.48.0"

@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\BundleController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ConfigController;
 use App\Http\Controllers\Admin\CurrencyController;
@@ -172,6 +173,16 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::post('upload/invoice', [UploadController::class, 'invoice'])->middleware(['throttle:60,1', 'perm:order:invoice:issue']);
 
     // 商品：分类、品牌、商品、库存流水
+    // ---- 营销：搭配套餐（订单里凑齐一组商品就立减）
+    Route::prefix('marketing/bundle')->group(function () {
+        Route::get('list', [BundleController::class, 'index'])->middleware('perm:marketing:bundle:view');
+        Route::get('skus', [BundleController::class, 'skus'])->middleware('perm:marketing:bundle:add,marketing:bundle:edit');
+        Route::post('/', [BundleController::class, 'store'])->middleware('perm:marketing:bundle:add');
+        Route::put('{id}', [BundleController::class, 'update'])->where('id', '[0-9]+')->middleware('perm:marketing:bundle:edit');
+        Route::post('{id}/status', [BundleController::class, 'status'])->where('id', '[0-9]+')->middleware('perm:marketing:bundle:edit');
+        Route::delete('{id}', [BundleController::class, 'destroy'])->where('id', '[0-9]+')->middleware('perm:marketing:bundle:del');
+    });
+
     // ---- 营销：优惠券
     Route::prefix('marketing/coupon')->group(function () {
         Route::get('list', [CouponController::class, 'index'])->middleware('perm:marketing:coupon:view');

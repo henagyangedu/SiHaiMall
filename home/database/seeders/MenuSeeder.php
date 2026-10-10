@@ -143,6 +143,7 @@ class MenuSeeder extends Seeder
                     ['t' => '短信', 'path' => '/setting/api/sms', 'perm' => 'setting:api_sms', 'acts' => ['edit', 'test']],
                     ['t' => '系统存储', 'path' => '/setting/api/storage', 'perm' => 'setting:api_storage', 'acts' => ['edit', 'test']],
                     ['t' => '物流查询', 'path' => '/setting/api/express', 'perm' => 'setting:api_express', 'acts' => ['edit', 'test']],
+                    ['t' => '电子面单', 'path' => '/setting/api/waybill', 'perm' => 'setting:api_waybill', 'acts' => ['edit']],
                     ['t' => '商城支付', 'path' => '/setting/api/pay', 'perm' => 'setting:api_pay', 'acts' => ['edit', 'test']],
                     ['t' => 'AI 翻译', 'path' => '/setting/api/translate', 'perm' => 'setting:api_translate', 'acts' => ['edit', 'test']],
                 ]],

@@ -135,7 +135,7 @@ class OrderService
         ])->all();
 
         $ship = DB::table('shipping')->where('order_id', $id)->orderBy('id')->get()->map(fn ($s) => [
-            'id' => (int) $s->id, 'express_code' => $s->express_code, 'express_name' => $s->express_name, 'express_no' => $s->express_no,
+            'id' => (int) $s->id, 'express_code' => $s->express_code, 'express_name' => $s->express_name, 'express_no' => $s->express_no, 'label_url' => (string) $s->label_url,
             'item_ids' => array_values(array_filter(array_map('intval', explode(',', (string) $s->item_ids)))),
             'shipped_at' => (string) $s->shipped_at,
         ])->all();

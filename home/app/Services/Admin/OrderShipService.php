@@ -11,8 +11,9 @@ use App\Services\Common\OrderStatusService;
 use App\Support\Exceptions\BusinessException;
 use App\Support\OrderStatus;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-/** 手工发货（填快递单号），支持分批发货。电子面单驱动接入后，在 ship() 里按 waybill_driver 取号即可 */
+/** 发货，支持分批发货。两种方式：手工填快递单号（ship），或者取电子面单（shipByWaybill：向服务商取号成功后再走 ship） */
 class OrderShipService
 {
     /** 常用快递公司（发货设置模块完成后改为读库）。code 用于后续物流查询接口 */
@@ -21,7 +22,7 @@ class OrderShipService
         'JTEXPRESS' => '极兔速递', 'EMS' => '中国邮政 EMS', 'DHL' => 'DHL', 'FEDEX' => 'FedEx', 'UPS' => 'UPS', 'USPS' => 'USPS', 'OTHER' => '其它',
     ];
 
-    public function __construct(private OrderStatusService $status, private NotifyService $notify, private ExpressTrackService $tracks) {}
+    public function __construct(private OrderStatusService $status, private NotifyService $notify, private ExpressTrackService $tracks, private WaybillService $waybills) {}
 
     /** 一个包裹的物流轨迹；$refresh 为 true 时重新向服务商查询（有最短间隔限制） */
     public function track(int $shippingId, bool $refresh): array
@@ -36,7 +37,38 @@ class OrderShipService
         return collect(self::EXPRESS)->map(fn ($n, $c) => ['code' => $c, 'name' => $n])->values()->all();
     }
 
-    /** @param array{express_code:string,express_name?:string,express_no:string,item_ids?:int[]} $d */
+    /**
+     * 电子面单发货：先向服务商取号，成功后按取到的单号发货。
+     * 取号是外部调用，不放在数据库事务里；所以先做一遍和 ship() 一样的检查，免得订单根本发不了货却白取一个号。
+     * 极少数情况下取到号之后发货失败（比如这期间订单被别人发掉了）：单号记进错误日志，要到服务商后台手工取消，不自动取消。
+     * @param array{express_code:string,item_ids?:int[],weight?:string|null} $d
+     * @return array{express_no:string,label_url:string}
+     */
+    public function shipByWaybill(int $orderId, array $d, Admin $op): array
+    {
+        $o = Order::query()->find($orderId) ?? throw new BusinessException('订单不存在');
+        if ((int) $o->status !== OrderStatus::TO_SHIP || !in_array((int) $o->pay_status, [OrderStatus::PAY_PAID, OrderStatus::PAY_PART_REFUND], true)) {
+            throw new BusinessException('只有已支付的待发货订单可以发货');
+        }
+        $pending = DB::table('order_item')->where('order_id', $orderId)->where('ship_status', 0)->whereColumn('refund_qty', '<', 'qty')->pluck('id')->map(fn ($v) => (int) $v)->all();
+        $pick = array_values(array_unique(array_map('intval', (array) ($d['item_ids'] ?? []))));
+        $pick = $pick === [] ? $pending : $pick;
+        if ($pick === [] || array_diff($pick, $pending) !== []) {
+            throw new BusinessException('所选商品不存在或已发货');
+        }
+
+        $w = $this->waybills->create($o, (string) $d['express_code'], $pick, isset($d['weight']) ? (string) $d['weight'] : null);
+        try {
+            $this->ship($orderId, ['express_code' => $w['express_code'], 'express_no' => $w['express_no'], 'item_ids' => $pick, 'waybill_task_id' => $w['task_id'], 'label_url' => $w['label_url']], $op);
+        } catch (Throwable $e) {
+            Log::error('电子面单已取号但发货失败，需要到服务商后台取消这张面单', ['order_no' => $o->order_no, 'express_code' => $w['express_code'], 'express_no' => $w['express_no'], 'task_id' => $w['task_id'], 'error' => mb_substr($e->getMessage(), 0, 300)]);
+            throw new BusinessException("已取到快递单号 {$w['express_no']}，但发货没有成功：" . ($e instanceof BusinessException ? $e->getMessage() : '系统错误') . '。请到快递服务商后台取消这张面单后重试');
+        }
+
+        return ['express_no' => $w['express_no'], 'label_url' => $w['label_url']];
+    }
+
+    /** @param array{express_code:string,express_name?:string,express_no:string,item_ids?:int[],waybill_task_id?:string,label_url?:string} $d 后两项只有电子面单发货时才有 */
     public function ship(int $orderId, array $d, Admin $op): void
     {
         DB::transaction(function () use ($orderId, $d, $op) {
@@ -58,6 +90,7 @@ class OrderShipService
             [$code, $name] = $this->express($d);
             Shipping::query()->create([
                 'order_id' => $orderId, 'express_code' => $code, 'express_name' => $name, 'express_no' => trim((string) $d['express_no']),
+                'waybill_task_id' => (string) ($d['waybill_task_id'] ?? ''), 'label_url' => (string) ($d['label_url'] ?? ''),
                 'item_ids' => implode(',', $pick), 'shipped_at' => now(), 'created_at' => now(),
             ]);
             DB::table('order_item')->whereIn('id', $pick)->update(['ship_status' => 1]);
@@ -82,7 +115,10 @@ class OrderShipService
         }
         [$code, $name] = $this->express($d);
         // 换了单号或快递公司，之前缓存的物流轨迹就不对了，一并清掉
-        $s->update(['express_code' => $code, 'express_name' => $name, 'express_no' => trim((string) $d['express_no']), 'track_status' => 0, 'track_data' => null]);
+        // 手工改了单号，原来的电子面单也就对不上了
+        $changed = $code !== (string) $s->express_code || trim((string) $d['express_no']) !== (string) $s->express_no;
+        $s->update(['express_code' => $code, 'express_name' => $name, 'express_no' => trim((string) $d['express_no']), 'track_status' => 0, 'track_data' => null]
+            + ($changed ? ['waybill_task_id' => '', 'label_url' => ''] : []));
         $this->status->note($o, OrderStatus::OP_ADMIN, (int) $op->id, "修改物流单号：{$name} {$d['express_no']}");
     }
 

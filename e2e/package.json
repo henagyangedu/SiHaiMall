@@ -19,7 +19,8 @@
     "messages": "node run.js messages",
     "broadcast": "node run.js broadcast",
     "invoice": "node run.js invoice",
-    "bundle": "node run.js bundle"
+    "bundle": "node run.js bundle",
+    "waybill": "node run.js waybill"
   },
   "devDependencies": {
     "playwright-core": "^1.48.0"

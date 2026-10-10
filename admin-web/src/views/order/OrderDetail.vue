@@ -80,6 +80,10 @@ const statusType = (s) => ({ 0: 'warning', 1: 'primary', 2: 'primary', 3: 'succe
       <el-table-column prop="express_no" label="单号" min-width="160" />
       <el-table-column prop="shipped_at" label="发货时间" width="165" />
       <el-table-column label="轨迹" width="100"><template #default="{ row }"><el-button link type="primary" @click="openTrack(row)">查看物流</el-button></template></el-table-column>
+      <!-- 电子面单发的货：面单图片在服务商那边，有有效期 -->
+      <el-table-column v-if="d.shippings.some((s) => s.label_url)" label="面单" width="100">
+        <template #default="{ row }"><a v-if="row.label_url" :href="row.label_url" target="_blank" rel="noopener" style="color: var(--el-color-primary)">打印面单</a></template>
+      </el-table-column>
     </el-table>
 
     <el-dialog v-model="trackShow" :title="track ? `${track.express_name} ${track.express_no}` : '物流轨迹'" width="560px" append-to-body>

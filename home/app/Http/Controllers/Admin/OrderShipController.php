@@ -29,6 +29,10 @@ class OrderShipController extends BaseAdminController
 
     public function ship(OrderShipRequest $request, int $id)
     {
+        // 电子面单：系统取号后发货，把单号和面单地址带回去，方便马上打印
+        if ((int) $request->validated('waybill') === 1) {
+            return ApiResponse::ok($this->shipper->shipByWaybill($id, $request->validated(), $this->admin($request)), '发货成功');
+        }
         $this->shipper->ship($id, $request->validated(), $this->admin($request));
 
         return ApiResponse::ok(null, '发货成功');

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { waybillOptions } from '@/api/waybill'
 import { listShipOrder, getOrder, expressOptions, shipOrder, editExpress } from '@/api/order'
 import { hasPerm } from '@/utils/perm'
 import OrderDetail from '../OrderDetail.vue'
@@ -27,24 +28,49 @@ function search() {
   load()
 }
 
-// ---- 发货
+// ---- 发货：手填快递单号，或者（配置了电子面单时）由系统取号
 const shipDialog = ref(false)
 const order = ref(null)
-const form = reactive({ express_code: 'SF', express_name: '', express_no: '', item_ids: [] })
+const shipping = ref(false)
+// 电子面单能不能用、哪些快递配了账号
+const waybill = ref({ enabled: false, expresses: [] })
+const form = reactive({ mode: 'manual', express_code: 'SF', express_name: '', express_no: '', item_ids: [], weight: undefined })
+function setMode(mode) {
+  form.mode = mode
+  form.express_code = mode === 'waybill' ? (waybill.value.expresses[0]?.code || '') : 'SF'
+}
 async function openShip(row) {
   order.value = await getOrder(row.id)
   const pending = order.value.items.filter((i) => !i.ship_status).map((i) => i.id)
-  Object.assign(form, { express_code: 'SF', express_name: '', express_no: '', item_ids: pending })
+  Object.assign(form, { mode: 'manual', express_code: 'SF', express_name: '', express_no: '', item_ids: pending, weight: undefined })
   shipDialog.value = true
 }
 async function submitShip() {
+  if (!form.item_ids.length) return ElMessage.error('请选择本次发货的商品')
+  if (form.mode === 'waybill') return submitWaybill()
   if (!form.express_no.trim()) return ElMessage.error('请填写快递单号')
   if (form.express_code === 'OTHER' && !form.express_name.trim()) return ElMessage.error('请填写快递公司名称')
-  if (!form.item_ids.length) return ElMessage.error('请选择本次发货的商品')
-  await shipOrder(order.value.id, { ...form })
+  await shipOrder(order.value.id, { express_code: form.express_code, express_name: form.express_name, express_no: form.express_no, item_ids: form.item_ids })
   ElMessage.success('发货成功')
   shipDialog.value = false
   load()
+}
+// 电子面单：向服务商取号要几秒钟，按钮转圈、不能重复点；成功后问要不要马上打印面单
+async function submitWaybill() {
+  if (!form.express_code) return ElMessage.error('请选择快递公司')
+  shipping.value = true
+  try {
+    const r = await shipOrder(order.value.id, { waybill: 1, express_code: form.express_code, item_ids: form.item_ids, weight: form.weight || undefined })
+    shipDialog.value = false
+    load()
+    if (!r.label_url) return ElMessage.success(`发货成功，快递单号 ${r.express_no}`)
+    try {
+      await ElMessageBox.confirm(`已取到快递单号 ${r.express_no} 并完成发货。现在打印面单吗？`, '发货成功', { type: 'success', confirmButtonText: '打印面单', cancelButtonText: '稍后再打' })
+      window.open(r.label_url, '_blank', 'noopener')
+    } catch (e) { /* 稍后在订单详情的物流里打印 */ }
+  } finally {
+    shipping.value = false
+  }
 }
 
 // ---- 修改单号
@@ -79,6 +105,7 @@ async function openDetail(row) {
 onMounted(async () => {
   load()
   try { express.value = await expressOptions() } catch (e) { /* 无权限 */ }
+  if (hasPerm('order:ship:do')) waybillOptions().then((d) => { waybill.value = d }).catch(() => {})
 })
 </script>
 
@@ -134,15 +161,33 @@ onMounted(async () => {
               <el-checkbox v-for="i in order.items" :key="i.id" :value="i.id" :disabled="!!i.ship_status">{{ i.title }}<span v-if="i.spec_text">（{{ i.spec_text }}）</span> × {{ i.qty }}<el-tag v-if="i.ship_status" size="small" type="success" style="margin-left: 6px">已发</el-tag></el-checkbox>
             </el-checkbox-group>
           </el-form-item>
-          <el-form-item label="快递公司" required>
-            <el-select v-model="form.express_code" filterable style="width: 200px"><el-option v-for="e in express" :key="e.code" :label="e.name" :value="e.code" /></el-select>
-            <el-input v-if="form.express_code === 'OTHER'" v-model="form.express_name" placeholder="快递公司名称" maxlength="60" style="width: 200px; margin-left: 8px" />
+          <el-form-item v-if="waybill.enabled" label="发货方式">
+            <el-radio-group :model-value="form.mode" @update:model-value="setMode">
+              <el-radio value="manual">手填快递单号</el-radio>
+              <el-radio value="waybill">电子面单取号</el-radio>
+            </el-radio-group>
           </el-form-item>
-          <el-form-item label="快递单号" required><el-input v-model="form.express_no" maxlength="60" placeholder="快递单号" /></el-form-item>
+          <template v-if="form.mode === 'waybill'">
+            <el-form-item label="快递公司" required>
+              <el-select v-model="form.express_code" style="width: 200px" placeholder="还没有配置快递账号"><el-option v-for="e in waybill.expresses" :key="e.code" :label="e.name" :value="e.code" /></el-select>
+              <span class="tip">只列出在“设置 → API 配置 → 电子面单”里配了账号的快递</span>
+            </el-form-item>
+            <el-form-item label="重量">
+              <el-input-number v-model="form.weight" :min="0.01" :max="1000" :precision="2" :controls="false" placeholder="按商品重量" />
+              <span class="tip">千克。不填就按所选商品的重量之和（没有填重量的按 1 千克）</span>
+            </el-form-item>
+          </template>
+          <template v-else>
+            <el-form-item label="快递公司" required>
+              <el-select v-model="form.express_code" filterable style="width: 200px"><el-option v-for="e in express" :key="e.code" :label="e.name" :value="e.code" /></el-select>
+              <el-input v-if="form.express_code === 'OTHER'" v-model="form.express_name" placeholder="快递公司名称" maxlength="60" style="width: 200px; margin-left: 8px" />
+            </el-form-item>
+            <el-form-item label="快递单号" required><el-input v-model="form.express_no" maxlength="60" placeholder="快递单号" /></el-form-item>
+          </template>
         </el-form>
         <div style="color: #909399; font-size: 12px">只勾选部分商品即为部分发货；全部发出后订单自动进入「待收货」。</div>
       </template>
-      <template #footer><el-button @click="shipDialog = false">取消</el-button><el-button type="primary" @click="submitShip">确认发货</el-button></template>
+      <template #footer><el-button @click="shipDialog = false">取消</el-button><el-button type="primary" :loading="shipping" @click="submitShip">{{ form.mode === 'waybill' ? '取号并发货' : '确认发货' }}</el-button></template>
     </el-dialog>
 
     <el-dialog v-model="editDialog" title="修改物流单号（最近一次发货）" width="500px" destroy-on-close>
@@ -161,3 +206,7 @@ onMounted(async () => {
     </el-drawer>
   </div>
 </template>
+
+<style scoped>
+.tip { margin-left: 10px; color: #909399; font-size: 12px; }
+</style>

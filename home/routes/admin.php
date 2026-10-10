@@ -36,6 +36,7 @@ use App\Http\Controllers\Admin\StatsController;
 use App\Http\Controllers\Admin\StockLogController;
 use App\Http\Controllers\Admin\TranslateController;
 use App\Http\Controllers\Admin\UploadController;
+use App\Http\Controllers\Admin\WaybillController;
 use Illuminate\Support\Facades\Route;
 
 // 后台接口，前缀 /admin-api（见 bootstrap/app.php）
@@ -135,6 +136,15 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::put('driver/app/{driver}', [DriverController::class, 'save'])->defaults('type', 'app')->middleware('perm:app:mini:edit');
     Route::post('driver/app/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'app')->middleware('perm:app:mini:test');
 
+    // 电子面单：服务商的授权信息走通用驱动配置；每家快递的月结账号单独维护。没有“测试连接”（接口没有不产生面单的测试方式）
+    Route::get('driver/waybill', [DriverController::class, 'index'])->defaults('type', 'waybill')->middleware('perm:setting:api_waybill:view');
+    Route::put('driver/waybill/{driver}', [DriverController::class, 'save'])->defaults('type', 'waybill')->middleware('perm:setting:api_waybill:edit');
+    Route::get('waybill/accounts', [WaybillController::class, 'accounts'])->middleware('perm:setting:api_waybill:view');
+    Route::post('waybill/accounts', [WaybillController::class, 'store'])->middleware('perm:setting:api_waybill:edit');
+    Route::put('waybill/accounts/{id}', [WaybillController::class, 'update'])->where('id', '[0-9]+')->middleware('perm:setting:api_waybill:edit');
+    Route::delete('waybill/accounts/{id}', [WaybillController::class, 'destroy'])->where('id', '[0-9]+')->middleware('perm:setting:api_waybill:edit');
+    // 发货弹窗用：电子面单能不能用、有哪些快递可选
+    Route::get('waybill/options', [WaybillController::class, 'options'])->middleware('perm:order:ship:do');
     Route::get('driver/express', [DriverController::class, 'index'])->defaults('type', 'express')->middleware('perm:setting:api_express:view');
     Route::put('driver/express/{driver}', [DriverController::class, 'save'])->defaults('type', 'express')->middleware('perm:setting:api_express:edit');
     Route::post('driver/express/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'express')->middleware('perm:setting:api_express:test');

@@ -75,6 +75,25 @@ class DriverRegistry
                     ],
                 ],
             ],
+            'waybill' => [
+                'label'   => '电子面单',
+                'drivers' => [
+                    'kuaidi100' => [
+                        'name'   => '快递100',
+                        'desc'   => '快递100 的电子面单下单接口：发货时由商城取快递单号和面单图片。除了这里的授权信息和发货人，还要在下面的“快递账号”里填每家快递的月结账号。按公开文档接入，还没有用真实账号联调过。',
+                        'fields' => [
+                            'key'            => ['label' => '授权 key', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => '快递100 企业管理后台 → 我的信息'],
+                            'secret'         => ['label' => 'secret', 'type' => 'secret', 'required' => true, 'default' => '', 'hint' => '加密保存，页面不再显示；不修改请保持原样'],
+                            'sender_name'    => ['label' => '发货人姓名', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => '印在面单的寄件人一栏'],
+                            'sender_mobile'  => ['label' => '发货人电话', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => ''],
+                            'sender_address' => ['label' => '发货地址', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => '含省市区的完整地址，如：广东省深圳市南山区科技园某某路 1 号'],
+                            'base_url'       => ['label' => '接口地址', 'type' => 'text', 'required' => false, 'default' => 'https://api.kuaidi100.com', 'hint' => '一般不用改'],
+                            'timeout'        => ['label' => '超时（秒）', 'type' => 'text', 'required' => false, 'default' => '15', 'hint' => ''],
+                            'proxy'          => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。服务器在境外、直连快递100 不通时填写'],
+                        ],
+                    ],
+                ],
+            ],
             'express' => [
                 'label'   => '物流查询',
                 'drivers' => [

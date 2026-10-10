@@ -8,11 +8,13 @@ use App\Drivers\Contracts\PayDriver;
 use App\Drivers\Contracts\SmsDriver;
 use App\Drivers\Contracts\StorageDriver;
 use App\Drivers\Contracts\TranslateDriver;
+use App\Drivers\Contracts\WaybillDriver;
 use App\Drivers\Express\Kuaidi100Driver;
 use App\Drivers\Sms\GmSmsDriver;
 use App\Drivers\Storage\FlysystemStorageDriver;
 use App\Drivers\Translate\ClaudeDriver;
 use App\Drivers\Translate\OpenAiCompatibleDriver;
+use App\Drivers\Waybill\Kuaidi100WaybillDriver;
 use App\Models\DriverConfig;
 use App\Support\Exceptions\BusinessException;
 
@@ -156,5 +158,19 @@ class DriverManager
         return new WechatMiniDriver($config);
     }
 
-    // 后续按同样方式补充：waybill()
+    /** 已启用的电子面单驱动；没启用时返回 null */
+    public function waybillOrNull(): ?WaybillDriver
+    {
+        $row = DriverConfig::query()->where('type', 'waybill')->where('is_enabled', 1)->orderByDesc('is_default')->orderBy('sort')->first();
+        if (!$row) {
+            return null;
+        }
+        $def = DriverRegistry::driver('waybill', $row->driver);
+        $config = $row->config ?? [];
+        foreach ($def['fields'] as $key => $f) {
+            $config[$key] ??= $f['default'];
+        }
+
+        return new Kuaidi100WaybillDriver($config);
+    }
 }

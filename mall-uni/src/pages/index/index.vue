@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { state } from '@/store'
 import { getAds, getArticles, getCategories, getGoodsList, getHelp } from '@/api'
 import { usePageTitle, nav } from '@/utils/page'
+import { searchHistory, addSearchHistory, clearSearchHistory } from '@/utils/search'
 import GoodsGrid from '@/components/GoodsGrid.vue'
 
 // 首页（“温暖生活方式”版式，和 PC 端首页是同一套内容）：
@@ -20,6 +21,12 @@ const scenes = ref([])
 const guides = ref([])
 const helps = ref([])
 const keyword = ref('')
+// searched：当前列表对应的搜索词（空 = 没在搜索，显示首页）；panel：点了搜索框，正在看搜索历史和热门词
+const searched = ref('')
+const panel = ref(false)
+const history = ref(searchHistory())
+// 搜索没有结果时，在提示下面给出的推荐商品
+const fallback = ref([])
 const list = ref([])
 const page = reactive({ no: 1, total: 0, loading: false })
 const slide = ref(0)
@@ -43,15 +50,36 @@ async function loadGoods(reset = false) {
   if (reset) { page.no = 1; list.value = [] }
   page.loading = true
   try {
-    const d = await getGoodsList({ keyword: keyword.value, page: page.no, size: 10 })
+    const d = await getGoodsList({ keyword: searched.value, page: page.no, size: 10 })
     list.value = reset ? d.list : list.value.concat(d.list)
     page.total = d.total
     page.no += 1
+    if (reset) fallback.value = searched.value && !d.total ? (await safe(getGoodsList({ size: 6 }), { list: [] })).list : []
   } finally {
     page.loading = false
   }
 }
 const refresh = () => Promise.all([loadTop(), loadGoods(true)])
+
+// 搜索：搜索框回车，或者点搜索历史、热门词
+function doSearch(word) {
+  const w = String(word ?? keyword.value).trim()
+  keyword.value = w
+  searched.value = w
+  panel.value = false
+  if (w) history.value = addSearchHistory(w)
+  uni.hideKeyboard()
+  loadGoods(true)
+}
+// 取消：回到首页
+function cancelSearch() {
+  const was = searched.value
+  keyword.value = ''
+  searched.value = ''
+  panel.value = false
+  uni.hideKeyboard()
+  if (was) loadGoods(true)
+}
 
 function toCategory(id) {
   state.pendingCategoryId = Number(id)
@@ -79,11 +107,24 @@ watch(() => [state.lang, state.currency], refresh)
 <template>
   <view>
     <view class="search">
-      <input v-model="keyword" class="input" :placeholder="t('home.search')" confirm-type="search" @confirm="loadGoods(true)" />
+      <input v-model="keyword" class="input" :placeholder="t('home.search')" confirm-type="search" @focus="panel = true" @confirm="doSearch()" />
+      <text v-if="panel || searched" class="search-cancel" @click="cancelSearch">{{ t('search.cancel') }}</text>
+    </view>
+
+    <!-- 点了搜索框：搜索历史和热门搜索 -->
+    <view v-if="panel" class="search-panel">
+      <template v-if="history.length">
+        <view class="words-head"><text>{{ t('search.history') }}</text><text class="words-clear" @click="history = clearSearchHistory()">{{ t('search.clear') }}</text></view>
+        <view class="words"><text v-for="w in history" :key="w" class="word" @click="doSearch(w)">{{ w }}</text></view>
+      </template>
+      <template v-if="(state.config.site?.hot_words || []).length">
+        <view class="words-head"><text>{{ t('search.hot') }}</text></view>
+        <view class="words"><text v-for="w in state.config.site.hot_words" :key="w" class="word hot" @click="doSearch(w)">{{ w }}</text></view>
+      </template>
     </view>
 
     <!-- 搜索时只看结果，其余区块收起 -->
-    <template v-if="!keyword">
+    <template v-else-if="!searched">
       <view v-if="banners.length" class="hero">
         <swiper class="hero-swiper" circular autoplay :interval="6000" @change="slide = $event.detail.current">
           <swiper-item v-for="b in banners" :key="b.id" @click="onBanner(b)">
@@ -153,18 +194,39 @@ watch(() => [state.lang, state.currency], refresh)
       </view>
     </template>
 
-    <view class="section">
-      <view>{{ t('home.recommend') }}</view>
-      <view v-if="!keyword" class="section-sub">{{ t('home.recommendSub') }}</view>
-    </view>
-    <GoodsGrid :list="list" />
-    <view class="sub foot">{{ page.loading ? t('common.loading') : (list.length ? t('common.noMore') : t('common.empty')) }}</view>
+    <template v-if="!panel">
+      <!-- 搜索没有结果：说明一下，并给几件推荐商品 -->
+      <template v-if="searched && !page.loading && !list.length">
+        <view class="no-result">
+          <view class="no-result-title">{{ t('search.noResult', { keyword: searched }) }}</view>
+          <view class="sub">{{ t('search.tryOther') }}</view>
+        </view>
+        <GoodsGrid :list="fallback" />
+      </template>
+      <template v-else>
+        <view class="section">
+          <view>{{ searched ? t('search.result', { keyword: searched }) : t('home.recommend') }}</view>
+          <view v-if="!searched" class="section-sub">{{ t('home.recommendSub') }}</view>
+        </view>
+        <GoodsGrid :list="list" />
+        <view class="sub foot">{{ page.loading ? t('common.loading') : (list.length ? t('common.noMore') : t('common.empty')) }}</view>
+      </template>
+    </template>
   </view>
 </template>
 
 <style lang="scss" scoped>
-.search { padding: 16rpx 24rpx; }
-.input { background: var(--cream-deep); border-radius: 40rpx; height: 76rpx; padding: 0 32rpx; font-size: 28rpx; }
+.search { padding: 16rpx 24rpx; display: flex; align-items: center; }
+.search-cancel { flex: none; padding-left: 24rpx; font-size: 28rpx; color: var(--theme); }
+.search-panel { padding: 8rpx 24rpx 40rpx; min-height: calc(100vh - 320rpx); }
+.words-head { display: flex; justify-content: space-between; align-items: center; padding: 28rpx 0 16rpx; font-size: 28rpx; font-weight: 600; }
+.words-clear { font-size: 24rpx; font-weight: 400; color: var(--sub); }
+.words { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.word { max-width: 100%; padding: 0 28rpx; height: 60rpx; line-height: 60rpx; border-radius: 30rpx; background: var(--cream-deep); font-size: 26rpx; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.word.hot { background: #fff; border: 2rpx solid var(--line); }
+.no-result { padding: 80rpx 48rpx 40rpx; text-align: center; }
+.no-result-title { margin-bottom: 12rpx; font-size: 30rpx; font-weight: 600; }
+.input { flex: 1; min-width: 0; background: var(--cream-deep); border-radius: 40rpx; height: 76rpx; padding: 0 32rpx; font-size: 28rpx; }
 .fill { width: 100%; height: 100%; display: block; }
 
 /* 主视觉：标题压在轮播图左侧 */

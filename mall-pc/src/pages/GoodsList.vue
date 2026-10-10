@@ -17,6 +17,8 @@ const SORTS = [
 ]
 const categories = ref([])
 const list = ref([])
+// 搜索没有结果时，在提示下面给出的推荐商品
+const fallback = ref([])
 const page = reactive({ size: 20, total: 0, loading: false })
 
 const keyword = computed(() => String(route.query.keyword || ''))
@@ -43,6 +45,7 @@ onMounted(async () => {
     const d = await getGoodsList({ keyword: keyword.value, category_id: categoryId.value || '', sort: sort.value, page: pageNo.value, size: page.size })
     list.value = d.list
     page.total = d.total
+    if (keyword.value && !d.total) fallback.value = (await getGoodsList({ size: 8 }).catch(() => ({ list: [] }))).list
   } finally {
     page.loading = false
   }
@@ -75,7 +78,17 @@ onMounted(async () => {
       <div v-loading="page.loading" class="grid">
         <GoodsCard v-for="g in list" :key="g.id" :g="g" />
       </div>
-      <div v-if="!page.loading && !list.length" class="empty">{{ t('common.empty') }}</div>
+      <template v-if="!page.loading && !list.length">
+        <!-- 搜索没有结果：说明一下，并给几件推荐商品 -->
+        <template v-if="keyword">
+          <div class="panel no-result">
+            <div class="no-result-title">{{ t('search.noResult', { keyword }) }}</div>
+            <div class="sub">{{ t('search.tryOther') }}</div>
+          </div>
+          <div v-if="fallback.length" class="grid fallback"><GoodsCard v-for="g in fallback" :key="g.id" :g="g" /></div>
+        </template>
+        <div v-else class="empty">{{ t('common.empty') }}</div>
+      </template>
       <div v-if="page.total > page.size" class="pager">
         <el-pagination :current-page="pageNo" :page-size="page.size" :total="page.total" layout="prev, pager, next" background @current-change="(n) => go({ page: n > 1 ? n : '' })" />
       </div>
@@ -95,4 +108,7 @@ onMounted(async () => {
 .sort { margin-right: 28px; cursor: pointer; }
 .sort.on, .sort:hover { color: var(--theme); }
 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; min-height: 120px; }
+.grid.fallback { margin-top: 16px; }
+.no-result { padding: 40px 20px; text-align: center; }
+.no-result-title { margin-bottom: 8px; font-size: 16px; font-weight: 600; }
 </style>

@@ -50,6 +50,7 @@ export default {
   refundType: { 1: 'Refund only', 2: 'Return & refund' },
   commissionStatus: { 0: 'Pending', 1: 'Settled', 2: 'Void' },
   withdrawStatus: { 0: 'Under review', 1: 'Approved', 2: 'Paid', 3: 'Declined' },
+  search: { history: 'Recent searches', hot: 'Popular', clear: 'Clear', cancel: 'Cancel', result: 'Results for "{keyword}"', noResult: 'No products found for "{keyword}"', tryOther: 'Try another word, or take a look at these', recommend: 'You may like' },
   extra: { params: 'Specifications', related: 'Accessories & refills', fits: 'Works with' },
   coupon: {
     title: 'Coupons', receivable: 'Available', unused: 'Unused', used: 'Used', expired: 'Expired', receive: 'Claim', received: 'Claimed', receiveOk: 'Coupon claimed', empty: 'No coupons',

@@ -11,7 +11,7 @@ const loading = ref(false)
 const saving = ref(false)
 const form = reactive({
   site_name: {}, site_logo: '', site_favicon: '', site_desc: {}, site_keywords: {},
-  company_name: '', service_email: '', service_phone: '', service_url: '', service_hours: {}, copyright: {}, site_icp: '',
+  company_name: '', service_email: '', service_phone: '', service_url: '', service_hours: {}, search_hot_words: {}, copyright: {}, site_icp: '',
   site_closed: 0, close_notice: {}, email_verify_enabled: 0,
 })
 
@@ -66,6 +66,12 @@ onMounted(load)
           </div>
         </el-form-item>
         <el-form-item label="客服服务时间"><LangInput v-model="form.service_hours" :languages="languages" :maxlength="100" placeholder="如：周一至周五 9:00-18:00" /></el-form-item>
+        <el-form-item label="热门搜索词">
+          <LangInput v-model="form.search_hot_words" :languages="languages" :maxlength="200" placeholder="如：喂食器，饮水机，猫砂盆" />
+          <div style="color: #909399; font-size: 12px; line-height: 1.6; width: 100%">
+            买家点开搜索框时看到的推荐词，用逗号分开，最多显示 10 个。不填就不显示这一栏。
+          </div>
+        </el-form-item>
         <el-form-item label="备案号"><el-input v-model="form.site_icp" maxlength="100" placeholder="面向国内用户时填写 ICP 备案号" /></el-form-item>
 
         <el-divider content-position="left">站点状态</el-divider>

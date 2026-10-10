@@ -25,6 +25,7 @@ class ConfigService
             'service_phone' => ['label' => '客服电话', 'type' => 'string', 'max' => 30],
             'service_url'   => ['label' => '在线客服链接', 'type' => 'string', 'max' => 500, 'url' => true],
             'service_hours' => ['label' => '客服服务时间', 'type' => 'string', 'lang' => true, 'max' => 100],
+            'search_hot_words' => ['label' => '热门搜索词', 'type' => 'string', 'lang' => true, 'max' => 200],
             'copyright'     => ['label' => '版权信息', 'type' => 'string', 'lang' => true, 'max' => 255],
             'site_icp'      => ['label' => '备案号', 'type' => 'string', 'max' => 100],
             'site_closed'   => ['label' => '关闭站点', 'type' => 'bool', 'default' => 0],
@@ -126,8 +127,25 @@ class ConfigService
             $v = $all[$key];
             $out[$key] = !empty($defs[$key]['lang']) ? ($v[$lang] ?? $v[$default] ?? '') : $v;
         }
+        // 热门搜索词：后台填的是一行用逗号分开的文字，给买家端的是数组（最多 10 个，每个最多 20 个字）
+        $hot = $all['search_hot_words'];
+        $out['hot_words'] = self::splitWords((string) (($hot[$lang] ?? '') !== '' ? $hot[$lang] : ($hot[$default] ?? '')));
 
         return $out;
+    }
+
+    /** 把“智能喂食器，饮水机, 猫砂盆”这样的一行拆成词的数组：中英文逗号、顿号、换行都算分隔，去重 */
+    public static function splitWords(string $text, int $limit = 10): array
+    {
+        $words = [];
+        foreach (preg_split('/[,，、;；\r\n]+/u', $text) ?: [] as $w) {
+            $w = mb_substr(trim($w), 0, 20);
+            if ($w !== '' && !in_array($w, $words, true)) {
+                $words[] = $w;
+            }
+        }
+
+        return array_slice($words, 0, $limit);
     }
 
     public function save(string $group, array $data): void

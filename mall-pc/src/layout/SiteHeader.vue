@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ShoppingCart, Search, User } from '@element-plus/icons-vue'
@@ -7,6 +7,7 @@ import { state, setLang, setCurrency, logout } from '@/store'
 import { updateProfile, logoutApi } from '@/api'
 import { applyLang } from '@/locale'
 import { confirm } from '@/utils/app'
+import { searchHistory, addSearchHistory, clearSearchHistory } from '@/utils/search'
 import SiteLogo from '@/components/SiteLogo.vue'
 
 const { t } = useI18n()
@@ -17,10 +18,21 @@ const keyword = ref('')
 // 进入搜索结果页时，搜索框里显示当前的关键词
 watch(() => route.query.keyword, (k) => { keyword.value = route.name === 'goods' ? String(k || '') : '' }, { immediate: true })
 
-function search() {
-  const k = keyword.value.trim()
+// 点开搜索框时在下面展开：搜索历史 + 后台配的热门搜索词；点别处收起。
+// 搜索之后焦点还留在输入框里，再点它不会触发 focus，所以点击时也展开
+const history = ref(searchHistory())
+const dropOpen = ref(false)
+const searchBox = ref(null)
+function search(word) {
+  const k = (typeof word === 'string' ? word : keyword.value).trim()
+  keyword.value = k
+  dropOpen.value = false
+  if (k) history.value = addSearchHistory(k)
   router.push({ name: 'goods', query: k ? { keyword: k } : {} })
 }
+const onDocDown = (e) => { if (searchBox.value && !searchBox.value.contains(e.target)) dropOpen.value = false }
+onMounted(() => document.addEventListener('mousedown', onDocDown))
+onBeforeUnmount(() => document.removeEventListener('mousedown', onDocDown))
 
 // 语言和币种：本地立即生效；已登录时同步到会员资料，换设备登录后还在
 function onLang(code) {
@@ -90,10 +102,20 @@ async function onCommand(cmd) {
           <router-link :to="{ name: 'articles', query: { type: 'article' } }" class="nav-item" :class="{ on: $route.name === 'articles' && $route.query.type !== 'help' }">{{ t('article.articles') }}</router-link>
           <router-link :to="{ name: 'articles', query: { type: 'help' } }" class="nav-item" :class="{ on: $route.name === 'articles' && $route.query.type === 'help' }">{{ t('article.help') }}</router-link>
         </nav>
-        <div class="search">
-          <el-input v-model="keyword" :placeholder="t('home.search')" size="large" clearable @keyup.enter="search">
-            <template #suffix><el-icon class="search-btn" @click="search"><Search /></el-icon></template>
+        <div ref="searchBox" class="search">
+          <el-input v-model="keyword" :placeholder="t('home.search')" size="large" clearable @focus="dropOpen = true" @click="dropOpen = true" @keyup.enter="search()">
+            <template #suffix><el-icon class="search-btn" @click="search()"><Search /></el-icon></template>
           </el-input>
+          <div v-if="dropOpen && (history.length || (state.config.site?.hot_words || []).length)" class="search-drop">
+            <template v-if="history.length">
+              <div class="words-head"><span>{{ t('search.history') }}</span><a class="words-clear" @click="history = clearSearchHistory()">{{ t('search.clear') }}</a></div>
+              <div class="words"><a v-for="w in history" :key="w" class="word" @click="search(w)">{{ w }}</a></div>
+            </template>
+            <template v-if="(state.config.site?.hot_words || []).length">
+              <div class="words-head"><span>{{ t('search.hot') }}</span></div>
+              <div class="words"><a v-for="w in state.config.site.hot_words" :key="w" class="word hot" @click="search(w)">{{ w }}</a></div>
+            </template>
+          </div>
         </div>
       </div>
     </div>
@@ -118,7 +140,15 @@ async function onCommand(cmd) {
 /* 当前栏目：文字变主题色，下面一道短线。资讯和帮助中心是同一个页面的两个页签，靠 on 区分 */
 .nav-item.router-link-exact-active, .nav-item.on { color: var(--theme); }
 .nav-item.router-link-exact-active::after, .nav-item.on::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; border-radius: 1px; background: var(--theme); }
-.search { margin-left: auto; width: 320px; }
+.search { position: relative; margin-left: auto; width: 320px; }
+.search-drop { position: absolute; z-index: 20; top: calc(100% + 8px); left: 0; right: 0; padding: 4px 16px 16px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(41, 43, 39, 0.08); }
+.words-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 8px; font-size: 13px; font-weight: 600; }
+.words-clear { font-weight: 400; color: var(--sub); cursor: pointer; }
+.words-clear:hover { color: var(--theme); }
+.words { display: flex; flex-wrap: wrap; gap: 8px; }
+.word { max-width: 100%; padding: 0 12px; height: 28px; line-height: 28px; border-radius: 14px; background: var(--cream-deep); font-size: 13px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.word.hot { background: #fff; box-shadow: 0 0 0 1px var(--line) inset; }
+.word:hover { color: var(--theme); }
 .search :deep(.el-input__wrapper) { border-radius: 22px; padding: 0 18px; background: var(--cream-deep); box-shadow: 0 0 0 1px var(--line) inset; }
 .search :deep(.el-input__wrapper.is-focus) { box-shadow: 0 0 0 1px var(--theme) inset; background: #fff; }
 .search-btn { font-size: 18px; color: var(--text); cursor: pointer; }

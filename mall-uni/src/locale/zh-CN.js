@@ -50,6 +50,7 @@ export default {
   refundType: { 1: '仅退款', 2: '退货退款' },
   commissionStatus: { 0: '待结算', 1: '已结算', 2: '已作废' },
   withdrawStatus: { 0: '待审核', 1: '待打款', 2: '已打款', 3: '已拒绝' },
+  search: { history: '搜索历史', hot: '热门搜索', clear: '清空', cancel: '取消', result: '“{keyword}”的搜索结果', noResult: '没有找到和“{keyword}”相关的商品', tryOther: '换个词试试，或者看看下面这些', recommend: '看看这些' },
   extra: { params: '规格参数', related: '配套耗材与配件', fits: '适用设备' },
   coupon: {
     title: '优惠券', receivable: '可领取', unused: '未使用', used: '已使用', expired: '已过期', receive: '领取', received: '已领取', receiveOk: '领取成功', empty: '暂无优惠券',

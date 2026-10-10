@@ -59,11 +59,11 @@ class CatalogService
         if (isset($f['ids'])) {
             $q->whereIn('g.id', array_map('intval', (array) $f['ids']));
         }
-        $kw = trim((string) ($f['keyword'] ?? ''));
-        if ($kw !== '') {
-            $like = '%' . addcslashes($kw, '%_\\') . '%';
+        // 关键词：用空格分开的每个词都要命中（标题、副标题、搜索关键词里任意一处，任意一种语言），最多取 5 个词
+        foreach (self::searchTerms((string) ($f['keyword'] ?? '')) as $term) {
+            $like = '%' . addcslashes($term, '%_\\') . '%';
             $q->whereExists(fn ($s) => $s->select(DB::raw(1))->from('goods_lang as l')->whereColumn('l.goods_id', 'g.id')
-                ->where(fn ($w) => $w->where('l.title', 'like', $like)->orWhere('l.keywords', 'like', $like)));
+                ->where(fn ($w) => $w->where('l.title', 'like', $like)->orWhere('l.subtitle', 'like', $like)->orWhere('l.keywords', 'like', $like)));
         }
 
         // 价格排序按基准币种展示价，币种单独定价或有区域价的商品可能与实际展示价排序略有出入（列表页可接受）
@@ -95,6 +95,14 @@ class CatalogService
         $p->setCollection(collect($list));
 
         return Paginate::format($p);
+    }
+
+    /** 把买家输入的搜索内容拆成词：按空白（含全角空格）分开，去重，最多 5 个，整体最多 50 个字 */
+    public static function searchTerms(string $keyword): array
+    {
+        $parts = preg_split('/[\s\x{3000}]+/u', mb_substr(trim($keyword), 0, 50), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return array_slice(array_values(array_unique($parts)), 0, 5);
     }
 
     // ------------------------------------------------------------------ 详情

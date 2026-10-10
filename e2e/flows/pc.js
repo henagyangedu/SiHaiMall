@@ -50,7 +50,7 @@ module.exports = async function pcFlow(browser, data) {
     await go(`/goods/${data.single.goods_id}`);
     await page.getByRole('button', { name: '加入购物车' }).click();
     await el.message(page, '已加入购物车');
-    await page.locator('.cart .el-badge__content').waitFor();
+    await page.locator('.cart:not(.msg-link) .el-badge__content').waitFor();
   });
   await step('多规格商品不选规格不能加购，选齐后可以', async () => {
     if (!data.multi_goods_id) throw new Skip('开发库里没有多规格商品');

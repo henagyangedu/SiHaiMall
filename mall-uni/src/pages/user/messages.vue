@@ -6,7 +6,7 @@ import { state } from '@/store'
 import { getMessages, readMessage, readAllMessages, deleteMessage } from '@/api'
 import { usePageTitle, nav } from '@/utils/page'
 
-// 消息中心（站内信）：支付成功、发货、退款、到货提醒等通知。点一条就标为已读；有关联的订单 / 售后单 / 商品时可以点“查看详情”过去
+// 消息中心（站内信）：支付成功、发货、退款、到货提醒等通知，以及商家在后台群发的消息。点一条就标为已读；有关联的订单 / 售后单 / 商品时可以点“查看详情”过去
 const { t } = useI18n()
 usePageTitle('msg.title')
 
@@ -51,6 +51,9 @@ function target(m) {
   if (m.link_type === 'refund' && m.link_value) return `/pages/refund/detail?refund_no=${m.link_value}`
   if (m.link_type === 'goods' && m.link_value) return `/pages/goods/detail?id=${m.link_value}`
   if (m.link_type === 'withdraw') return '/pages/distribution/index'
+  // 后台群发的消息还可以跳到文章、领券中心
+  if (m.link_type === 'article' && m.link_value) return `/pages/article/detail?id=${m.link_value}`
+  if (m.link_type === 'coupon') return '/pages/coupon/index'
   return ''
 }
 async function open(m) {

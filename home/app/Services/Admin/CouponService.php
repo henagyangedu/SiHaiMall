@@ -6,6 +6,7 @@ use App\Models\Coupon;
 use App\Models\Member;
 use App\Models\MemberCoupon;
 use App\Services\Common\CouponService as CouponRules;
+use App\Services\Common\MemberLookupService;
 use App\Support\Exceptions\BusinessException;
 use App\Support\Paginate;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ class CouponService
     /** 有人领过之后还能改的字段 */
     private const EDITABLE_AFTER_RECEIVED = ['name', 'total', 'per_member', 'receive_start', 'receive_end', 'is_public', 'status'];
 
-    public function __construct(private CouponRules $rules) {}
+    public function __construct(private CouponRules $rules, private MemberLookupService $lookup) {}
 
     public function list(array $f): array
     {
@@ -87,38 +88,21 @@ class CouponService
      */
     public function grant(int $id, array $accounts): array
     {
-        $accounts = array_values(array_unique(array_filter(array_map(fn ($v) => trim((string) $v), $accounts), fn ($v) => $v !== '')));
+        $accounts = $this->lookup->clean($accounts);
         if ($accounts === []) {
             throw new BusinessException('请填写要发放的会员');
         }
         if (count($accounts) > 500) {
             throw new BusinessException('一次最多发给 500 位会员');
         }
-        $ids = [];
-        $missing = [];
-        foreach ($accounts as $a) {
-            $m = Member::query()->where(function ($q) use ($a) {
-                $q->where('account', $a)->orWhere('email', $a)->orWhere('phone', $a);
-                if (ctype_digit($a) && strlen($a) < 10) {
-                    $q->orWhere('id', (int) $a);
-                }
-            })->first(['id', 'status']);
-            if (!$m || (int) $m->status !== 1) {
-                $missing[] = $a;
-            } else {
-                $ids[(int) $m->id] = true;
-            }
-        }
-        if ($missing !== []) {
-            throw new BusinessException('找不到这些会员（或已被禁用）：' . implode('、', array_slice($missing, 0, 10)) . (count($missing) > 10 ? ' 等 ' . count($missing) . ' 个' : ''));
-        }
+        $ids = $this->lookup->idsByAccounts($accounts);
 
         return DB::transaction(function () use ($id, $ids) {
             $c = Coupon::query()->lockForUpdate()->find($id) ?? throw new BusinessException('优惠券不存在');
             if ((int) $c->total > 0 && (int) $c->total - (int) $c->received < count($ids)) {
                 throw new BusinessException('剩余数量不够：还剩 ' . ((int) $c->total - (int) $c->received) . ' 张，要发 ' . count($ids) . ' 张');
             }
-            foreach (array_keys($ids) as $memberId) {
+            foreach ($ids as $memberId) {
                 $this->rules->issue($c, $memberId, false);
             }
 

@@ -37,3 +37,9 @@ export async function exportMembers(params) {
   a.click()
   URL.revokeObjectURL(a.href)
 }
+
+// 群发消息（站内信）
+export const listBroadcast = (params) => http.get('/member/broadcast/list', { params })
+export const createBroadcast = (data) => http.post('/member/broadcast', data)
+export const sendBroadcast = (id) => http.post(`/member/broadcast/${id}/send`)
+export const revokeBroadcast = (id) => http.post(`/member/broadcast/${id}/revoke`)

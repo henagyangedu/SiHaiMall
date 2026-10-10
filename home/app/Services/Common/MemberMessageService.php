@@ -7,7 +7,7 @@ use App\Support\Paginate;
 use Illuminate\Support\Facades\DB;
 
 /**
- * 站内信（买家的消息中心）。写入只有一个入口：NotifyService 在发通知时调 push()；
+ * 站内信（买家的消息中心）。写入有两个入口：NotifyService 在发通知时调 push()，后台群发（MessageBroadcastService）调 pushMany()；
  * 标题和正文在写入时已经按会员的语言生成好，这里不再翻译。超过保留期的由 mall:message-cleanup 清理。
  */
 class MemberMessageService
@@ -22,6 +22,23 @@ class MemberMessageService
             'member_id' => $memberId, 'scene' => $scene, 'title' => mb_substr($title, 0, 200), 'content' => $content,
             'link_type' => (string) $link[0], 'link_value' => mb_substr((string) $link[1], 0, 64), 'is_read' => 0, 'created_at' => now(),
         ]);
+    }
+
+    /**
+     * 群发：同一个场景、同一个跳转，一次写给很多会员。
+     * @param array<int, array{member_id:int, title:string, content:string}> $rows
+     * @param array{0:string,1:string} $link
+     */
+    public function pushMany(string $scene, array $rows, array $link = ['', '']): void
+    {
+        $now = now();
+        $insert = array_map(fn ($r) => [
+            'member_id' => (int) $r['member_id'], 'scene' => $scene, 'title' => mb_substr((string) $r['title'], 0, 200), 'content' => (string) $r['content'],
+            'link_type' => (string) $link[0], 'link_value' => mb_substr((string) $link[1], 0, 64), 'is_read' => 0, 'created_at' => $now,
+        ], $rows);
+        foreach (array_chunk($insert, 200) as $chunk) {
+            DB::table('member_message')->insert($chunk);
+        }
     }
 
     /** 我的消息，新的在前 */

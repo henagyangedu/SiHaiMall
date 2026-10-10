@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\GoodsReviewController;
 use App\Http\Controllers\Admin\MemberPointController;
 use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\MessageBroadcastController;
 use App\Http\Controllers\Admin\MessageTemplateController;
 use App\Http\Controllers\Admin\OptionController;
 use App\Http\Controllers\Admin\OrderController;
@@ -82,7 +83,7 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::get('list', [LanguageController::class, 'index'])->middleware('perm:setting:language:view');
         // 各多语言表单的页签数据：拥有任一相关页面权限即可读取（新增多语言页面时把它的 view 权限加到这里）
         Route::get('options', [LanguageController::class, 'options'])
-            ->middleware('perm:setting:language:view,setting:base:view,setting:message:view,setting:protocol:view,setting:receipt:view,goods:category:view,goods:brand:view,goods:list:view,member:level:view,member:list:view,setting:api_translate:view,content:article:view,content:notice:view,content:help:view,content:ad:view');
+            ->middleware('perm:setting:language:view,setting:base:view,setting:message:view,setting:protocol:view,setting:receipt:view,goods:category:view,goods:brand:view,goods:list:view,member:level:view,member:list:view,member:broadcast:view,setting:api_translate:view,content:article:view,content:notice:view,content:help:view,content:ad:view');
         Route::post('/', [LanguageController::class, 'store'])->middleware('perm:setting:language:add');
         Route::put('{id}', [LanguageController::class, 'update'])->middleware('perm:setting:language:edit');
         Route::post('{id}/default', [LanguageController::class, 'setDefault'])->middleware('perm:setting:language:edit');
@@ -154,7 +155,7 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     // AI 翻译：翻译接口（有任一带多语言内容的编辑权限即可用：商品、分类、品牌、会员等级、文章/公告/帮助、基础信息、协议）、路由与额度设置、术语表、用量日志
     Route::prefix('translate')->group(function () {
         Route::post('/', [TranslateController::class, 'translate'])
-            ->middleware(['throttle:30,1', 'perm:goods:list:add,goods:list:edit,goods:category:add,goods:category:edit,goods:brand:add,goods:brand:edit,member:level:add,member:level:edit,content:article:add,content:article:edit,content:notice:add,content:notice:edit,content:help:add,content:help:edit,setting:base:edit,setting:protocol:edit,setting:api_translate:test']);
+            ->middleware(['throttle:30,1', 'perm:goods:list:add,goods:list:edit,goods:category:add,goods:category:edit,goods:brand:add,goods:brand:edit,member:level:add,member:level:edit,member:broadcast:add,content:article:add,content:article:edit,content:notice:add,content:notice:edit,content:help:add,content:help:edit,setting:base:edit,setting:protocol:edit,setting:api_translate:test']);
         Route::get('settings', [TranslateController::class, 'settings'])->middleware('perm:setting:api_translate:view');
         Route::put('settings', [TranslateController::class, 'saveSettings'])->middleware('perm:setting:api_translate:edit');
         Route::get('glossary', [TranslateController::class, 'glossaryIndex'])->middleware('perm:setting:api_translate:view');
@@ -303,10 +304,16 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::get('list/{id}/balance-log', [MemberController::class, 'balanceLog'])->middleware('perm:member:list:detail');
 
         Route::get('level/list', [MemberLevelController::class, 'index'])->middleware('perm:member:level:view');
-        Route::get('level/options', [MemberLevelController::class, 'options'])->middleware('perm:member:level:view,member:list:view');
+        Route::get('level/options', [MemberLevelController::class, 'options'])->middleware('perm:member:level:view,member:list:view,member:broadcast:view');
         Route::post('level', [MemberLevelController::class, 'store'])->middleware('perm:member:level:add');
         Route::put('level/{id}', [MemberLevelController::class, 'update'])->middleware('perm:member:level:edit');
         Route::delete('level/{id}', [MemberLevelController::class, 'destroy'])->middleware('perm:member:level:del');
+
+        // 群发消息（站内信）：建好后由定时任务分批发，“立即发送”是手动触发同一段逻辑
+        Route::get('broadcast/list', [MessageBroadcastController::class, 'index'])->middleware('perm:member:broadcast:view');
+        Route::post('broadcast', [MessageBroadcastController::class, 'store'])->middleware(['throttle:20,1', 'perm:member:broadcast:add']);
+        Route::post('broadcast/{id}/send', [MessageBroadcastController::class, 'send'])->where('id', '[0-9]+')->middleware('perm:member:broadcast:add');
+        Route::post('broadcast/{id}/revoke', [MessageBroadcastController::class, 'revoke'])->where('id', '[0-9]+')->middleware('perm:member:broadcast:revoke');
 
         Route::get('points', [MemberPointController::class, 'index'])->middleware('perm:member:points:view,member:list:detail');
     });

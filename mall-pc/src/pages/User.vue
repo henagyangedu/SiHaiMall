@@ -87,10 +87,10 @@ onMounted(async () => {
 .more { margin-left: 16px; font-weight: 400; font-size: 13px; }
 .tabs { display: flex; }
 .tab { flex: 1; text-align: center; padding: 16px 0; cursor: pointer; border-radius: 8px; }
-.tab:hover { background: #fcebeb; color: var(--theme); }
+.tab:hover { background: var(--el-color-primary-light-9); color: var(--theme); }
 .addr { display: flex; align-items: center; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .addr:last-child { border-bottom: none; }
 .body { flex: 1; min-width: 0; }
 .tag { margin-left: 8px; }
-.level { font-size: 12px; font-weight: 400; margin-left: 10px; padding: 2px 10px; border-radius: 10px; background: #fcf5f5; color: var(--theme); vertical-align: middle; }
+.level { font-size: 12px; font-weight: 400; margin-left: 10px; padding: 2px 10px; border-radius: 10px; background: var(--el-color-primary-light-9); color: var(--theme); vertical-align: middle; }
 </style>

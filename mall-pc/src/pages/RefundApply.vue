@@ -134,8 +134,8 @@ onMounted(async () => {
 .no { margin-left: 16px; font-weight: 400; }
 .targets { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; }
 .opt { border: 2px solid var(--line); border-radius: 8px; padding: 12px 14px; cursor: pointer; line-height: 1.6; }
-.opt:hover { border-color: #f29c9e; }
-.opt.on { border-color: var(--theme); background: #fcf5f5; }
+.opt:hover { border-color: var(--el-color-primary-light-5); }
+.opt.on { border-color: var(--theme); background: var(--el-color-primary-light-9); }
 .goods { display: flex; gap: 12px; align-items: center; }
 .body { min-width: 0; }
 .tip { margin-left: 14px; }

@@ -3,7 +3,7 @@ import { state } from '@/store'
 
 // 用 hash 路由：打包后的静态文件放到任何目录都能用，不需要服务器配置回退规则
 const routes = [
-  { path: '/', name: 'home', component: () => import('@/pages/Home.vue') },
+  { path: '/', name: 'home', component: () => import('@/pages/Home.vue'), meta: { wide: true } },
   // 分类浏览和关键词搜索共用一个列表页：?category_id= / ?keyword=
   { path: '/goods', name: 'goods', component: () => import('@/pages/GoodsList.vue') },
   { path: '/goods/:id(\\d+)', name: 'goods-detail', component: () => import('@/pages/GoodsDetail.vue') },

@@ -55,7 +55,7 @@ onMounted(load)
 <style scoped>
 .list { min-height: 200px; }
 .row { display: block; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
-.row:hover { border-color: #f29c9e; }
+.row:hover { border-color: var(--el-color-primary-light-5); }
 .head { display: flex; justify-content: space-between; background: #fafafa; padding: 10px 16px; }
 .status { color: var(--theme); }
 .body { display: flex; align-items: center; }

@@ -78,7 +78,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.balance { background: #fcf5f5; border-radius: 8px; padding: 18px 20px; margin-bottom: 16px; }
+.balance { background: var(--el-color-primary-light-9); border-radius: 8px; padding: 18px 20px; margin-bottom: 16px; }
 .num { font-size: 28px; font-weight: 600; color: var(--theme); margin-left: 14px; }
 .level { margin-top: 8px; }
 .sign { margin-left: 24px; vertical-align: 4px; }

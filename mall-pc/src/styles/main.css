@@ -1,17 +1,23 @@
 :root {
-  --theme: #e4393c;
-  --line: #ebeef5;
-  --text: #303133;
-  --sub: #909399;
-  --bg: #f5f6f8;
+  /* “温暖生活方式”配色 */
+  --theme: #c56948;        /* 陶土橙：主色 */
+  --theme-dark: #a9563a;
+  --bg: #f7f3eb;           /* 奶油白：页面底色 */
+  --cream-deep: #f0e9dd;   /* 深一档的奶油色：公告条、图片占位、输入框 */
+  --sage: #a7b7a0;         /* 鼠尾草绿：点缀色，用在主题横幅上 */
+  --text: #292b27;         /* 炭灰：正文 */
+  --sub: #8b877d;
+  --line: #e6dfd2;
+  --radius: 12px;
   /* Element Plus 的主色跟商城主题色一致 */
-  --el-color-primary: #e4393c;
-  --el-color-primary-light-3: #ec7577;
-  --el-color-primary-light-5: #f29c9e;
-  --el-color-primary-light-7: #f7c4c5;
-  --el-color-primary-light-8: #fad7d8;
-  --el-color-primary-light-9: #fcebeb;
-  --el-color-primary-dark-2: #b62e30;
+  --el-color-primary: #c56948;
+  --el-color-primary-light-3: #d6967f;
+  --el-color-primary-light-5: #e2b4a4;
+  --el-color-primary-light-7: #eed2c8;
+  --el-color-primary-light-8: #f3e1da;
+  --el-color-primary-light-9: #f9f0ec;
+  --el-color-primary-dark-2: #9e543a;
+  --el-border-radius-base: 8px;
 }
 
 * { box-sizing: border-box; }
@@ -24,7 +30,7 @@ a { color: inherit; text-decoration: none; }
 img { max-width: 100%; }
 
 .container { width: 1200px; margin: 0 auto; }
-.panel { background: #fff; border-radius: 8px; padding: 20px; }
+.panel { background: #fff; border-radius: var(--radius); padding: 20px; }
 .panel + .panel { margin-top: 16px; }
 .panel-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
 .sub { color: var(--sub); font-size: 13px; }

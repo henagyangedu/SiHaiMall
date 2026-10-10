@@ -16,6 +16,10 @@ export default {
     typeCol: '类型', timeCol: '时间', refCol: '关联单号', changeCol: '变动', balanceCol: '变动后', orderCol: '订单号', statusCol: '状态',
     buyerCol: '买家', levelCol: '层级', baseCol: '计佣金额', rateCol: '比例', commissionCol: '佣金', memberCol: '会员', withdrawNoCol: '提现单号',
     reasonCol: '备注', viewOrder: '查看订单', distOverview: '概览',
+    multiSpec: '多规格', priceFrom: '起', viewAll: '查看全部',
+    heroEyebrow: 'SMART PET LIVING', heroSub: '从准时开饭，到窝边的舒适温度', heroCta: '探索智能用品', heroGuide: '查看选购指南', heroFallback: '让日常照顾，轻松一点',
+    sceneTitle: '按生活场景，找到合适的用品', recommendSub: '把每天的小事，照顾得更妥帖',
+    bandSub: '常用配件与耗材，一次备齐', bandCta: '去看看', guideTitle: '养宠与选购指南', readGuide: '阅读指南', needHelp: '需要帮助？',
     scanTitle: '扫码支付', scanTip: '请用手机微信扫描二维码付款', scanWaiting: '付款后这里会自动更新，请不要关闭窗口',
   },
   en: {
@@ -34,6 +38,10 @@ export default {
     typeCol: 'Type', timeCol: 'Time', refCol: 'Reference', changeCol: 'Change', balanceCol: 'Balance', orderCol: 'Order', statusCol: 'Status',
     buyerCol: 'Buyer', levelCol: 'Level', baseCol: 'Commission base', rateCol: 'Rate', commissionCol: 'Commission', memberCol: 'Member', withdrawNoCol: 'Withdrawal no.',
     reasonCol: 'Note', viewOrder: 'View order', distOverview: 'Overview',
+    multiSpec: 'Options', priceFrom: '+', viewAll: 'View all',
+    heroEyebrow: 'SMART PET LIVING', heroSub: 'From meals on time to a cosy spot by your side', heroCta: 'Explore smart gear', heroGuide: 'Read buying guides', heroFallback: 'Everyday care, made a little easier',
+    sceneTitle: 'Shop by everyday moments', recommendSub: 'Small daily things, taken care of',
+    bandSub: 'Accessories and refills, all in one go', bandCta: 'Take a look', guideTitle: 'Pet care & buying guides', readGuide: 'Read the guide', needHelp: 'Need help?',
     scanTitle: 'Scan to pay', scanTip: 'Scan this QR code with WeChat on your phone to pay', scanWaiting: 'This page updates automatically after you pay. Please keep it open.',
   },
 }

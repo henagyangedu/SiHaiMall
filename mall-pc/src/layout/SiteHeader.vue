@@ -2,11 +2,12 @@
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ShoppingCart, Search } from '@element-plus/icons-vue'
+import { ShoppingCart, Search, User } from '@element-plus/icons-vue'
 import { state, setLang, setCurrency, logout } from '@/store'
 import { updateProfile, logoutApi } from '@/api'
 import { applyLang } from '@/locale'
 import { confirm } from '@/utils/app'
+import SiteLogo from '@/components/SiteLogo.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -46,18 +47,20 @@ async function onCommand(cmd) {
 
 <template>
   <header>
+    <!-- 顶部细条：左边语言和币种，右边登录入口和购物车 -->
     <div class="top">
       <div class="container top-inner">
-        <span class="sub">{{ state.config.site?.site_desc || '' }}</span>
-        <div class="right">
+        <div class="side">
           <el-select v-if="state.config.languages.length > 1" :model-value="state.lang" size="small" class="pick" @change="onLang">
             <el-option v-for="l in state.config.languages" :key="l.code" :label="l.name" :value="l.code" />
           </el-select>
           <el-select v-if="state.config.currencies.length > 1" :model-value="state.currency" size="small" class="pick" @change="onCurrency">
             <el-option v-for="c in state.config.currencies" :key="c.code" :label="`${c.code} ${c.symbol}`" :value="c.code" />
           </el-select>
+        </div>
+        <div class="side">
           <el-dropdown v-if="state.member" @command="onCommand">
-            <span class="user">{{ t('pc.hello', { name: state.member.nickname }) }} ▾</span>
+            <span class="user"><el-icon><User /></el-icon>{{ t('pc.hello', { name: state.member.nickname }) }} ▾</span>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="orders">{{ t('pc.myOrders') }}</el-dropdown-item>
@@ -67,57 +70,57 @@ async function onCommand(cmd) {
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <router-link v-else :to="{ name: 'login' }" class="user">{{ t('pc.loginOrRegister') }}</router-link>
+          <router-link v-else :to="{ name: 'login' }" class="user"><el-icon><User /></el-icon>{{ t('pc.loginOrRegister') }}</router-link>
+          <router-link :to="{ name: 'cart' }" class="cart">
+            <el-badge :value="state.cartCount" :hidden="!state.cartCount" :max="99">
+              <span class="cart-link"><el-icon><ShoppingCart /></el-icon>{{ t('cart.title') }}</span>
+            </el-badge>
+          </router-link>
         </div>
       </div>
     </div>
 
+    <!-- 主导航：标识、栏目、搜索 -->
     <div class="bar">
       <div class="container bar-inner">
-        <router-link :to="{ name: 'home' }" class="logo">
-          <img v-if="state.config.site?.site_logo" :src="state.config.site.site_logo" alt="" />
-          <span v-else>{{ state.config.site?.site_name || t('tab.home') }}</span>
-        </router-link>
-
+        <SiteLogo />
+        <nav class="nav">
+          <router-link :to="{ name: 'home' }" class="nav-item">{{ t('pc.home') }}</router-link>
+          <router-link :to="{ name: 'goods' }" class="nav-item">{{ t('category.all') }}</router-link>
+          <router-link :to="{ name: 'articles', query: { type: 'article' } }" class="nav-item" :class="{ on: $route.name === 'articles' && $route.query.type !== 'help' }">{{ t('article.articles') }}</router-link>
+          <router-link :to="{ name: 'articles', query: { type: 'help' } }" class="nav-item" :class="{ on: $route.name === 'articles' && $route.query.type === 'help' }">{{ t('article.help') }}</router-link>
+        </nav>
         <div class="search">
           <el-input v-model="keyword" :placeholder="t('home.search')" size="large" clearable @keyup.enter="search">
-            <template #append><el-button :icon="Search" @click="search">{{ t('pc.searchBtn') }}</el-button></template>
+            <template #suffix><el-icon class="search-btn" @click="search"><Search /></el-icon></template>
           </el-input>
         </div>
-
-        <router-link :to="{ name: 'cart' }" class="cart">
-          <el-badge :value="state.cartCount" :hidden="!state.cartCount" :max="99">
-            <el-button size="large" :icon="ShoppingCart">{{ t('cart.title') }}</el-button>
-          </el-badge>
-        </router-link>
       </div>
     </div>
-
-    <nav class="nav">
-      <div class="container">
-        <router-link :to="{ name: 'home' }" class="nav-item">{{ t('pc.home') }}</router-link>
-        <router-link :to="{ name: 'goods' }" class="nav-item">{{ t('category.all') }}</router-link>
-        <router-link :to="{ name: 'articles', query: { type: 'article' } }" class="nav-item">{{ t('article.articles') }}</router-link>
-        <router-link :to="{ name: 'articles', query: { type: 'help' } }" class="nav-item">{{ t('article.help') }}</router-link>
-      </div>
-    </nav>
   </header>
 </template>
 
 <style scoped>
-.top { background: #fafafa; border-bottom: 1px solid var(--line); }
-.top-inner { height: 36px; display: flex; align-items: center; justify-content: space-between; }
-.right { display: flex; align-items: center; gap: 12px; }
-.pick { width: 120px; }
-.user { cursor: pointer; color: var(--text); font-size: 13px; outline: none; }
-.user:hover { color: var(--theme); }
-.bar { background: #fff; }
-.bar-inner { height: 96px; display: flex; align-items: center; gap: 40px; }
-.logo { font-size: 26px; font-weight: 700; color: var(--theme); flex: none; max-width: 240px; }
-.logo img { max-height: 56px; display: block; }
-.search { flex: 1; max-width: 620px; }
-.cart { margin-left: auto; }
-.nav { background: #fff; border-top: 1px solid var(--line); border-bottom: 2px solid var(--theme); }
-.nav-item { display: inline-block; padding: 12px 24px 12px 0; font-size: 15px; }
-.nav-item:hover, .nav-item.router-link-exact-active { color: var(--theme); }
+.top { background: var(--cream-deep); }
+.top-inner { height: 34px; display: flex; align-items: center; justify-content: space-between; }
+.side { display: flex; align-items: center; gap: 20px; }
+.pick { width: 112px; }
+.pick :deep(.el-select__wrapper) { background: transparent; box-shadow: none !important; padding-left: 0; }
+.user, .cart-link { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text); font-size: 13px; outline: none; }
+.user:hover, .cart-link:hover { color: var(--theme); }
+.cart :deep(.el-badge__content.is-fixed) { top: 2px; right: 2px; transform: translate(100%, -50%); }
+
+.bar { background: var(--bg); border-bottom: 1px solid var(--line); }
+.bar-inner { height: 88px; display: flex; align-items: center; }
+.nav { display: flex; gap: 44px; margin-left: 72px; }
+.nav-item { position: relative; padding: 8px 0; font-size: 16px; letter-spacing: 0.06em; }
+.nav-item:hover { color: var(--theme); }
+/* 当前栏目：文字变主题色，下面一道短线。资讯和帮助中心是同一个页面的两个页签，靠 on 区分 */
+.nav-item.router-link-exact-active, .nav-item.on { color: var(--theme); }
+.nav-item.router-link-exact-active::after, .nav-item.on::after { content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px; border-radius: 1px; background: var(--theme); }
+.search { margin-left: auto; width: 320px; }
+.search :deep(.el-input__wrapper) { border-radius: 22px; padding: 0 18px; background: var(--cream-deep); box-shadow: 0 0 0 1px var(--line) inset; }
+.search :deep(.el-input__wrapper.is-focus) { box-shadow: 0 0 0 1px var(--theme) inset; background: #fff; }
+.search-btn { font-size: 18px; color: var(--text); cursor: pointer; }
+.search-btn:hover { color: var(--theme); }
 </style>

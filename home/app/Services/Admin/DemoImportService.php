@@ -33,8 +33,11 @@ class DemoImportService
 {
     private const ARTICLE_TYPES = ['article' => 1, 'notice' => 2, 'help' => 3];
 
-    /** 占位图的底色，按名称固定选一个，同一个商品每次导入颜色不变 */
-    private const COLORS = ['#5B8FF9', '#61DDAA', '#65789B', '#F6BD16', '#7262FD', '#78D3F8', '#9661BC', '#F6903D', '#008685', '#F08BB4'];
+    /** 占位图的底色（和前台的奶油色主题同一个色系），按名称固定选一个，同一个商品每次导入颜色不变 */
+    public const COLORS = ['#E9DCCB', '#DCCFBF', '#E3C9B8', '#D5DCCB', '#C9D3C3', '#EAD7C3', '#DFD3C2', '#E6CFC0', '#CFD8CC', '#EFE3D2'];
+
+    /** 占位图上文字的颜色 */
+    public const INK = '#6B5B4E';
 
     /** @var array<string,array<int,mixed>> 本次导入的清单 */
     private array $manifest = [];
@@ -203,7 +206,7 @@ class DemoImportService
             foreach ($this->flattenCategories((array) ($data['categories'] ?? [])) as $c) {
                 $cat = $this->categories->create([
                     'pid' => $c['parent'] === null ? 0 : $this->ids['categories'][$c['parent']], 'name' => $c['name'],
-                    'image' => $this->placeholder("category-{$c['code']}", $this->label($c['name']), 300, 300), 'sort' => (int) ($c['sort'] ?? 0), 'status' => 1,
+                    'image' => $this->decor("category-{$c['code']}", 600, 480, 'tile'), 'sort' => (int) ($c['sort'] ?? 0), 'status' => 1,
                 ]);
                 $this->remember('categories', $c['code'], (int) $cat->id);
             }
@@ -236,7 +239,7 @@ class DemoImportService
             foreach ((array) ($data['articles'] ?? []) as $i => $a) {
                 $type = self::ARTICLE_TYPES[$a['type']];
                 $code = (string) ($a['code'] ?? "n{$i}");
-                $cover = $type === 2 ? '' : $this->placeholder("article-{$code}", $this->label($a['title']), 800, 450);
+                $cover = $type === 2 ? '' : $this->decor("article-{$code}", 800, 600, 'tile');
                 $article = $this->articles->save($type, 0, $this->articlePayload($a, ($a['category'] ?? '') !== '' ? $this->ids['article_categories'][$a['category']] : 0, $cover));
                 $this->ids['articles'][$code] = (int) $article->id;
                 $this->manifest['articles'][] = ['type' => $type, 'id' => (int) $article->id];
@@ -249,7 +252,8 @@ class DemoImportService
                 $image = [];
                 foreach ($this->locale->codes() as $lang) {
                     $text = trim((string) ($b['title'][$lang] ?? ''));
-                    $image[$lang] = $text === '' ? '' : $this->placeholder("banner-{$i}-{$lang}", $text, 1200, 500);
+                    // 首页轮播是暖色的，其余广告位（首页中部、分类页顶部）用鼠尾草绿
+                    $image[$lang] = $text === '' ? '' : $this->decor("banner-{$i}-{$lang}", 1920, 600, $b['position'] === 'home_banner' ? 'warm' : 'sage');
                 }
                 $payload = [
                     'position_id' => $positions[$b['position']], 'title' => $b['title'] ?? [], 'image' => $image,
@@ -454,6 +458,58 @@ class DemoImportService
         return trim((string) ($texts[$this->locale->defaultLang()] ?? '')) ?: trim((string) (reset($texts) ?: ''));
     }
 
+    /** 生成一张不带字的装饰图并保存，返回它的访问地址。用在页面会自己叠加标题的位置：轮播图、横幅、分类入口 */
+    private function decor(string $name, int $w, int $h, string $tone): string
+    {
+        $path = "demo/{$this->batch}/{$name}.svg";
+        $storage = $this->drivers->storage();
+        $storage->put($path, self::decorSvg($w, $h, $tone, $name));
+        $this->manifest['files'][] = $path;
+
+        return $storage->url($path);
+    }
+
+    /**
+     * 装饰图：柔和的底色，右侧几个圆和一道拱形，像一个简化的家居角落。同一个 $seed 每次画出来都一样。
+     * @param string $tone warm 奶油底 + 陶土色（首页轮播） / sage 鼠尾草绿（主题横幅） / tile 分类入口的小图
+     */
+    public static function decorSvg(int $w, int $h, string $tone, string $seed): string
+    {
+        [$bg, $a, $b, $c] = match ($tone) {
+            'sage' => ['#A7B7A0', '#B9C6B2', '#C9D3C3', '#8FA088'],
+            'tile' => ['#EFE6D8', '#E3D2BF', '#D9B8A2', '#C8CFBE'],
+            default => ['#F1E7D9', '#E7D3BF', '#D9A88F', '#BFC9B6'],
+        };
+        $r = crc32($seed);
+        // 版式的重心放在右侧 60%～90% 之间，左边留给页面叠加的文字
+        $cx = $w * (0.66 + ($r % 17) / 100);
+        $base = $h * 0.86;
+        $big = $h * (0.34 + (($r >> 4) % 10) / 100);
+        $arcW = $h * (0.26 + (($r >> 8) % 8) / 100);
+        $arcX = $cx + $big * (0.75 + (($r >> 12) % 20) / 100);
+        $small = $h * (0.10 + (($r >> 16) % 6) / 100);
+        if ($tone === 'tile') {
+            [$cx, $arcX] = [$w * 0.42, $w * 0.70];
+        }
+
+        return sprintf(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="%1$d" height="%2$d" viewBox="0 0 %1$d %2$d">'
+            . '<rect width="100%%" height="100%%" fill="%3$s"/>'
+            . '<rect y="%7$.1f" width="100%%" height="%8$.1f" fill="%4$s" fill-opacity="0.55"/>'
+            . '<circle cx="%9$.1f" cy="%10$.1f" r="%11$.1f" fill="%4$s"/>'
+            . '<path d="M%12$.1f %7$.1f v-%13$.1f a%14$.1f %14$.1f 0 0 1 %15$.1f 0 v%13$.1f z" fill="%5$s"/>'
+            . '<circle cx="%16$.1f" cy="%17$.1f" r="%18$.1f" fill="%6$s"/>'
+            . '<circle cx="%19$.1f" cy="%20$.1f" r="%21$.1f" fill="#fff" fill-opacity="0.45"/>'
+            . '</svg>',
+            $w, $h, $bg, $a, $b, $c,
+            $base, $h - $base,
+            $cx, $base - $big, $big,
+            $arcX, $arcW * 0.9, $arcW / 2, $arcW,
+            $cx - $big * 0.95, $base - $small, $small,
+            $arcX + $arcW * 1.35, $h * 0.24, $small * 0.8
+        );
+    }
+
     /** 生成一张占位图并保存，返回它的访问地址 */
     private function placeholder(string $name, string $text, int $w, int $h, string $corner = ''): string
     {
@@ -485,9 +541,9 @@ class DemoImportService
         }
         $svg = sprintf(
             '<svg xmlns="http://www.w3.org/2000/svg" width="%1$d" height="%2$d" viewBox="0 0 %1$d %2$d"><rect width="100%%" height="100%%" fill="%3$s"/>'
-            . '<text fill="#fff" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif" font-size="%4$d" font-weight="600" text-anchor="middle" dominant-baseline="middle">%5$s</text>%6$s</svg>',
+            . '<text fill="' . self::INK . '" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Microsoft YaHei,sans-serif" font-size="%4$d" font-weight="600" text-anchor="middle" dominant-baseline="middle">%5$s</text>%6$s</svg>',
             $w, $h, $color, $size, $tspans,
-            $corner === '' ? '' : sprintf('<text x="%d" y="%d" fill="#fff" fill-opacity="0.7" font-family="sans-serif" font-size="%d" text-anchor="end">%s</text>', $w - 24, $h - 24, (int) ($size * 0.6), htmlspecialchars($corner, ENT_XML1))
+            $corner === '' ? '' : sprintf('<text x="%d" y="%d" fill="' . self::INK . '" fill-opacity="0.6" font-family="sans-serif" font-size="%d" text-anchor="end">%s</text>', $w - 24, $h - 24, (int) ($size * 0.6), htmlspecialchars($corner, ENT_XML1))
         );
 
         $path = "demo/{$this->batch}/{$name}.svg";

@@ -23,7 +23,7 @@ watch(() => state.config.site?.site_favicon, (icon) => {
 
 <template>
   <SiteHeader />
-  <main class="container main">
+  <main :class="route.meta.wide ? 'main wide' : 'container main'">
     <!-- 切换语言或币种时整页重建，商品名称和价格都重新取 -->
     <router-view :key="`${route.fullPath}|${state.lang}|${state.currency}`" />
   </main>
@@ -31,5 +31,6 @@ watch(() => state.config.site?.site_favicon, (icon) => {
 </template>
 
 <style scoped>
-.main { padding: 20px 0 40px; min-height: calc(100vh - 220px); }
+.main { padding: 24px 0 48px; min-height: calc(100vh - 220px); }
+.main.wide { padding-top: 0; }
 </style>

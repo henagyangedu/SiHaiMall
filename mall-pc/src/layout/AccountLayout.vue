@@ -30,6 +30,6 @@ const MENU = [
 .menu { width: 200px; flex: none; padding: 12px 0; }
 .item { display: block; padding: 12px 24px; }
 .item:hover { color: var(--theme); }
-.item.on { color: var(--theme); background: #fcebeb; font-weight: 600; border-right: 3px solid var(--theme); }
+.item.on { color: var(--theme); background: var(--el-color-primary-light-9); font-weight: 600; border-right: 3px solid var(--theme); }
 .content { flex: 1; min-width: 0; }
 </style>

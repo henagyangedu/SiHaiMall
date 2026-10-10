@@ -201,7 +201,7 @@ onMounted(loadSummary)
 .alert { margin-bottom: 14px; }
 .stats { display: flex; gap: 16px; margin-bottom: 20px; }
 .stat { flex: 1; background: #f7f8fa; border-radius: 8px; padding: 18px 20px; }
-.stat.main { background: #fcf5f5; }
+.stat.main { background: var(--el-color-primary-light-9); }
 .n { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
 .stat.main .n { color: var(--theme); }
 .invite { border: 1px solid var(--line); border-radius: 8px; padding: 14px 20px; line-height: 1.9; }

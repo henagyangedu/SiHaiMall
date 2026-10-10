@@ -49,7 +49,7 @@ onMounted(async () => {
 .menu-title { font-weight: 600; padding: 6px 20px 10px; }
 .item { display: block; padding: 10px 20px; }
 .item:hover, .item.on { color: var(--theme); }
-.item.on { background: #fcebeb; font-weight: 600; }
+.item.on { background: var(--el-color-primary-light-9); font-weight: 600; }
 .content { flex: 1; min-width: 0; margin-top: 0 !important; padding: 28px 40px 40px; min-height: 320px; }
 h1 { font-size: 24px; margin: 0 0 20px; }
 .body { font-size: 15px; line-height: 1.9; word-break: break-word; overflow: hidden; }

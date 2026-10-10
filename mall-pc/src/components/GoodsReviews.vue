@@ -79,7 +79,7 @@ onMounted(load)
 .num { color: var(--theme); font-size: 28px; font-weight: 600; margin-right: 8px; }
 .levels { display: flex; flex-wrap: wrap; gap: 10px; }
 .level { padding: 4px 14px; border-radius: 14px; background: #f5f6f8; cursor: pointer; font-size: 13px; }
-.level.on { background: #fcf5f5; color: var(--theme); }
+.level.on { background: var(--el-color-primary-light-9); color: var(--theme); }
 .rv { display: flex; gap: 24px; padding: 20px 0; border-bottom: 1px solid var(--line); }
 .who { width: 120px; flex: none; text-align: center; }
 .avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #f0f1f3; display: inline-block; }

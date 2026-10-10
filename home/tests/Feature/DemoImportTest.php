@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Mockery;
 use Tests\FeatureTestCase;
 
-/** 演示数据导入：仓库里自带的示例数据能导入、买家端能看到、能清除、能重复导入；有问题的数据会被拦住并说清楚 */
+/** 演示数据导入：一份小的示例数据（tests/Fixtures/demo/data.json，不随正式的演示数据变化）能导入、买家端能看到、能清除、能重复导入；有问题的数据会被拦住并说清楚 */
 class DemoImportTest extends FeatureTestCase
 {
     /** @var array<string,string> 假存储里的文件：路径 => 内容 */
@@ -75,9 +75,12 @@ class DemoImportTest extends FeatureTestCase
         parent::tearDown();
     }
 
+    /** 测试用的固定示例。正式的演示数据（database/demo/pet-smart/data.json）会被不断改写，测试不依赖它的内容 */
+    private const SAMPLE = 'tests/Fixtures/demo/data.json';
+
     private function sample(): array
     {
-        return app(DemoImportService::class)->read(base_path('database/demo/pet-smart'));
+        return app(DemoImportService::class)->read(base_path(self::SAMPLE));
     }
 
     /** 把一份数据写成临时文件，返回路径 */
@@ -91,10 +94,10 @@ class DemoImportTest extends FeatureTestCase
 
     public function test_bundled_sample_imports_and_shows_up_for_buyers(): void
     {
-        $this->artisan('mall:demo-import', ['--check' => true])->expectsOutput('检查通过，可以导入')->assertSuccessful();
+        $this->artisan('mall:demo-import', ['path' => self::SAMPLE, '--check' => true])->expectsOutput('检查通过，可以导入')->assertSuccessful();
         $this->assertSame(0, Goods::query()->count(), '--check 不写入');
 
-        $this->artisan('mall:demo-import')->expectsOutputToContain('导入完成：分类 5、品牌 2、商品 3、文章分类 2、文章 3、轮播图 2')->assertSuccessful();
+        $this->artisan('mall:demo-import', ['path' => self::SAMPLE])->expectsOutputToContain('导入完成：分类 5、品牌 2、商品 3、文章分类 2、文章 3、轮播图 2')->assertSuccessful();
 
         // 商品列表和详情：多语言、分币种定价、占位图、销量
         $list = $this->api('GET', '/goods?size=50');
@@ -118,6 +121,11 @@ class DemoImportTest extends FeatureTestCase
         $svg = $this->stored[collect(array_keys($this->stored))->first(fn ($p) => str_contains($p, 'goods-feeder-5l-cam-1'))];
         $this->assertStringContainsString('<svg', $svg);
         $this->assertStringContainsString('PawLink', $svg);
+        // 轮播图和分类图是不带字的装饰图：页面会自己把标题压在图上
+        $banner = $this->stored[collect(array_keys($this->stored))->first(fn ($p) => str_contains($p, 'banner-0-zh-CN'))];
+        $this->assertStringContainsString('<svg', $banner);
+        $this->assertStringNotContainsString('<text', $banner);
+        $this->assertStringNotContainsString('<text', $this->stored[collect(array_keys($this->stored))->first(fn ($p) => str_contains($p, 'category-feeding'))]);
 
         // 分类是两级；文章、公告、帮助、轮播图都在
         $tree = $this->api('GET', '/categories')->json('data');
@@ -144,11 +152,11 @@ class DemoImportTest extends FeatureTestCase
         $ownSku = $this->makeSku('10.00', 5);
         $ownGoods = (int) DB::table('goods_sku')->where('id', $ownSku)->value('goods_id');
 
-        $this->artisan('mall:demo-import')->assertSuccessful();
+        $this->artisan('mall:demo-import', ['path' => self::SAMPLE])->assertSuccessful();
         $first = Goods::query()->where('goods_sn', 'like', 'DEMO-%')->pluck('id')->all();
         $files = count($this->stored);
 
-        $this->artisan('mall:demo-import')->assertSuccessful();
+        $this->artisan('mall:demo-import', ['path' => self::SAMPLE])->assertSuccessful();
         $second = Goods::query()->where('goods_sn', 'like', 'DEMO-%')->pluck('id')->all();
         $this->assertCount(3, $second);
         $this->assertSame([], array_intersect($first, $second), '第二次导入的是新的一批');
@@ -204,10 +212,10 @@ class DemoImportTest extends FeatureTestCase
     {
         $this->app['env'] = 'production';
 
-        $this->artisan('mall:demo-import')->expectsOutputToContain('--force')->assertFailed();
+        $this->artisan('mall:demo-import', ['path' => self::SAMPLE])->expectsOutputToContain('--force')->assertFailed();
         $this->artisan('mall:demo-import', ['--clear' => true])->assertFailed();
         $this->assertSame(0, Goods::query()->count());
         // 只检查不写入，生产环境也可以
-        $this->artisan('mall:demo-import', ['--check' => true])->assertSuccessful();
+        $this->artisan('mall:demo-import', ['path' => self::SAMPLE, '--check' => true])->assertSuccessful();
     }
 }

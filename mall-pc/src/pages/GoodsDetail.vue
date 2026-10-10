@@ -139,14 +139,14 @@ onMounted(async () => {
 .info { flex: 1; min-width: 0; }
 .title { font-size: 22px; margin: 0 0 8px; line-height: 1.4; }
 .subtitle { margin-bottom: 12px; }
-.price-box { background: #fcf5f5; border-radius: 8px; padding: 16px 20px; display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
+.price-box { background: var(--el-color-primary-light-9); border-radius: 8px; padding: 16px 20px; display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
 .big-price { font-size: 30px; }
 .row { display: flex; align-items: flex-start; margin-bottom: 18px; }
 .label { width: 80px; flex: none; color: var(--sub); line-height: 34px; }
 .values { display: flex; flex-wrap: wrap; gap: 10px; }
 .value { padding: 6px 16px; border: 1px solid #dcdfe6; border-radius: 6px; cursor: pointer; }
 .value:hover { border-color: var(--theme); }
-.value.on { border-color: var(--theme); color: var(--theme); background: #fcebeb; }
+.value.on { border-color: var(--theme); color: var(--theme); background: var(--el-color-primary-light-9); }
 .actions { margin-top: 28px; }
 .desc { line-height: 1.8; overflow: hidden; }
 .desc :deep(img) { max-width: 100%; height: auto; }

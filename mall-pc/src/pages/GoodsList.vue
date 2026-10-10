@@ -89,7 +89,7 @@ onMounted(async () => {
 .cat { display: block; padding: 8px 20px; cursor: pointer; }
 .cat.child { padding-left: 36px; color: #606266; font-size: 13px; }
 .cat:hover, .cat.on { color: var(--theme); }
-.cat.on { background: #fcebeb; font-weight: 600; }
+.cat.on { background: var(--el-color-primary-light-9); font-weight: 600; }
 .main { flex: 1; min-width: 0; }
 .bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; margin-bottom: 16px; }
 .sort { margin-right: 28px; cursor: pointer; }

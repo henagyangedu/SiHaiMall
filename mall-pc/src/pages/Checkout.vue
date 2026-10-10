@@ -135,8 +135,8 @@ onMounted(async () => {
 .add { margin-left: 16px; font-weight: 400; }
 .addrs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .addr { position: relative; border: 2px solid var(--line); border-radius: 8px; padding: 14px 16px; cursor: pointer; min-height: 92px; }
-.addr:hover { border-color: #f29c9e; }
-.addr.on { border-color: var(--theme); background: #fcf5f5; }
+.addr:hover { border-color: var(--el-color-primary-light-5); }
+.addr.on { border-color: var(--theme); background: var(--el-color-primary-light-9); }
 .who { font-weight: 600; margin-bottom: 6px; }
 .tag { margin-left: 8px; }
 .edit { position: absolute; right: 14px; bottom: 10px; font-size: 13px; display: none; }

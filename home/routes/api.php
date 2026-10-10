@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PayController;
 use App\Http\Controllers\Api\PointController;
 use App\Http\Controllers\Api\ProtocolController;
+use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\RefundController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\UploadController;
@@ -118,6 +119,10 @@ Route::middleware('api.token')->group(function () {
     // 售后
     Route::get('orders/{orderNo}/refundable', [RefundController::class, 'refundable'])->where('orderNo', '[A-Za-z0-9]+');
     Route::post('orders/{orderNo}/refunds', [RefundController::class, 'apply'])->where('orderNo', '[A-Za-z0-9]+')->middleware('throttle:20,1');
+    // 发票：查看（能不能申请、开票金额、现在的状态）、申请或修改、撤销
+    Route::get('orders/{orderNo}/invoice', [InvoiceController::class, 'show'])->where('orderNo', '[A-Za-z0-9]+');
+    Route::post('orders/{orderNo}/invoice', [InvoiceController::class, 'store'])->where('orderNo', '[A-Za-z0-9]+')->middleware('throttle:20,1');
+    Route::delete('orders/{orderNo}/invoice', [InvoiceController::class, 'destroy'])->where('orderNo', '[A-Za-z0-9]+');
     // 评价订单里的一件商品（订单完成后）
     Route::post('orders/{orderNo}/reviews', [ReviewController::class, 'store'])->where('orderNo', '[A-Za-z0-9]+')->middleware('throttle:20,1');
     Route::get('refunds', [RefundController::class, 'index']);

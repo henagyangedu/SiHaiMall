@@ -126,6 +126,22 @@ final class ApiMessageTranslator
         '到货后会通知你' => "We'll let you know when it's back in stock",
         '已取消到货提醒' => 'Back-in-stock alert removed',
         '消息不存在' => 'Message not found',
+        // 发票
+        '暂不支持申请发票' => 'Invoices are not available at the moment',
+        '该币种的订单暂不支持开具发票' => 'Invoices are not available for orders in this currency',
+        '订单已全额退款，不能开具发票' => 'This order has been fully refunded, so no invoice can be issued',
+        '订单付款后才能申请发票' => 'You can request an invoice once the order is paid',
+        '订单没有可开票的金额' => 'There is no amount left to invoice on this order',
+        '请填写正确的纳税人识别号' => 'Please enter a valid tax ID',
+        '发票已开出，不能修改' => 'The invoice has already been issued and can no longer be changed',
+        '已经申请过发票了，请刷新后查看' => 'An invoice has already been requested. Please refresh the page.',
+        '发票已开出，不能撤销' => 'The invoice has already been issued and can no longer be cancelled',
+        '还没有申请发票' => 'No invoice has been requested for this order',
+        '发票申请已提交' => 'Invoice request submitted',
+        '已撤销发票申请' => 'Invoice request cancelled',
+        // 下面两条只有后台上传发票文件时会出现，登记在这里是因为上传服务是买家和后台共用的
+        '文件无效，请重新上传' => 'Invalid file. Please upload it again.',
+        'PDF 文件无效' => 'Invalid PDF file',
         '已删除' => 'Deleted',
         '商品已下架，请移除' => 'This product is no longer available. Please remove it.',
         '购物车商品不存在' => 'This cart item no longer exists',
@@ -199,6 +215,8 @@ final class ApiMessageTranslator
         '凭证图片' => 'photos', '退款金额' => 'refund amount', '快递公司' => 'carrier', '快递单号' => 'tracking number',
         '真实姓名' => 'full name', '申请说明' => 'note', '提现金额' => 'amount', '提现方式' => 'method', '收款信息' => 'payee details',
         '收款人姓名' => 'payee name', '收款账号' => 'payee account', '开户行' => 'bank',
+        '抬头类型' => 'invoice type', '发票抬头' => 'billing name', '纳税人识别号' => 'tax ID', '收票邮箱' => 'email', '开票资料' => 'company details',
+        '注册地址' => 'registered address', '注册电话' => 'registered phone', '开户银行' => 'bank', '银行账号' => 'bank account',
     ];
 
     /** 需要翻译时返回英文；中文语言或没登记的提示原样返回 */

@@ -99,3 +99,8 @@ export const applyWithdraw = (data) => post('/distribution/withdraws', data)
 
 // ---- 帮助中心
 export const getHelp = () => get('/help', {}, { auth: false })
+
+// 订单发票：查看（能不能申请、开票金额、现在的状态）、申请或修改、撤销
+export const getInvoice = (orderNo) => get(`/orders/${orderNo}/invoice`)
+export const applyInvoice = (orderNo, data) => post(`/orders/${orderNo}/invoice`, data)
+export const cancelInvoice = (orderNo) => del(`/orders/${orderNo}/invoice`)

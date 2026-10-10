@@ -201,6 +201,12 @@ onShow(async () => {
       <view v-if="order.remark" class="kv"><text class="sub">{{ t('order.remark') }}</text><text>{{ order.remark }}</text></view>
     </view>
 
+    <!-- 发票：能申请，或者已经申请过，才显示这一行；内容在发票页里看 -->
+    <view v-if="order.invoice && (order.invoice.can_apply || order.invoice.status !== null)" class="card invoice" @click="nav(`/pages/order/invoice?order_no=${order.order_no}`)">
+      <text>{{ t('invoice.title') }}</text>
+      <text class="sub">{{ order.invoice.status === null ? t('invoice.apply') : t(`invoice.st${order.invoice.status}`) }}　›</text>
+    </view>
+
     <view v-if="order.can_pay || order.can_cancel || order.can_receive || order.can_refund" class="bar safe-bottom">
       <view v-if="order.can_refund" class="btn small gray" @click="nav(`/pages/refund/apply?order_no=${order.order_no}&currency=${order.currency}`)">{{ t('refund.apply') }}</view>
       <view v-if="order.can_cancel" class="btn small gray" @click="onCancel">{{ t('order.cancel') }}</view>
@@ -231,6 +237,7 @@ onShow(async () => {
 .rv-btn { display: inline-block; margin-top: 10rpx; padding: 4rpx 24rpx; border-radius: 28rpx; border: 2rpx solid var(--theme); color: var(--theme); font-size: 24rpx; }
 .rv-done { margin-top: 10rpx; }
 .kv { display: flex; justify-content: space-between; padding: 8rpx 0; }
+.invoice { display: flex; justify-content: space-between; align-items: center; }
 .total { border-top: 2rpx solid var(--line); margin-top: 8rpx; padding-top: 16rpx; font-weight: 600; }
 .bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; display: flex; justify-content: flex-end; gap: 16rpx; padding: 16rpx 24rpx; box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05); }
 </style>

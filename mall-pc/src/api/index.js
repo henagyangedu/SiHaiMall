@@ -94,3 +94,8 @@ export const getCommissions = (params) => get('/distribution/commissions', param
 export const getTeam = (params) => get('/distribution/team', params)
 export const getWithdraws = (params) => get('/distribution/withdraws', params)
 export const applyWithdraw = (data) => post('/distribution/withdraws', data)
+
+// 订单发票：查看（能不能申请、开票金额、现在的状态）、申请或修改、撤销
+export const getInvoice = (orderNo) => get(`/orders/${orderNo}/invoice`)
+export const applyInvoice = (orderNo, data) => post(`/orders/${orderNo}/invoice`, data)
+export const cancelInvoice = (orderNo) => del(`/orders/${orderNo}/invoice`)

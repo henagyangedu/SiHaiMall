@@ -185,7 +185,11 @@ module.exports = async function uniFlow(browser, data) {
     await fav.waitFor();
     // 上一轮如果中途失败可能留着收藏，先取消掉，保证从“未收藏”开始
     if (await page.locator('.bar .fav.on').count()) { await fav.click(); await page.locator('.bar .fav:not(.on)').waitFor(); }
-    await fav.click();
+    // 按钮是先变样子、再发请求的：等收藏的请求回来再去列表页
+    await Promise.all([
+      page.waitForResponse((r) => /\/api\/favorites\/\d+/.test(r.url()) && r.request().method() === 'POST'),
+      fav.click(),
+    ]);
     await page.locator('.bar .fav.on', { hasText: '已收藏' }).waitFor();
     await go('/pages/user/index');
     await page.locator('.cell', { hasText: '我的收藏' }).click();

@@ -20,6 +20,7 @@ use App\Support\Money;
 use App\Support\OrderStatus;
 use App\Support\Paginate;
 use App\Services\Common\GoodsReviewService;
+use App\Services\Common\OrderInvoiceService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -236,6 +237,8 @@ class OrderService
             'paid_at' => $o->paid_at?->format('Y-m-d H:i:s'), 'shipped_at' => $o->shipped_at?->format('Y-m-d H:i:s'),
             'finished_at' => $o->finished_at?->format('Y-m-d H:i:s'),
             'address' => $addr, 'shippings' => $ship,
+            // 发票：能不能申请、申请过的话现在是什么状态（详细内容见 GET orders/{orderNo}/invoice）
+            'invoice' => app(OrderInvoiceService::class)->brief($o),
             'can_cancel' => (int) $o->status === OrderStatus::PENDING,
             'can_pay' => (int) $o->status === OrderStatus::PENDING && !($o->expire_at && $o->expire_at->isPast()),
             'can_receive' => (int) $o->status === OrderStatus::SHIPPED,

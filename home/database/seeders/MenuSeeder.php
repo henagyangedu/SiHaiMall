@@ -17,7 +17,7 @@ class MenuSeeder extends Seeder
         'remark' => '备注', 'price' => '改价', 'cancel' => '取消订单', 'do' => '发货', 'print' => '打印',
         'audit' => '审核', 'confirm' => '确认收货', 'pay' => '执行退款', 'retry' => '重新处理',
         'status' => '禁用/启用', 'balance' => '调整余额', 'points' => '调整积分', 'sale' => '上下架',
-        'stock' => '修改库存', 'rate' => '更新汇率', 'test' => '测试', 'reset' => '重置密码', 'paid' => '登记打款', 'apply' => '发起售后', 'reply' => '回复', 'grant' => '发放', 'revoke' => '撤回',
+        'stock' => '修改库存', 'rate' => '更新汇率', 'test' => '测试', 'reset' => '重置密码', 'paid' => '登记打款', 'apply' => '发起售后', 'reply' => '回复', 'grant' => '发放', 'revoke' => '撤回', 'issue' => '开票', 'reject' => '驳回', 'void' => '作废',
     ];
 
     /**
@@ -88,6 +88,7 @@ class MenuSeeder extends Seeder
                 ['t' => '订单列表', 'path' => '/order/list', 'perm' => 'order:list', 'acts' => ['detail', 'remark', 'price', 'cancel', 'export']],
                 ['t' => '发货管理', 'path' => '/order/ship', 'perm' => 'order:ship', 'acts' => ['do', 'edit', 'print']],
                 ['t' => '售后订单', 'path' => '/order/refund', 'perm' => 'order:refund', 'acts' => ['apply', 'audit', 'confirm', 'pay']],
+                ['t' => '发票管理', 'path' => '/order/invoice', 'perm' => 'order:invoice', 'acts' => ['issue', 'reject', 'void']],
                 ['t' => '支付流水', 'path' => '/order/trade', 'perm' => 'order:trade'],
                 ['t' => '回调日志', 'path' => '/order/notify', 'perm' => 'order:notify', 'acts' => ['retry']],
             ]],

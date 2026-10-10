@@ -167,6 +167,20 @@ class CrossMemberAccessTest extends FeatureTestCase
         $this->assertSame(0, (int) DB::table('member_message')->where('id', $id)->value('is_read'), '甲的消息仍是未读，也没被删');
     }
 
+    public function test_invoices(): void
+    {
+        app(ConfigService::class)->save('trade', ['invoice_enabled' => 1]);
+        $order = $this->pay($this->placeOrder($this->aToken, $this->sku, 1, $this->aAddress));
+        $uri = "/orders/{$order->order_no}/invoice";
+        $data = ['title_type' => 1, 'title' => '甲的地址', 'email' => 'a@example.com'];
+        $this->api('POST', $uri, $data, $this->aToken)->assertJsonPath('code', 0);
+
+        $this->denied('GET', $uri);
+        $this->denied('POST', $uri, ['title' => '乙改的'] + $data);
+        $this->denied('DELETE', $uri);
+        $this->assertSame('甲的地址', DB::table('order_invoice')->where('order_id', $order->id)->value('title'), '甲的发票申请没被改也没被删');
+    }
+
     public function test_distribution_data_is_scoped_to_the_member(): void
     {
         app(ConfigService::class)->save('distribution', ['enabled' => 1, 'level' => 1, 'rate_1' => '10', 'min_withdraw' => '1']);

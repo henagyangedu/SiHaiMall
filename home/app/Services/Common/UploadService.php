@@ -27,11 +27,34 @@ class UploadService
 
     private const MEMBER_DAILY_LIMIT = 60;
 
+    /** 后台上传的发票文件：除了图片还允许 PDF */
+    public const SCENE_INVOICE = 'invoice';
+    private const DOCUMENT_EXT = ['pdf', 'jpg', 'jpeg', 'png'];
+
     public function __construct(private DriverManager $drivers) {}
 
     public function image(UploadedFile $file, string $scene, int $adminId): array
     {
         return $this->store($file, $scene, $scene, self::IMAGE_EXT, $adminId);
+    }
+
+    /** 后台上传发票文件（PDF 或图片）。返回结构同 image()，PDF 的宽高是 0 */
+    public function invoiceFile(UploadedFile $file, int $adminId): array
+    {
+        return $this->store($file, self::SCENE_INVOICE, self::SCENE_INVOICE, self::DOCUMENT_EXT, $adminId);
+    }
+
+    /**
+     * 校验后台提交的文件地址确实是通过上传接口传到指定用途下的（这个地址之后会给买家打开，不能随便填一个外部链接）。
+     */
+    public function assertAdminFile(string $url, string $scene): void
+    {
+        $pos = strpos($url, $scene . '/');
+        $path = $pos === false ? '' : substr($url, $pos);
+        if ($path === '' || str_contains($path, '..') || $this->drivers->storage()->url($path) !== $url
+            || !UploadFile::query()->where('path', $path)->where('scene', $scene)->exists()) {
+            throw new BusinessException('文件无效，请重新上传');
+        }
     }
 
     /** 买家上传图片。返回 {id,url,name,size,width,height}，业务表里保存 url */
@@ -92,12 +115,17 @@ class UploadService
     {
         $ext = strtolower($file->extension() ?: $file->getClientOriginalExtension());
         if (!in_array($ext, $allowExt, true)) {
-            throw new BusinessException('不支持的图片格式');
+            throw new BusinessException(in_array('pdf', $allowExt, true) ? '不支持的文件格式' : '不支持的图片格式');
         }
 
         $real = (string) $file->getRealPath();
         $width = $height = 0;
-        if ($ext !== 'ico') {
+        if ($ext === 'pdf') {
+            // 不只看扩展名：文件开头必须是 PDF 的标记
+            if (file_get_contents($real, false, null, 0, 5) !== '%PDF-') {
+                throw new BusinessException('PDF 文件无效');
+            }
+        } elseif ($ext !== 'ico') {
             $info = @getimagesize($real);
             if ($info === false) {
                 throw new BusinessException('图片文件无效');

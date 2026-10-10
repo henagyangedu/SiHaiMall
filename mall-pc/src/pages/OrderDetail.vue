@@ -7,6 +7,7 @@ import { ElMessage } from 'element-plus'
 import { getOrder, getOrderTracks, cancelOrder, receiveOrder, getPayChannels, startPay, confirmPay } from '@/api'
 import { money, confirm, addressLine } from '@/utils/app'
 import ReviewDialog from '@/components/ReviewDialog.vue'
+import InvoicePanel from '@/components/InvoicePanel.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -212,6 +213,9 @@ onMounted(async () => {
         <div class="kv"><span>{{ t('order.payAmount') }}</span><span class="price total">{{ money(order.pay_amount, order.currency) }}</span></div>
       </div>
     </div>
+
+    <!-- 发票：能申请或已经申请过才显示（组件自己判断） -->
+    <InvoicePanel v-if="order.invoice && (order.invoice.can_apply || order.invoice.status !== null)" :order-no="orderNo" />
 
     <el-dialog v-model="payDialog" :title="t('pc.payTitle')" width="440px">
       <div v-if="!channels.length" class="sub">{{ t('order.noChannel') }}</div>

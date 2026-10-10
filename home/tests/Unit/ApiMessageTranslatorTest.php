@@ -66,7 +66,7 @@ class ApiMessageTranslatorTest extends TestCase
         $root = dirname(__DIR__, 2).'/app/';
         $files = array_merge(glob($root.'Services/Api/*.php'), array_map(fn ($f) => $root.'Services/Common/'.$f, [
             'SmsCodeService.php', 'EmailCodeService.php', 'OrderCreateService.php', 'OrderPointsService.php',
-            'OrderStockService.php', 'ShippingFeeService.php', 'UploadService.php', 'GoodsReviewService.php', 'PointRewardService.php', 'CouponService.php', 'StockSubscribeService.php', 'MemberMessageService.php',
+            'OrderStockService.php', 'ShippingFeeService.php', 'UploadService.php', 'GoodsReviewService.php', 'PointRewardService.php', 'CouponService.php', 'StockSubscribeService.php', 'MemberMessageService.php', 'OrderInvoiceService.php',
         ]), [$root.'Http/Middleware/ApiToken.php']);
 
         $missing = [];

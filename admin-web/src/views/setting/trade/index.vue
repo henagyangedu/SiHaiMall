@@ -2,9 +2,12 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getConfig, saveConfig } from '@/api/config'
+import { languageOptions } from '@/api/language'
+import LangInput from '@/components/LangInput.vue'
 
 const loading = ref(false)
 const saving = ref(false)
+const languages = ref([])
 const form = reactive({
   order_expire_minutes: 30,
   auto_receive_days: 7,
@@ -18,6 +21,8 @@ const form = reactive({
   points_earn_per_unit: 1,
   points_register: 0,
   points_signin: 0,
+  invoice_enabled: 0,
+  invoice_notice: {},
 })
 
 async function load() {
@@ -39,7 +44,10 @@ async function submit() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  languageOptions().then((d) => { languages.value = d }).catch(() => {})
+})
 </script>
 
 <template>
@@ -107,6 +115,14 @@ onMounted(load)
           <el-input-number v-model="form.points_signin" :min="0" :max="100000" />
           <span class="unit">个积分，会员每天可以在“我的积分”里签到一次；填 0 表示不开放签到</span>
         </el-form-item>
+        <el-form-item label="允许申请发票">
+          <el-switch v-model="form.invoice_enabled" :active-value="1" :inactive-value="0" />
+          <span class="unit">开启后买家可以在已付款的人民币订单上申请发票，到“订单 → 发票管理”处理</span>
+        </el-form-item>
+        <el-form-item v-if="form.invoice_enabled" label="开票说明">
+          <LangInput v-model="form.invoice_notice" :languages="languages" type="textarea" :rows="3" :maxlength="500" />
+          <div class="tip">显示在买家的发票申请页上，比如发票类型、多久开出、开票内容。可以不填。</div>
+        </el-form-item>
         <el-form-item>
           <el-button v-perm="'setting:trade:edit'" type="primary" :loading="saving" @click="submit">保存设置</el-button>
         </el-form-item>
@@ -117,4 +133,5 @@ onMounted(load)
 
 <style scoped>
 .unit { margin-left: 10px; color: #909399; }
+.tip { width: 100%; color: #909399; font-size: 12px; line-height: 1.6; }
 </style>

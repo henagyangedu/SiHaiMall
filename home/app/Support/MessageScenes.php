@@ -58,6 +58,24 @@ final class MessageScenes
                 'en' => "Hi {nickname},\n\nAn item you asked us to watch is back in stock:\n{goods_title} (option: {spec})\n\nStock is limited, so sign in soon to order. This reminder is only sent once.",
             ],
         ],
+        'invoice_issued' => [
+            'label' => '发票已开具',
+            'vars' => ['order_no' => '订单号', 'title' => '发票抬头', 'invoice_no' => '发票号码', 'amount' => '开票金额'],
+            'title' => ['zh' => '【{site_name}】订单 {order_no} 的发票已开具', 'en' => '[{site_name}] Your invoice for order {order_no} is ready'],
+            'content' => [
+                'zh' => "{nickname}，您好：\n\n您为订单 {order_no} 申请的发票已开具。\n发票抬头：{title}\n发票号码：{invoice_no}\n开票金额：{amount}\n\n请到订单详情里查看和下载。",
+                'en' => "Hi {nickname},\n\nThe invoice you requested for order {order_no} has been issued.\nBilled to: {title}\nInvoice number: {invoice_no}\nAmount: {amount}\n\nYou can view and download it from the order page.",
+            ],
+        ],
+        'invoice_rejected' => [
+            'label' => '发票申请被驳回',
+            'vars' => ['order_no' => '订单号', 'reject_reason' => '驳回原因'],
+            'title' => ['zh' => '【{site_name}】订单 {order_no} 的发票申请未通过', 'en' => '[{site_name}] Your invoice request for order {order_no} needs changes'],
+            'content' => [
+                'zh' => "{nickname}，您好：\n\n您为订单 {order_no} 提交的发票申请未通过。\n原因：{reject_reason}\n\n请到订单详情里修改后重新提交。",
+                'en' => "Hi {nickname},\n\nWe could not process the invoice request for order {order_no}.\nReason: {reject_reason}\n\nPlease update the details on the order page and submit again.",
+            ],
+        ],
         'withdraw_paid' => [
             'label' => '分销提现已打款',
             'vars' => ['withdraw_no' => '提现单号', 'amount' => '提现金额'],
@@ -80,6 +98,8 @@ final class MessageScenes
         'refund_rejected' => ['refund', 'refund_no'],
         'goods_restock' => ['goods', 'goods_id'],
         'withdraw_paid' => ['withdraw', ''],
+        'invoice_issued' => ['order', 'order_no'],
+        'invoice_rejected' => ['order', 'order_no'],
     ];
 
     /** @return array{0:string,1:string} [跳转类型, 值]；场景没有登记跳转时是两个空串 */

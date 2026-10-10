@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\GoodsReviewController;
 use App\Http\Controllers\Admin\MemberPointController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\MessageBroadcastController;
+use App\Http\Controllers\Admin\OrderInvoiceController;
 use App\Http\Controllers\Admin\MessageTemplateController;
 use App\Http\Controllers\Admin\OptionController;
 use App\Http\Controllers\Admin\OrderController;
@@ -167,6 +168,8 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
 
     // 文件上传：登录即可，限流防滥用
     Route::post('upload/image', [UploadController::class, 'image'])->middleware('throttle:60,1');
+    // 发票文件（PDF 或图片）：只有能开票的人可以传
+    Route::post('upload/invoice', [UploadController::class, 'invoice'])->middleware(['throttle:60,1', 'perm:order:invoice:issue']);
 
     // 商品：分类、品牌、商品、库存流水
     // ---- 营销：优惠券
@@ -320,6 +323,12 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
 
     // 订单：列表/详情/备注/改价/取消；发货管理（分批发货、改单号）；确认收货算发货环节的权限
     Route::prefix('order')->group(function () {
+        // 发票管理：开票是登记发票号码和文件（发票在商家自己的开票软件里开），不对接税控
+        Route::get('invoice/list', [OrderInvoiceController::class, 'index'])->middleware('perm:order:invoice:view');
+        Route::post('invoice/{id}/issue', [OrderInvoiceController::class, 'issue'])->where('id', '[0-9]+')->middleware('perm:order:invoice:issue');
+        Route::post('invoice/{id}/reject', [OrderInvoiceController::class, 'reject'])->where('id', '[0-9]+')->middleware('perm:order:invoice:reject');
+        Route::post('invoice/{id}/void', [OrderInvoiceController::class, 'void'])->where('id', '[0-9]+')->middleware('perm:order:invoice:void');
+
         Route::get('list', [OrderController::class, 'index'])->middleware('perm:order:list:view');
         Route::get('counts', [OrderController::class, 'counts'])->middleware('perm:order:list:view');
         Route::get('list/export', [OrderController::class, 'export'])->middleware(['throttle:10,1', 'perm:order:list:export']);

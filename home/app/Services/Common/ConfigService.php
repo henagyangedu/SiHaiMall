@@ -45,6 +45,8 @@ class ConfigService
             'points_earn_per_unit' => ['label' => '每消费 1 元（基准币种）赠送多少积分', 'type' => 'int', 'min' => 1, 'max' => 10000, 'default' => 1],
             'points_register'      => ['label' => '注册赠送积分', 'type' => 'int', 'min' => 0, 'max' => 100000, 'default' => 0],
             'points_signin'        => ['label' => '每日签到赠送积分', 'type' => 'int', 'min' => 0, 'max' => 100000, 'default' => 0],
+            'invoice_enabled'      => ['label' => '允许申请发票', 'type' => 'bool', 'default' => 0],
+            'invoice_notice'       => ['label' => '开票说明', 'type' => 'text', 'lang' => true, 'max' => 500],
         ],
         // 协议与政策：多语言富文本。键名同时是 C 端接口 /api/protocols/{key} 的 key
         'protocol' => [

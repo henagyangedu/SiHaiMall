@@ -244,7 +244,11 @@ module.exports = async function pcFlow(browser, data) {
     await fav.waitFor();
     // 上一轮如果中途失败可能留着收藏，先取消掉，保证从“未收藏”开始
     if (await page.locator('.extras .fav.on').count()) { await fav.click(); await page.locator('.extras .fav:not(.on)').waitFor(); }
-    await fav.click();
+    // 按钮是先变样子、再发请求的：要等收藏的请求回来再去列表页，否则列表可能先一步加载、看不到刚收藏的
+    await Promise.all([
+      page.waitForResponse((r) => /\/api\/favorites\/\d+/.test(r.url()) && r.request().method() === 'POST'),
+      fav.click(),
+    ]);
     await page.locator('.extras .fav.on', { hasText: '已收藏' }).waitFor();
     // 从会员中心的菜单进“我的收藏”
     await go('/user');

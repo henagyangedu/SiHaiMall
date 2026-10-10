@@ -127,9 +127,9 @@ abstract class FeatureTestCase extends TestCase
     }
 
     /** 以超级管理员身份请求后台接口（/admin-api 前缀） */
-    protected function adminApi(string $method, string $uri, array $data = []): TestResponse
+    protected function adminApi(string $method, string $uri, array $data = [], array $headers = []): TestResponse
     {
-        return $this->json($method, '/admin-api'.$uri, $data, ['Authorization' => 'Bearer '.$this->adminToken()]);
+        return $this->json($method, '/admin-api'.$uri, $data, $headers + ['Authorization' => 'Bearer '.$this->adminToken()]);
     }
 
     protected function admin(): Admin

@@ -1,4 +1,5 @@
 import { ElMessage } from 'element-plus'
+import { deviceTimezone } from '@shared/utils/timezone'
 import { state, logout } from '@/store'
 import { t } from '@/locale'
 import router from '@/router'
@@ -12,7 +13,8 @@ const BASE = import.meta.env.VITE_API_BASE || '/api'
  */
 export async function request(method, url, data = {}, { silent = false, auth = true } = {}) {
   // X-Source 固定为 pc：后端按它决定可用的支付方式等
-  const headers = { Accept: 'application/json', 'X-Lang': state.lang, 'X-Currency': state.currency, 'X-Source': 'pc' }
+  // X-Timezone：后端按它把时间换成买家当地的时间
+  const headers = { Accept: 'application/json', 'X-Lang': state.lang, 'X-Currency': state.currency, 'X-Source': 'pc', 'X-Timezone': deviceTimezone() }
   if (state.token) headers.Authorization = `Bearer ${state.token}`
 
   let full = BASE + url

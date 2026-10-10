@@ -38,6 +38,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('api', \App\Http\Middleware\SetLocale::class);
         // 放在 SetLocale 之后：它的后半段（处理响应）会最后执行，此时语言已经确定
         $middleware->appendToGroup('api', \App\Http\Middleware\TranslateApiMessages::class);
+        // 买家接口里的时间按请求头 X-Timezone 换成买家当地的时间
+        $middleware->appendToGroup('api', \App\Http\Middleware\LocalizeApiTimes::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $isApi = fn (Request $r) => $r->is('api/*', 'admin-api/*', 'notify/*');

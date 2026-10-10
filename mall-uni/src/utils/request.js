@@ -1,5 +1,6 @@
 import { state, logout } from '@/store'
 import { t } from '@/locale'
+import { deviceTimezone } from '@/utils/timezone'
 
 // 来源端：后端按 X-Source 区分 h5 / mp / app / pc
 let source = 'h5'
@@ -19,7 +20,8 @@ const BASE = import.meta.env.VITE_API_BASE || '/api'
  */
 export function request(method, url, data = {}, { silent = false, auth = true } = {}) {
   return new Promise((resolve, reject) => {
-    const header = { 'X-Lang': state.lang, 'X-Currency': state.currency, 'X-Source': source }
+    // X-Timezone：后端按它把时间换成买家当地的时间
+    const header = { 'X-Lang': state.lang, 'X-Currency': state.currency, 'X-Source': source, 'X-Timezone': deviceTimezone() }
     if (state.token) header.Authorization = `Bearer ${state.token}`
 
     uni.request({

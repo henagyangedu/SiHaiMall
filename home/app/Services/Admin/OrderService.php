@@ -55,7 +55,7 @@ class OrderService
     }
 
     public const EXPORT_HEAD = [
-        '订单号', '下单时间', '订单状态', '支付状态', '支付方式', '会员', '币种', '商品金额', '运费', '优惠', '积分抵扣', '应付', '折合基准币种',
+        '订单号', '下单时间', '订单状态', '支付状态', '支付方式', '会员', '币种', '商品金额', '运费', '优惠', '优惠券', '积分抵扣', '应付', '折合基准币种',
         '定价区域', '商品明细', '收件人', '电话', '国家', '省', '市', '区', '详细地址', '买家留言', '商家备注', '支付时间', '发货时间', '完成时间',
     ];
 
@@ -96,7 +96,7 @@ class OrderService
             $rows[] = [
                 $o->order_no, $fmt($o->created_at), OrderStatus::TEXT[(int) $o->status] ?? '', OrderStatus::PAY_TEXT[(int) $o->pay_status] ?? '', $o->pay_channel,
                 $m ? ($m->nickname ?: $m->account ?: '#' . $m->id) : '#' . $o->member_id, $o->currency,
-                (string) $o->goods_amount, (string) $o->shipping_fee, (string) $o->discount_amount, (string) $o->points_amount, (string) $o->pay_amount, (string) $o->base_pay_amount,
+                (string) $o->goods_amount, (string) $o->shipping_fee, (string) $o->discount_amount, (string) $o->coupon_amount, (string) $o->points_amount, (string) $o->pay_amount, (string) $o->base_pay_amount,
                 (string) $o->price_region_name, $goods,
                 $a->name ?? '', $a ? trim($a->phone_area . ' ' . $a->phone) : '', $a->country_code ?? '', $a->province ?? '', $a->city ?? '', $a->district ?? '',
                 $a ? trim($a->address . ' ' . $a->address2) : '', $o->remark, $o->admin_remark, $fmt($o->paid_at), $fmt($o->shipped_at), $fmt($o->finished_at),
@@ -152,7 +152,7 @@ class OrderService
             'currency' => $o->currency, 'rate' => rtrim(rtrim((string) $o->rate, '0'), '.'), 'lang' => $o->lang, 'source' => $o->source,
             'price_region_name' => (string) $o->price_region_name,
             'goods_amount' => (string) $o->goods_amount, 'shipping_fee' => (string) $o->shipping_fee, 'discount_amount' => (string) $o->discount_amount,
-            'points_amount' => (string) $o->points_amount, 'pay_amount' => (string) $o->pay_amount, 'base_pay_amount' => (string) $o->base_pay_amount,
+            'coupon_amount' => (string) $o->coupon_amount, 'points_amount' => (string) $o->points_amount, 'pay_amount' => (string) $o->pay_amount, 'base_pay_amount' => (string) $o->base_pay_amount,
             'remark' => $o->remark, 'admin_remark' => $o->admin_remark, 'cancel_reason' => $o->cancel_reason,
             'expire_at' => $o->expire_at?->format('Y-m-d H:i:s'), 'paid_at' => $o->paid_at?->format('Y-m-d H:i:s'),
             'shipped_at' => $o->shipped_at?->format('Y-m-d H:i:s'), 'finished_at' => $o->finished_at?->format('Y-m-d H:i:s'),
@@ -170,7 +170,7 @@ class OrderService
         $this->status->note($o, OrderStatus::OP_ADMIN, (int) $op->id, '修改商家备注');
     }
 
-    /** 改价：只允许待支付订单；通过调整 discount_amount 保持「商品+运费-优惠-积分=应付」恒等式 */
+    /** 改价：只允许待支付订单；通过调整 discount_amount 保持「商品+运费-优惠-优惠券-积分=应付」恒等式 */
     public function changePrice(int $id, string $newPay, Admin $op): void
     {
         DB::transaction(function () use ($id, $newPay, $op) {
@@ -178,7 +178,7 @@ class OrderService
             if ((int) $o->status !== OrderStatus::PENDING) {
                 throw new BusinessException('只有待支付订单可以改价');
             }
-            $gross = bcsub(bcadd((string) $o->goods_amount, (string) $o->shipping_fee, 2), (string) $o->points_amount, 2);
+            $gross = bcsub(bcsub(bcadd((string) $o->goods_amount, (string) $o->shipping_fee, 2), (string) $o->coupon_amount, 2), (string) $o->points_amount, 2);
             if (bccomp($newPay, '0.01', 2) < 0 || bccomp($newPay, $gross, 2) > 0) {
                 throw new BusinessException('改后金额须在 0.01 ~ ' . $gross . ' 之间');
             }

@@ -159,7 +159,7 @@ class CatalogService
         }
         $rows = DB::table('goods_sku as s')->join('goods as g', 'g.id', '=', 's.goods_id')
             ->whereIn('s.id', $skuIds)->whereNull('g.deleted_at')
-            ->select('s.id', 's.goods_id', 's.spec_value_ids', 's.image', 's.price', 's.stock', 's.status', 'g.cover', 'g.unit', 'g.is_on_sale', 'g.is_virtual')
+            ->select('s.id', 's.goods_id', 's.spec_value_ids', 's.image', 's.price', 's.stock', 's.status', 'g.cover', 'g.unit', 'g.is_on_sale', 'g.is_virtual', 'g.category_id')
             ->get()->keyBy('id');
 
         $titles = $this->trans->fetch('goods_lang', 'goods_id', $rows->pluck('goods_id')->unique()->all(), ['title']);
@@ -179,7 +179,7 @@ class CatalogService
                 $parts[] = $this->trans->resolve($valNames[(int) $v]['name'] ?? [], $lang);
             }
             $out[(int) $id] = [
-                'sku_id' => (int) $id, 'goods_id' => (int) $r->goods_id,
+                'sku_id' => (int) $id, 'goods_id' => (int) $r->goods_id, 'category_id' => (int) $r->category_id,
                 'title' => $this->trans->resolve($titles[$r->goods_id]['title'] ?? [], $lang),
                 'spec_text' => implode(' / ', array_filter($parts)),
                 'image' => $r->image ?: $r->cover, 'unit' => $r->unit,

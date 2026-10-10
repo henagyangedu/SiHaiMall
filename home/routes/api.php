@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CatalogController;
 use App\Http\Controllers\Api\ConfigController;
 use App\Http\Controllers\Api\ContentController;
+use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\DistributionController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\OrderController;
@@ -37,6 +38,8 @@ Route::middleware('api.token:optional')->group(function () {
     Route::get('categories', [CatalogController::class, 'categories']);
     Route::get('goods', [CatalogController::class, 'goods']);
     Route::get('goods/{id}', [CatalogController::class, 'detail'])->where('id', '[0-9]+');
+    // 领券中心：现在能领的优惠券（登录后带上自己领了几张）
+    Route::get('coupons', [CouponController::class, 'index']);
     // 商品评价：概况 + 列表
     Route::get('goods/{id}/reviews', [ReviewController::class, 'index'])->where('id', '[0-9]+');
 });
@@ -62,6 +65,9 @@ Route::middleware('api.token')->group(function () {
     Route::get('member/profile', [AuthController::class, 'profile']);
     Route::put('member/profile', [AuthController::class, 'updateProfile']);
     Route::get('member/points', [PointController::class, 'index']);
+    // 优惠券：领取、我的优惠券
+    Route::post('coupons/{id}/receive', [CouponController::class, 'receive'])->where('id', '[0-9]+')->middleware('throttle:30,1');
+    Route::get('member/coupons', [CouponController::class, 'mine']);
     // 商品收藏
     Route::get('favorites', [FavoriteController::class, 'index']);
     Route::post('favorites/{goodsId}', [FavoriteController::class, 'store'])->where('goodsId', '[0-9]+')->middleware('throttle:60,1');

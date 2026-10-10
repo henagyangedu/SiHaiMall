@@ -352,10 +352,10 @@ class DistributionService
     }
 
     // ------------------------------------------------------------------ 纯计算
-    /** 计佣基数：商品金额 - 会员折扣 - 积分抵扣（不含运费），折成基准币种 */
+    /** 计佣基数：商品金额 - 会员折扣 - 优惠券 - 积分抵扣（不含运费），折成基准币种 */
     public static function commissionBase(Order $order): string
     {
-        $net = bcsub(bcsub((string) $order->goods_amount, (string) $order->discount_amount, 2), (string) $order->points_amount, 2);
+        $net = bcsub(bcsub(bcsub((string) $order->goods_amount, (string) $order->discount_amount, 2), (string) $order->coupon_amount, 2), (string) $order->points_amount, 2);
 
         return bccomp($net, '0', 2) > 0 ? Money::toBase($net, (string) $order->rate) : '0.00';
     }

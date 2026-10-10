@@ -4,7 +4,9 @@ namespace App\Services\Common;
 
 use App\Models\Coupon;
 use App\Models\MemberCoupon;
+use App\Models\Order;
 use App\Support\Exceptions\BusinessException;
+use App\Support\Money;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +17,10 @@ use Illuminate\Support\Facades\DB;
  * - 适用范围：全部商品 / 指定分类（含下级）/ 指定商品。门槛和折扣都只按适用范围内的商品金额算。
  * - 有效期在领到手的那一刻固化到 gm_member_coupon，之后后台再改券的设置，不影响已经领到的。
  * - 发行量：received 在发一张的同一条 UPDATE 里加一并校验没有超发（靠行锁，不会超发）。
+ * - 用券：一单一张；只能用在基准币种（人民币）的订单上，因为券面金额是按基准币种定的。
+ *   门槛按“适用范围内的商品金额”（原价）判断；能减的钱 = 满减券的面额，或折扣券对“适用商品扣掉会员折扣后的金额”打折（可封顶）；
+ *   再怎么减也不会把商品部分减到 0（至少留 0.01，支付渠道不收 0 元单）。计算顺序：会员折扣 → 优惠券 → 积分抵扣，运费不参与。
+ * - 退回：订单取消或超时未付款关闭时退回（release）；已付款订单的退款不退券。
  */
 class CouponService
 {
@@ -70,6 +76,239 @@ class CouponService
         }
 
         return [$coupon->valid_start->copy(), $coupon->valid_end->copy()];
+    }
+
+    /**
+     * 这张券用在这一单上能减多少。
+     * @param array<int,array{goods_id:int,category_id:int,amount:string}> $lines 订单里的每个商品行（amount 是这一行的商品金额，下单币种）
+     * @param callable(string):string $net 把一笔商品金额扣掉会员折扣后剩多少
+     * @return array{usable:bool,amount:string,reason:string}
+     */
+    public function quote(Coupon $coupon, array $lines, callable $net, string $currency, string $baseCurrency): array
+    {
+        $no = fn (string $reason) => ['usable' => false, 'amount' => '0.00', 'reason' => $reason];
+        if (strtoupper($currency) !== strtoupper($baseCurrency)) {
+            return $no('优惠券只能用于' . strtoupper($baseCurrency) . '订单');
+        }
+
+        $applicable = '0.00';
+        $total = '0.00';
+        $scopeIds = $this->scopeIds($coupon);
+        foreach ($lines as $l) {
+            $total = bcadd($total, (string) $l['amount'], 2);
+            $hit = match ((int) $coupon->scope) {
+                Coupon::SCOPE_CATEGORY => in_array((int) $l['category_id'], $scopeIds, true),
+                Coupon::SCOPE_GOODS => in_array((int) $l['goods_id'], $scopeIds, true),
+                default => true,
+            };
+            if ($hit) {
+                $applicable = bcadd($applicable, (string) $l['amount'], 2);
+            }
+        }
+        if (bccomp($applicable, '0', 2) <= 0) {
+            return $no('订单里没有这张券适用的商品');
+        }
+        if (bccomp($applicable, (string) $coupon->threshold, 2) < 0) {
+            return $no('适用商品还差 ' . self::trim(bcsub((string) $coupon->threshold, $applicable, 2)) . ' 元可用');
+        }
+
+        $applicableNet = $net($applicable);
+        if ((int) $coupon->type === Coupon::TYPE_REDUCE) {
+            $amount = (string) $coupon->amount;
+        } else {
+            $amount = Money::round(bcdiv(bcmul($applicableNet, bcsub('100', (string) $coupon->discount, 2), 6), '100', 6), 2);
+            if (bccomp((string) $coupon->max_amount, '0', 2) > 0 && bccomp($amount, (string) $coupon->max_amount, 2) > 0) {
+                $amount = (string) $coupon->max_amount;
+            }
+        }
+        // 不能减得比适用商品实际要付的还多，也不能把整单的商品部分减到 0
+        $cap = bcsub($net($total), '0.01', 2);
+        foreach ([$applicableNet, $cap] as $limit) {
+            if (bccomp($amount, $limit, 2) > 0) {
+                $amount = $limit;
+            }
+        }
+        if (bccomp($amount, '0', 2) <= 0) {
+            return $no('这一单用不上这张券');
+        }
+
+        return ['usable' => true, 'amount' => bcadd($amount, '0', 2), 'reason' => ''];
+    }
+
+    /**
+     * 会员手里现在能用的券（未使用、在有效期内），带上“这一单能不能用、能减多少”。能用的排前面，减得多的在前。
+     * @return array<int,array<string,mixed>>
+     */
+    public function forOrder(int $memberId, array $lines, callable $net, string $currency, string $baseCurrency): array
+    {
+        $now = now();
+        $rows = MemberCoupon::query()->where('member_id', $memberId)->where('status', MemberCoupon::UNUSED)
+            ->where('valid_start', '<=', $now)->where('valid_end', '>', $now)->orderBy('valid_end')->get();
+        $coupons = Coupon::withTrashed()->whereIn('id', $rows->pluck('coupon_id')->unique())->get()->keyBy('id');
+
+        $out = [];
+        foreach ($rows as $r) {
+            if (!($c = $coupons->get($r->coupon_id))) {
+                continue;
+            }
+            // 用 array_merge 而不是 +：quote() 的 amount（这一单能减多少）要盖掉券本身的 amount（面额），面额另有 face_amount
+            $out[] = array_merge(self::memberRow($r, $c), $this->quote($c, $lines, $net, $currency, $baseCurrency));
+        }
+        usort($out, fn ($a, $b) => [$b['usable'], (float) $b['amount']] <=> [$a['usable'], (float) $a['amount']]);
+
+        return $out;
+    }
+
+    /**
+     * 下单时用掉一张券：锁住这张券，确认是本人的、没用过、在有效期内、这一单能用，返回能减的金额。必须在事务里调用。
+     * @return array{id:int,amount:string}
+     */
+    public function useForOrder(int $memberId, int $memberCouponId, array $lines, callable $net, string $currency, string $baseCurrency): array
+    {
+        $mc = MemberCoupon::query()->where('member_id', $memberId)->lockForUpdate()->find($memberCouponId) ?? throw new BusinessException('优惠券不存在');
+        $now = now();
+        if ((int) $mc->status !== MemberCoupon::UNUSED) {
+            throw new BusinessException('这张优惠券已经用过了');
+        }
+        if ($mc->valid_start->gt($now) || $mc->valid_end->lte($now)) {
+            throw new BusinessException('这张优惠券不在有效期内');
+        }
+        $coupon = Coupon::withTrashed()->find($mc->coupon_id) ?? throw new BusinessException('优惠券不存在');
+        $q = $this->quote($coupon, $lines, $net, $currency, $baseCurrency);
+        if (!$q['usable']) {
+            throw new BusinessException('这张优惠券不能用于本单：' . $q['reason']);
+        }
+
+        return ['id' => (int) $mc->id, 'amount' => $q['amount']];
+    }
+
+    /** 订单创建成功后把券标成已使用。必须和 useForOrder 在同一个事务里 */
+    public function markUsed(int $memberCouponId, int $orderId): void
+    {
+        MemberCoupon::query()->whereKey($memberCouponId)->where('status', MemberCoupon::UNUSED)
+            ->update(['status' => MemberCoupon::USED, 'order_id' => $orderId, 'used_at' => now()]);
+    }
+
+    /** 订单取消或超时未付款关闭：把这张单用掉的券退回去（有效期不延长，过期了就是过期了）。重复调用无副作用 */
+    public function release(Order $order): void
+    {
+        if ((int) $order->member_coupon_id <= 0) {
+            return;
+        }
+        MemberCoupon::query()->whereKey($order->member_coupon_id)->where('order_id', $order->id)->where('status', MemberCoupon::USED)
+            ->update(['status' => MemberCoupon::UNUSED, 'order_id' => 0, 'used_at' => null]);
+    }
+
+    /**
+     * 买家自己领一张券。
+     * @return array{id:int,valid_end:string}
+     */
+    public function receive(int $memberId, int $couponId): array
+    {
+        return DB::transaction(function () use ($memberId, $couponId) {
+            // 锁住券这一行：同一个人同时点两次，“每人限领”才不会被突破
+            $coupon = Coupon::query()->lockForUpdate()->find($couponId) ?? throw new BusinessException('优惠券不存在');
+            $mc = $this->issue($coupon, $memberId, true);
+
+            return ['id' => (int) $mc->id, 'valid_end' => $mc->valid_end->format('Y-m-d H:i:s')];
+        });
+    }
+
+    /**
+     * 领券中心：现在能领的券（启用、公开、在领取时间内、没领完、没过期）。登录后带上自己领了几张、还能不能领。
+     * 传 $goodsId 时只返回这个商品能用的券（商品详情页用）。
+     * @return array<int,array<string,mixed>>
+     */
+    public function receivable(?int $memberId, ?int $goodsId = null): array
+    {
+        $now = now();
+        $coupons = Coupon::query()->where('status', 1)->where('is_public', 1)
+            ->where(fn ($q) => $q->whereNull('receive_start')->orWhere('receive_start', '<=', $now))
+            ->where(fn ($q) => $q->whereNull('receive_end')->orWhere('receive_end', '>', $now))
+            ->where(fn ($q) => $q->where('valid_type', Coupon::VALID_DAYS)->orWhere('valid_end', '>', $now))
+            ->where(fn ($q) => $q->where('total', 0)->orWhereColumn('received', '<', 'total'))
+            ->orderByDesc('id')->limit(100)->get();
+
+        if ($goodsId) {
+            $categoryId = (int) DB::table('goods')->where('id', $goodsId)->value('category_id');
+            $coupons = $coupons->filter(fn (Coupon $c) => match ((int) $c->scope) {
+                Coupon::SCOPE_CATEGORY => in_array($categoryId, $this->scopeIds($c), true),
+                Coupon::SCOPE_GOODS => in_array($goodsId, $this->scopeIds($c), true),
+                default => true,
+            })->values();
+        }
+        $mine = $memberId
+            ? MemberCoupon::query()->where('member_id', $memberId)->whereIn('coupon_id', $coupons->pluck('id'))->groupBy('coupon_id')->selectRaw('coupon_id, COUNT(*) as c')->pluck('c', 'coupon_id')
+            : collect();
+
+        return $coupons->map(function (Coupon $c) use ($mine, $now) {
+            [, $end] = self::validPeriod($c, $now);
+            $got = (int) ($mine[$c->id] ?? 0);
+
+            return self::couponRow($c) + [
+                'valid_type' => (int) $c->valid_type, 'valid_days' => (int) $c->valid_days, 'valid_end' => $end->format('Y-m-d H:i:s'),
+                'received' => $got, 'can_receive' => $got < (int) $c->per_member,
+            ];
+        })->all();
+    }
+
+    /**
+     * 我的优惠券。$status：unused 未使用（含还没到开始时间的）/ used 已使用 / expired 已过期。
+     * 过期状态不靠定时任务：未使用但过了有效期的，查的时候就算作已过期。
+     */
+    public function mine(int $memberId, string $status, int $page, int $size): array
+    {
+        $now = now();
+        $q = MemberCoupon::query()->where('member_id', $memberId);
+        match ($status) {
+            'used' => $q->where('status', MemberCoupon::USED)->orderByDesc('used_at'),
+            'expired' => $q->where(fn ($w) => $w->where('status', MemberCoupon::EXPIRED)->orWhere(fn ($x) => $x->where('status', MemberCoupon::UNUSED)->where('valid_end', '<=', $now)))->orderByDesc('valid_end'),
+            default => $q->where('status', MemberCoupon::UNUSED)->where('valid_end', '>', $now)->orderBy('valid_end'),
+        };
+        $p = $q->paginate(min(max($size, 1), 50), ['*'], 'page', max($page, 1));
+        $coupons = Coupon::withTrashed()->whereIn('id', collect($p->items())->pluck('coupon_id')->unique())->get()->keyBy('id');
+        $p->setCollection(collect($p->items())->filter(fn ($r) => $coupons->has($r->coupon_id))->map(fn ($r) => self::memberRow($r, $coupons[$r->coupon_id]))->values());
+
+        return \App\Support\Paginate::format($p);
+    }
+
+    /** 一张券给买家看的基本信息 */
+    public static function couponRow(Coupon $c): array
+    {
+        return [
+            'coupon_id' => (int) $c->id, 'name' => $c->name, 'type' => (int) $c->type, 'desc' => self::describe($c),
+            'threshold' => (string) $c->threshold, 'amount' => (string) $c->amount, 'discount' => (string) $c->discount, 'max_amount' => (string) $c->max_amount,
+            'scope' => (int) $c->scope,
+        ];
+    }
+
+    /** 会员手里的一张券给买家看的信息 */
+    private static function memberRow(MemberCoupon $r, Coupon $c): array
+    {
+        $face = self::couponRow($c);
+        // 结算时这里的 amount 会被“这一单能减多少”覆盖（见 forOrder），所以面额另存一份 face_amount
+        return ['id' => (int) $r->id, 'face_amount' => $face['amount']] + $face + [
+            'valid_start' => $r->valid_start->format('Y-m-d H:i:s'), 'valid_end' => $r->valid_end->format('Y-m-d H:i:s'),
+            'status' => (int) $r->status, 'used_at' => $r->used_at?->format('Y-m-d H:i:s'),
+        ];
+    }
+
+    /** 适用范围展开成 ID 列表；指定分类时带上所有下级分类 */
+    private function scopeIds(Coupon $c): array
+    {
+        $ids = array_map('intval', (array) ($c->scope_ids ?? []));
+        if ((int) $c->scope !== Coupon::SCOPE_CATEGORY || $ids === []) {
+            return $ids;
+        }
+        $all = $ids;
+        $level = $ids;
+        // 分类最多三级，逐层往下找
+        for ($i = 0; $i < 3 && $level !== []; $i++) {
+            $level = DB::table('category')->whereIn('pid', $level)->pluck('id')->map(fn ($v) => (int) $v)->all();
+            $all = array_merge($all, $level);
+        }
+
+        return array_values(array_unique($all));
     }
 
     /** 给买家和后台看的一句话说明，如“满 300 减 30”“满 200 打 9 折，最多减 50” */

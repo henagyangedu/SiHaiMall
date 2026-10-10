@@ -21,13 +21,14 @@ class CheckoutRequest extends FormRequest
             'items.*.qty'    => ['required_with:items', 'integer', 'min:1', 'max:999'],
             'address_id'     => ['nullable', 'integer', 'min:1'],
             'use_points'     => ['nullable', 'boolean'],
+            'member_coupon_id' => ['nullable', 'integer', 'min:0'],
         ];
     }
 
     public function attributes(): array
     {
         return [
-            'cart_ids' => '购物车商品', 'items' => '商品', 'address_id' => '收货地址', 'use_points' => '使用积分',
+            'cart_ids' => '购物车商品', 'items' => '商品', 'address_id' => '收货地址', 'use_points' => '使用积分', 'member_coupon_id' => '优惠券',
         ];
     }
 }

@@ -91,12 +91,12 @@ onReachBottom(() => { if (list.value.length < page.total) load() })
 
 <style lang="scss" scoped>
 .tabs { display: flex; background: #fff; position: sticky; top: var(--window-top); z-index: 2; }
-.tab { flex: 1; text-align: center; padding: 24rpx 0; color: #606266; font-size: 26rpx; border-bottom: 4rpx solid transparent; }
+.tab { flex: 1; text-align: center; padding: 24rpx 0; color: #6a665e; font-size: 26rpx; border-bottom: 4rpx solid transparent; }
 .tab.on { color: var(--theme); border-bottom-color: var(--theme); font-weight: 600; }
 .head { display: flex; justify-content: space-between; margin-bottom: 16rpx; }
 .status { color: var(--theme); }
 .item { display: flex; margin-bottom: 16rpx; }
-.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #f0f1f3; flex: none; }
+.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #efe8dc; flex: none; }
 .body { flex: 1; min-width: 0; margin: 0 20rpx; }
 .right { text-align: right; flex: none; }
 .foot { text-align: right; }

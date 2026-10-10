@@ -5,7 +5,9 @@ export default {
     more: 'View more', all: 'All', retry: 'Retry',
   },
   tab: { home: 'Home', category: 'Categories', cart: 'Cart', user: 'Account' },
-  home: { search: 'Search products', notice: 'Notice', recommend: 'Recommended', sold: '{n} sold', soldOut: 'Sold out' },
+  home: {
+    heroEyebrow: 'SMART PET LIVING', heroSub: 'From meals on time to a cosy spot by your side', heroCta: 'Explore smart gear', sceneTitle: 'Shop by everyday moments', recommendSub: 'Small daily things, taken care of',
+    bandSub: 'Accessories and refills, all in one go', bandCta: 'Take a look', guideTitle: 'Pet care & buying guides', readGuide: 'Read the guide', needHelp: 'Need help?', multiSpec: 'Options', priceFrom: '+', search: 'Search products', notice: 'Notice', recommend: 'Recommended', sold: '{n} sold', soldOut: 'Sold out' },
   category: { all: 'All products', sortDefault: 'Featured', sortSales: 'Best selling', sortPrice: 'Price', sortNew: 'Newest' },
   goods: {
     detail: 'Product', stock: '{n} in stock', select: 'Select', selected: 'Selected', qty: 'Quantity', addCart: 'Add to cart', buyNow: 'Buy now',

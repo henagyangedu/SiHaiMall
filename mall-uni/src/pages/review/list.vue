@@ -64,6 +64,6 @@ onReachBottom(() => { if (list.value.length < page.total) load() })
 .rate { color: var(--sub); font-size: 24rpx; margin-bottom: 20rpx; }
 .num { color: var(--theme); font-size: 44rpx; font-weight: 600; margin-right: 12rpx; }
 .levels { display: flex; flex-wrap: wrap; gap: 16rpx; }
-.level { padding: 8rpx 24rpx; border-radius: 28rpx; background: #f5f6f8; font-size: 24rpx; }
-.level.on { background: #fdecec; color: var(--theme); }
+.level { padding: 8rpx 24rpx; border-radius: 28rpx; background: #f3ede2; font-size: 24rpx; }
+.level.on { background: #f9f0ec; color: var(--theme); }
 </style>

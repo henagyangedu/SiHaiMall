@@ -106,19 +106,19 @@ onShow(() => {
 .addr { position: relative; padding-right: 60rpx; }
 .name { font-weight: 600; font-size: 30rpx; }
 .add { color: var(--theme); }
-.arrow { position: absolute; right: 24rpx; top: 50%; transform: translateY(-50%); color: #c0c4cc; font-size: 40rpx; }
+.arrow { position: absolute; right: 24rpx; top: 50%; transform: translateY(-50%); color: #c9c2b5; font-size: 40rpx; }
 .item { display: flex; margin-bottom: 20rpx; }
-.thumb { width: 140rpx; height: 140rpx; border-radius: 12rpx; background: #f0f1f3; flex: none; }
+.thumb { width: 140rpx; height: 140rpx; border-radius: 12rpx; background: #efe8dc; flex: none; }
 .body { flex: 1; min-width: 0; margin-left: 20rpx; }
 .line { display: flex; justify-content: space-between; margin-top: 8rpx; }
 .region { margin-top: 4rpx; }
 .problem { color: var(--theme); font-size: 24rpx; margin-top: 8rpx; }
 .kv { display: flex; justify-content: space-between; align-items: center; padding: 12rpx 0; }
-.switch { width: 84rpx; height: 48rpx; border-radius: 24rpx; background: #dcdfe6; padding: 4rpx; box-sizing: border-box; }
+.switch { width: 84rpx; height: 48rpx; border-radius: 24rpx; background: #ded6c8; padding: 4rpx; box-sizing: border-box; }
 .switch.on { background: var(--theme); }
 .dot { width: 40rpx; height: 40rpx; border-radius: 50%; background: #fff; transition: transform 0.2s; }
 .switch.on .dot { transform: translateX(36rpx); }
-.remark { margin-top: 12rpx; padding: 16rpx 20rpx; background: #f5f6f8; border-radius: 12rpx; height: 44rpx; }
+.remark { margin-top: 12rpx; padding: 16rpx 20rpx; background: #f3ede2; border-radius: 12rpx; height: 44rpx; }
 .bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; display: flex; align-items: center; padding: 16rpx 24rpx; box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05); }
 .sum { flex: 1; }
 .total { font-size: 36rpx; }

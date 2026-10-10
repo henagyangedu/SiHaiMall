@@ -114,15 +114,15 @@ watch(() => [state.lang, state.currency], load)
 .page { padding-bottom: 140rpx; }
 .row { display: flex; align-items: center; background: #fff; margin: 20rpx 24rpx 0; padding: 24rpx; border-radius: 16rpx; }
 .row.off { opacity: 0.55; }
-.check { width: 40rpx; height: 40rpx; border-radius: 50%; border: 3rpx solid #c0c4cc; flex: none; margin-right: 20rpx; box-sizing: border-box; }
+.check { width: 40rpx; height: 40rpx; border-radius: 50%; border: 3rpx solid #c9c2b5; flex: none; margin-right: 20rpx; box-sizing: border-box; }
 .check.on { background: var(--theme); border-color: var(--theme); box-shadow: inset 0 0 0 6rpx #fff; }
-.check.dis { background: #f0f1f3; }
-.thumb { width: 160rpx; height: 160rpx; border-radius: 12rpx; background: #f0f1f3; flex: none; }
+.check.dis { background: #efe8dc; }
+.thumb { width: 160rpx; height: 160rpx; border-radius: 12rpx; background: #efe8dc; flex: none; }
 .body { flex: 1; min-width: 0; margin-left: 20rpx; }
 .warn { color: #e6a23c; font-size: 24rpx; }
 .line { display: flex; justify-content: space-between; align-items: center; margin-top: 12rpx; }
 .stepper { display: flex; align-items: center; }
-.st { width: 52rpx; height: 52rpx; line-height: 48rpx; text-align: center; background: #f5f6f8; border-radius: 8rpx; font-size: 30rpx; }
+.st { width: 52rpx; height: 52rpx; line-height: 48rpx; text-align: center; background: #f3ede2; border-radius: 8rpx; font-size: 30rpx; }
 .num { min-width: 64rpx; text-align: center; }
 .clear { text-align: center; color: var(--sub); padding: 30rpx; font-size: 26rpx; }
 .bar { position: fixed; left: 0; right: 0; bottom: var(--window-bottom); background: #fff; display: flex; align-items: center; padding: 16rpx 24rpx; box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05); }

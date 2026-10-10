@@ -5,7 +5,9 @@ export default {
     more: '查看更多', all: '全部', retry: '重试',
   },
   tab: { home: '首页', category: '分类', cart: '购物车', user: '我的' },
-  home: { search: '搜索商品', notice: '公告', recommend: '为你推荐', sold: '已售 {n}', soldOut: '已售罄' },
+  home: {
+    heroEyebrow: 'SMART PET LIVING', heroSub: '从准时开饭，到窝边的舒适温度', heroCta: '探索智能用品', sceneTitle: '按生活场景，找到合适的用品', recommendSub: '把每天的小事，照顾得更妥帖',
+    bandSub: '常用配件与耗材，一次备齐', bandCta: '去看看', guideTitle: '养宠与选购指南', readGuide: '阅读指南', needHelp: '需要帮助？', multiSpec: '多规格', priceFrom: '起', search: '搜索商品', notice: '公告', recommend: '为你推荐', sold: '已售 {n}', soldOut: '已售罄' },
   category: { all: '全部商品', sortDefault: '综合', sortSales: '销量', sortPrice: '价格', sortNew: '新品' },
   goods: {
     detail: '商品详情', stock: '库存 {n}', select: '请选择', selected: '已选', qty: '数量', addCart: '加入购物车', buyNow: '立即购买',

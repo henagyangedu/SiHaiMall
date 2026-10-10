@@ -73,6 +73,6 @@ onReachBottom(() => { if (type.value !== 'help' && list.value.length < page.tota
 .title { font-size: 30rpx; font-weight: 600; margin-bottom: 8rpx; }
 .top { color: var(--theme); border: 2rpx solid var(--theme); border-radius: 6rpx; font-size: 20rpx; padding: 0 8rpx; margin-right: 10rpx; font-weight: 400; }
 .meta { margin-top: 8rpx; }
-.cover { width: 200rpx; height: 140rpx; border-radius: 12rpx; background: #f0f1f3; flex: none; }
+.cover { width: 200rpx; height: 140rpx; border-radius: 12rpx; background: #efe8dc; flex: none; }
 .end { text-align: center; padding: 30rpx 0 40rpx; }
 </style>

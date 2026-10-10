@@ -157,7 +157,7 @@ onLoad(async (q) => {
 .code-row { display: flex; align-items: center; gap: 20rpx; }
 .code-btn { color: var(--theme); font-size: 26rpx; white-space: nowrap; }
 .code-btn.off { color: var(--sub); }
-.links { display: flex; justify-content: space-between; color: #606266; font-size: 26rpx; margin-top: 12rpx; }
+.links { display: flex; justify-content: space-between; color: #6a665e; font-size: 26rpx; margin-top: 12rpx; }
 .agree { text-align: center; color: var(--sub); font-size: 24rpx; margin-top: 24rpx; }
 .link { color: var(--theme); margin-left: 12rpx; }
 .switch { text-align: center; color: var(--sub); margin-top: 32rpx; font-size: 26rpx; }

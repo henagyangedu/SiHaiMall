@@ -95,11 +95,11 @@ onLoad((q) => {
 .strong { font-weight: 600; margin-bottom: 8rpx; }
 .input { height: 88rpx; border-bottom: 2rpx solid var(--line); }
 .item { display: flex; margin-bottom: 16rpx; }
-.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #f0f1f3; flex: none; }
+.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #efe8dc; flex: none; }
 .body { flex: 1; min-width: 0; margin-left: 20rpx; }
 .kv { display: flex; justify-content: space-between; padding: 8rpx 0; gap: 24rpx; }
 .val { text-align: right; word-break: break-all; }
 .cancel { text-align: center; color: var(--sub); padding: 30rpx; }
 .pics { display: flex; flex-wrap: wrap; gap: 16rpx; padding: 8rpx 0 16rpx; }
-.pic { width: 140rpx; height: 140rpx; border-radius: 12rpx; background: #f5f6f8; }
+.pic { width: 140rpx; height: 140rpx; border-radius: 12rpx; background: #f3ede2; }
 </style>

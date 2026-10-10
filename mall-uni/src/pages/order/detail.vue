@@ -217,14 +217,14 @@ onShow(async () => {
 .section { font-weight: 600; margin-bottom: 12rpx; }
 .parcel + .parcel { border-top: 2rpx solid var(--line); margin-top: 12rpx; padding-top: 12rpx; }
 .tstatus { color: var(--theme); font-size: 24rpx; }
-.trace { display: flex; padding: 12rpx 0 0; color: #909399; font-size: 26rpx; }
+.trace { display: flex; padding: 12rpx 0 0; color: #8b877d; font-size: 26rpx; }
 .trace.first { color: #303133; }
-.dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: #dcdfe6; margin: 12rpx 18rpx 0 6rpx; flex: none; }
+.dot { width: 14rpx; height: 14rpx; border-radius: 50%; background: #ded6c8; margin: 12rpx 18rpx 0 6rpx; flex: none; }
 .trace.first .dot { background: var(--theme); }
 .tbody { flex: 1; min-width: 0; }
 .track-btn { text-align: center; color: var(--theme); padding: 16rpx 0 4rpx; }
 .item { display: flex; margin-bottom: 16rpx; }
-.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #f0f1f3; flex: none; }
+.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #efe8dc; flex: none; }
 .body { flex: 1; min-width: 0; margin: 0 20rpx; }
 .right { text-align: right; flex: none; }
 .rv-btn { display: inline-block; margin-top: 10rpx; padding: 4rpx 24rpx; border-radius: 28rpx; border: 2rpx solid var(--theme); color: var(--theme); font-size: 24rpx; }

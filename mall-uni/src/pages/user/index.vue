@@ -101,7 +101,7 @@ onShow(async () => {
 .level { font-size: 22rpx; font-weight: 400; margin-left: 16rpx; padding: 4rpx 16rpx; border-radius: 20rpx; background: rgba(255, 255, 255, 0.25); vertical-align: middle; }
 .title { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 24rpx; }
 .tabs { display: flex; }
-.tab { flex: 1; text-align: center; color: #606266; font-size: 26rpx; padding: 12rpx 0; }
+.tab { flex: 1; text-align: center; color: #6a665e; font-size: 26rpx; padding: 12rpx 0; }
 .list { padding: 0 24rpx; }
 .cell { display: flex; justify-content: space-between; align-items: center; height: 100rpx; border-bottom: 2rpx solid var(--line); }
 .list > :last-child .cell, .list > .cell:last-child { border-bottom: none; }

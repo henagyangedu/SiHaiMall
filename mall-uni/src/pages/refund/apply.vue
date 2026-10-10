@@ -152,26 +152,26 @@ onLoad(async (q) => {
 
 <style lang="scss" scoped>
 .page { padding-bottom: 60rpx; }
-.section { padding: 20rpx 32rpx 0; color: #606266; }
+.section { padding: 20rpx 32rpx 0; color: #6a665e; }
 .opt { display: flex; align-items: center; border: 2rpx solid transparent; }
 .opt.on { border-color: var(--theme); }
-.radio { width: 36rpx; height: 36rpx; border-radius: 50%; border: 3rpx solid #c0c4cc; flex: none; margin-right: 20rpx; box-sizing: border-box; }
+.radio { width: 36rpx; height: 36rpx; border-radius: 50%; border: 3rpx solid #c9c2b5; flex: none; margin-right: 20rpx; box-sizing: border-box; }
 .radio.on { border-color: var(--theme); background: var(--theme); box-shadow: inset 0 0 0 6rpx #fff; }
-.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #f0f1f3; flex: none; margin-right: 20rpx; }
+.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #efe8dc; flex: none; margin-right: 20rpx; }
 .body { flex: 1; min-width: 0; }
 .strong { font-weight: 600; }
 .kv { display: flex; justify-content: space-between; align-items: center; padding: 12rpx 0; }
 .types { display: flex; gap: 16rpx; }
-.type { padding: 8rpx 24rpx; border-radius: 28rpx; background: #f5f6f8; border: 2rpx solid transparent; font-size: 26rpx; }
-.type.on { background: #fdecec; border-color: var(--theme); color: var(--theme); }
+.type { padding: 8rpx 24rpx; border-radius: 28rpx; background: #f3ede2; border: 2rpx solid transparent; font-size: 26rpx; }
+.type.on { background: #f9f0ec; border-color: var(--theme); color: var(--theme); }
 .stepper { display: flex; align-items: center; }
-.st { width: 56rpx; height: 56rpx; line-height: 52rpx; text-align: center; background: #f5f6f8; border-radius: 8rpx; font-size: 32rpx; }
+.st { width: 56rpx; height: 56rpx; line-height: 52rpx; text-align: center; background: #f3ede2; border-radius: 8rpx; font-size: 32rpx; }
 .num { min-width: 72rpx; text-align: center; }
-.textarea { width: 100%; height: 180rpx; background: #f5f6f8; border-radius: 12rpx; padding: 16rpx; box-sizing: border-box; font-size: 28rpx; }
+.textarea { width: 100%; height: 180rpx; background: #f3ede2; border-radius: 12rpx; padding: 16rpx; box-sizing: border-box; font-size: 28rpx; }
 .pics { display: flex; flex-wrap: wrap; gap: 16rpx; }
-.pic { position: relative; width: 150rpx; height: 150rpx; border-radius: 12rpx; background: #f5f6f8; }
+.pic { position: relative; width: 150rpx; height: 150rpx; border-radius: 12rpx; background: #f3ede2; }
 .pic-img { width: 100%; height: 100%; border-radius: 12rpx; }
 .pic-del { position: absolute; top: -12rpx; right: -12rpx; width: 40rpx; height: 40rpx; line-height: 36rpx; text-align: center; border-radius: 50%; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 28rpx; }
-.pic-add { display: flex; align-items: center; justify-content: center; color: #c0c4cc; font-size: 56rpx; border: 2rpx dashed #dcdfe6; box-sizing: border-box; }
+.pic-add { display: flex; align-items: center; justify-content: center; color: #c9c2b5; font-size: 56rpx; border: 2rpx dashed #ded6c8; box-sizing: border-box; }
 .submit { margin: 30rpx 24rpx; }
 </style>

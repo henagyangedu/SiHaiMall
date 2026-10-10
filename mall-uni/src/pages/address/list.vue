@@ -60,6 +60,6 @@ onShow(load)
 .name { font-weight: 600; font-size: 30rpx; }
 .tag { color: var(--theme); border: 2rpx solid var(--theme); border-radius: 8rpx; padding: 0 10rpx; font-size: 22rpx; margin-left: 16rpx; }
 .ops { text-align: right; margin-top: 12rpx; }
-.op { color: #606266; margin-left: 32rpx; font-size: 26rpx; }
+.op { color: #6a665e; margin-left: 32rpx; font-size: 26rpx; }
 .bar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; padding: 16rpx 24rpx; }
 </style>

@@ -77,9 +77,9 @@ onShow(load)
 .page { padding-bottom: 60rpx; }
 .strong { font-weight: 600; font-size: 32rpx; }
 .row { display: flex; align-items: center; min-height: 92rpx; border-bottom: 2rpx solid var(--line); }
-.label { width: 200rpx; flex: none; color: #606266; }
+.label { width: 200rpx; flex: none; color: #6a665e; }
 .input { flex: 1; min-width: 0; }
-.section { padding: 20rpx 32rpx 0; color: #606266; }
+.section { padding: 20rpx 32rpx 0; color: #6a665e; }
 .head { display: flex; justify-content: space-between; margin-bottom: 8rpx; }
 .status { color: var(--theme); }
 .line { display: flex; justify-content: space-between; }

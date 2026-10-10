@@ -103,8 +103,8 @@ onLoad(async () => {
 .cell { display: flex; justify-content: space-between; align-items: center; min-height: 100rpx; border-bottom: 2rpx solid var(--line); }
 .list > :last-child .cell, .list > .cell:last-child { border-bottom: none; }
 .right { display: flex; align-items: center; }
-.avatar { width: 88rpx; height: 88rpx; border-radius: 50%; margin: 16rpx 16rpx 16rpx 0; background: #f0f1f3; }
-.ph { text-align: center; line-height: 88rpx; font-size: 40rpx; color: #909399; }
+.avatar { width: 88rpx; height: 88rpx; border-radius: 50%; margin: 16rpx 16rpx 16rpx 0; background: #efe8dc; }
+.ph { text-align: center; line-height: 88rpx; font-size: 40rpx; color: #8b877d; }
 .input { flex: 1; text-align: right; margin-left: 24rpx; font-size: 28rpx; }
 .save { margin: 40rpx 24rpx; }
 </style>

@@ -80,10 +80,10 @@ onReachBottom(() => { if (list.value.length < page.total) load() })
 
 <style lang="scss" scoped>
 .tabs { display: flex; background: #fff; }
-.tab { flex: 1; text-align: center; padding: 24rpx 0; color: #606266; border-bottom: 4rpx solid transparent; }
+.tab { flex: 1; text-align: center; padding: 24rpx 0; color: #6a665e; border-bottom: 4rpx solid transparent; }
 .tab.on { color: var(--theme); border-bottom-color: var(--theme); font-weight: 600; }
 .row { display: flex; align-items: center; }
-.avatar { width: 80rpx; height: 80rpx; border-radius: 50%; background: #f0f1f3; text-align: center; line-height: 80rpx; margin-right: 20rpx; flex: none; }
+.avatar { width: 80rpx; height: 80rpx; border-radius: 50%; background: #efe8dc; text-align: center; line-height: 80rpx; margin-right: 20rpx; flex: none; }
 .body { flex: 1; }
 .head { display: flex; justify-content: space-between; margin-bottom: 12rpx; }
 .status { color: var(--theme); }

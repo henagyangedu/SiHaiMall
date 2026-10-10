@@ -54,7 +54,7 @@ onReachBottom(() => { if (list.value.length < page.total) load() })
 .head { display: flex; justify-content: space-between; margin-bottom: 16rpx; }
 .status { color: var(--theme); }
 .item { display: flex; margin-bottom: 16rpx; }
-.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #f0f1f3; flex: none; }
+.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; background: #efe8dc; flex: none; }
 .body { flex: 1; min-width: 0; margin-left: 20rpx; }
 .foot { text-align: right; }
 .end { text-align: center; padding: 30rpx 0 40rpx; }

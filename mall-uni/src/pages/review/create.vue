@@ -103,20 +103,20 @@ onLoad(async (q) => {
 
 <style lang="scss" scoped>
 .goods { display: flex; gap: 20rpx; align-items: center; }
-.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; flex: none; background: #f5f6f8; }
+.thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; flex: none; background: #f3ede2; }
 .body { min-width: 0; flex: 1; }
 .row { display: flex; align-items: center; }
 .stars { margin: 0 20rpx; }
-.star { font-size: 52rpx; color: #dcdfe6; padding: 0 6rpx; }
+.star { font-size: 52rpx; color: #ded6c8; padding: 0 6rpx; }
 .star.on { color: #f7ba2a; }
-.textarea { width: 100%; height: 220rpx; margin-top: 24rpx; padding: 20rpx; box-sizing: border-box; background: #f5f6f8; border-radius: 12rpx; font-size: 28rpx; }
+.textarea { width: 100%; height: 220rpx; margin-top: 24rpx; padding: 20rpx; box-sizing: border-box; background: #f3ede2; border-radius: 12rpx; font-size: 28rpx; }
 .pics { display: flex; flex-wrap: wrap; gap: 16rpx; margin-top: 24rpx; }
-.pic { position: relative; width: 160rpx; height: 160rpx; border-radius: 12rpx; background: #f5f6f8; }
+.pic { position: relative; width: 160rpx; height: 160rpx; border-radius: 12rpx; background: #f3ede2; }
 .pic-img { width: 100%; height: 100%; border-radius: 12rpx; }
 .pic-del { position: absolute; top: -12rpx; right: -12rpx; width: 40rpx; height: 40rpx; line-height: 36rpx; text-align: center; border-radius: 50%; background: rgba(0, 0, 0, 0.6); color: #fff; font-size: 28rpx; }
-.pic-add { display: flex; align-items: center; justify-content: center; color: #c0c4cc; font-size: 56rpx; border: 2rpx dashed #dcdfe6; box-sizing: border-box; }
+.pic-add { display: flex; align-items: center; justify-content: center; color: #c9c2b5; font-size: 56rpx; border: 2rpx dashed #ded6c8; box-sizing: border-box; }
 .anon { margin-top: 28rpx; }
-.check { width: 36rpx; height: 36rpx; border-radius: 50%; border: 2rpx solid #c0c4cc; margin-right: 16rpx; box-sizing: border-box; }
+.check { width: 36rpx; height: 36rpx; border-radius: 50%; border: 2rpx solid #c9c2b5; margin-right: 16rpx; box-sizing: border-box; }
 .check.on { border-color: var(--theme); background: var(--theme); box-shadow: inset 0 0 0 6rpx #fff; }
 .submit { margin: 40rpx 24rpx; }
 </style>

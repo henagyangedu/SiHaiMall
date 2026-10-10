@@ -30,12 +30,12 @@
   "globalStyle": {
     "navigationBarTextStyle": "black",
     "navigationBarTitleText": "",
-    "navigationBarBackgroundColor": "#ffffff",
-    "backgroundColor": "#f5f6f8"
+    "navigationBarBackgroundColor": "#f7f3eb",
+    "backgroundColor": "#f7f3eb"
   },
   "tabBar": {
-    "color": "#909399",
-    "selectedColor": "#e4393c",
+    "color": "#8b877d",
+    "selectedColor": "#c56948",
     "backgroundColor": "#ffffff",
     "borderStyle": "white",
     "list": [

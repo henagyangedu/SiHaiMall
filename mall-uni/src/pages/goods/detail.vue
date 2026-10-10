@@ -92,7 +92,7 @@ watch(() => [state.lang, state.currency], load)
 
 <template>
   <view v-if="goods" class="page">
-    <swiper v-if="images.length" class="swiper" circular indicator-dots indicator-active-color="#e4393c">
+    <swiper v-if="images.length" class="swiper" circular indicator-dots indicator-active-color="#c56948">
       <swiper-item v-for="(u, i) in images" :key="i"><image :src="u" mode="aspectFill" class="img" /></swiper-item>
     </swiper>
 
@@ -156,14 +156,14 @@ watch(() => [state.lang, state.currency], load)
 .rv-more { text-align: center; color: var(--theme); font-size: 26rpx; padding-top: 20rpx; }
 .title { font-size: 32rpx; font-weight: 600; margin: 8rpx 0; }
 .spec { margin-bottom: 24rpx; }
-.spec-name { color: #606266; margin-bottom: 12rpx; }
+.spec-name { color: #6a665e; margin-bottom: 12rpx; }
 .values { display: flex; flex-wrap: wrap; gap: 16rpx; }
-.value { padding: 10rpx 28rpx; border-radius: 32rpx; background: #f5f6f8; border: 2rpx solid transparent; font-size: 26rpx; }
-.value.on { background: #fdecec; border-color: var(--theme); color: var(--theme); }
+.value { padding: 10rpx 28rpx; border-radius: 32rpx; background: #f3ede2; border: 2rpx solid transparent; font-size: 26rpx; }
+.value.on { background: #f9f0ec; border-color: var(--theme); color: var(--theme); }
 .qty-row { display: flex; justify-content: space-between; align-items: center; }
 .stepper { display: flex; align-items: center; }
-.st { width: 60rpx; height: 60rpx; line-height: 56rpx; text-align: center; background: #f5f6f8; border-radius: 8rpx; font-size: 34rpx; }
-.st.off { color: #c0c4cc; }
+.st { width: 60rpx; height: 60rpx; line-height: 56rpx; text-align: center; background: #f3ede2; border-radius: 8rpx; font-size: 34rpx; }
+.st.off { color: #c9c2b5; }
 .num { min-width: 80rpx; text-align: center; }
 .section { font-weight: 600; margin-bottom: 16rpx; }
 .desc { font-size: 28rpx; line-height: 1.7; word-break: break-word; }

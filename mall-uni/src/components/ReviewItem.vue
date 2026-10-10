@@ -31,15 +31,15 @@ function preview(i) {
 .rv { padding: 24rpx 0; border-bottom: 2rpx solid var(--line); }
 .rv:last-child { border-bottom: none; }
 .who { display: flex; align-items: center; }
-.avatar { width: 56rpx; height: 56rpx; border-radius: 50%; background: #f0f1f3; flex: none; }
-.ph { text-align: center; line-height: 56rpx; font-size: 26rpx; color: #909399; }
+.avatar { width: 56rpx; height: 56rpx; border-radius: 50%; background: #efe8dc; flex: none; }
+.ph { text-align: center; line-height: 56rpx; font-size: 26rpx; color: #8b877d; }
 .name { flex: 1; margin-left: 16rpx; font-size: 26rpx; }
-.stars { color: #dcdfe6; font-size: 26rpx; letter-spacing: 2rpx; }
+.stars { color: #ded6c8; font-size: 26rpx; letter-spacing: 2rpx; }
 .stars .on { color: #f7ba2a; }
 .content { margin-top: 16rpx; line-height: 1.6; word-break: break-all; }
 .pics { display: flex; flex-wrap: wrap; gap: 12rpx; margin-top: 16rpx; }
 .pic { width: 160rpx; height: 160rpx; border-radius: 12rpx; }
 .meta { margin-top: 12rpx; }
-.reply { margin-top: 16rpx; padding: 16rpx 20rpx; background: #f5f6f8; border-radius: 12rpx; font-size: 26rpx; line-height: 1.6; }
+.reply { margin-top: 16rpx; padding: 16rpx 20rpx; background: #f3ede2; border-radius: 12rpx; font-size: 26rpx; line-height: 1.6; }
 .reply-by { color: var(--theme); margin-right: 12rpx; }
 </style>

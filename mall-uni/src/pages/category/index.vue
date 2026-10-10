@@ -89,12 +89,12 @@ watch(() => [state.lang, state.currency], async () => { await loadCategories(); 
 <style lang="scss" scoped>
 .wrap { display: flex; min-height: 100vh; }
 .side { width: 180rpx; flex: none; background: #fff; height: calc(100vh - var(--window-top) - var(--window-bottom)); position: sticky; top: var(--window-top); }
-.cat { padding: 28rpx 16rpx; text-align: center; font-size: 26rpx; color: #606266; border-left: 6rpx solid transparent; }
+.cat { padding: 28rpx 16rpx; text-align: center; font-size: 26rpx; color: #6a665e; border-left: 6rpx solid transparent; }
 .cat.child { font-size: 24rpx; padding: 20rpx 16rpx; color: var(--sub); }
-.cat.on { background: #f5f6f8; color: var(--theme); border-left-color: var(--theme); font-weight: 600; }
+.cat.on { background: #f3ede2; color: var(--theme); border-left-color: var(--theme); font-weight: 600; }
 .main { flex: 1; min-width: 0; }
 .sorts { display: flex; background: #fff; margin: 0 0 12rpx 2rpx; }
-.sort { flex: 1; text-align: center; padding: 22rpx 0; font-size: 26rpx; color: #606266; }
+.sort { flex: 1; text-align: center; padding: 22rpx 0; font-size: 26rpx; color: #6a665e; }
 .sort.on { color: var(--theme); font-weight: 600; }
 .foot { text-align: center; padding: 30rpx 0 40rpx; }
 </style>

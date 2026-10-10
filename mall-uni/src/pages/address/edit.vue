@@ -109,12 +109,12 @@ onLoad(async (q) => {
 <style lang="scss" scoped>
 .row { display: flex; align-items: center; min-height: 96rpx; border-bottom: 2rpx solid var(--line); }
 .row.last { border-bottom: none; justify-content: space-between; }
-.label { width: 180rpx; flex: none; color: #606266; }
+.label { width: 180rpx; flex: none; color: #6a665e; }
 .label.wide { width: auto; }
 .area { color: var(--sub); margin-right: 12rpx; }
 .input { flex: 1; min-width: 0; }
-.ph { color: #c0c4cc; }
-.switch { width: 84rpx; height: 48rpx; border-radius: 24rpx; background: #dcdfe6; padding: 4rpx; box-sizing: border-box; }
+.ph { color: #c9c2b5; }
+.switch { width: 84rpx; height: 48rpx; border-radius: 24rpx; background: #ded6c8; padding: 4rpx; box-sizing: border-box; }
 .switch.on { background: var(--theme); }
 .dot { width: 40rpx; height: 40rpx; border-radius: 50%; background: #fff; transition: transform 0.2s; }
 .switch.on .dot { transform: translateX(36rpx); }

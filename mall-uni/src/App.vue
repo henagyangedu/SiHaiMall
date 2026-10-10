@@ -18,22 +18,27 @@ export default {
 <style lang="scss">
 /* 全局样式：主题色和几个通用小部件，页面里的样式各自写 scoped */
 page {
-  --theme: #e4393c;
-  --text: #303133;
-  --sub: #909399;
-  --line: #f0f1f3;
-  background: #f5f6f8;
+  /* “温暖生活方式”配色，和 PC 端一致（mall-pc/src/styles/main.css） */
+  --theme: #c56948;        /* 陶土橙：主色 */
+  --theme-dark: #a9563a;
+  --bg: #f7f3eb;           /* 奶油白：页面底色 */
+  --cream-deep: #f0e9dd;   /* 深一档的奶油色：公告条、图片占位、输入框 */
+  --sage: #a7b7a0;         /* 鼠尾草绿：点缀色 */
+  --text: #292b27;         /* 炭灰：正文 */
+  --sub: #8b877d;
+  --line: #ebe4d7;
+  background: var(--bg);
   color: var(--text);
   font-size: 28rpx;
   line-height: 1.5;
 }
 .price { color: var(--theme); font-weight: 600; }
 .sub { color: var(--sub); font-size: 24rpx; }
-.card { background: #fff; border-radius: 16rpx; margin: 20rpx 24rpx; padding: 24rpx; }
+.card { background: #fff; border-radius: 24rpx; margin: 20rpx 24rpx; padding: 24rpx; }
 .btn {
   background: var(--theme); color: #fff; border-radius: 44rpx; height: 88rpx; line-height: 88rpx; text-align: center; font-size: 30rpx;
   &.plain { background: #fff; color: var(--theme); border: 2rpx solid var(--theme); }
-  &.gray { background: #fff; color: var(--text); border: 2rpx solid #dcdfe6; }
+  &.gray { background: #fff; color: var(--text); border: 2rpx solid #ded6c8; }
   &.small { height: 60rpx; line-height: 56rpx; padding: 0 28rpx; font-size: 26rpx; display: inline-block; }
   &.disabled { opacity: 0.5; }
 }

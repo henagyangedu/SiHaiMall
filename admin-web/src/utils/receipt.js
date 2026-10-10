@@ -27,6 +27,7 @@ export function receiptHtml(order, cfg = {}) {
     <div class="row"><span>商品金额</span><span>${esc(order.goods_amount)}</span></div>
     <div class="row"><span>运费</span><span>${esc(order.shipping_fee)}</span></div>
     ${Number(order.discount_amount) > 0 ? `<div class="row"><span>优惠</span><span>-${esc(order.discount_amount)}</span></div>` : ''}
+    ${Number(order.coupon_amount) > 0 ? `<div class="row"><span>优惠券</span><span>-${esc(order.coupon_amount)}</span></div>` : ''}
     ${Number(order.points_amount) > 0 ? `<div class="row"><span>积分抵扣</span><span>-${esc(order.points_amount)}</span></div>` : ''}
     <div class="row total"><span>实付</span><span>${money(order.pay_amount)}</span></div>` : ''
 

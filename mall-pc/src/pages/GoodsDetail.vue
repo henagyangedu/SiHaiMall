@@ -5,7 +5,8 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { Star, StarFilled, Service } from '@element-plus/icons-vue'
 import { state } from '@/store'
-import { getGoods, addCart, addFavorite, removeFavorite } from '@/api'
+import { getGoods, addCart, addFavorite, removeFavorite, getCoupons } from '@/api'
+import { couponText } from '@/utils/app'
 import { needLogin } from '@/utils/request'
 import { refreshCartCount } from '@/utils/app'
 import { safeHtml } from '@/utils/html'
@@ -20,6 +21,8 @@ const failed = ref(false)
 const picked = reactive({}) // 规格项 ID => 选中的规格值 ID
 const qty = ref(1)
 const current = ref('') // 当前显示的大图
+// 这个商品现在能领的优惠券（点了去领券中心）
+const coupons = ref([])
 
 // 收藏 / 取消收藏：先改界面再发请求，失败了改回去
 function toggleFav() {
@@ -86,6 +89,7 @@ onMounted(async () => {
   try {
     goods.value = await getGoods(route.params.id)
     current.value = images.value[0] || ''
+    getCoupons({ goods_id: goods.value.id }).then((d) => { coupons.value = d }).catch(() => {})
   } catch (e) {
     failed.value = true
   }
@@ -125,6 +129,11 @@ onMounted(async () => {
           <div class="label">{{ t('goods.qty') }}</div>
           <el-input-number v-model="qty" :min="1" :max="maxQty" />
         </div>
+
+        <router-link v-if="coupons.length" :to="{ name: 'coupons' }" class="row coupons">
+          <div class="label">{{ t('coupon.get') }}</div>
+          <div class="cp-list"><span v-for="c in coupons.slice(0, 3)" :key="c.coupon_id" class="cp-tag">{{ couponText(c) }}</span></div>
+        </router-link>
 
         <div class="actions">
           <el-button size="large" type="primary" plain @click="onAddCart">{{ t('goods.addCart') }}</el-button>
@@ -173,6 +182,9 @@ onMounted(async () => {
 .actions { margin-top: 28px; }
 .desc { line-height: 1.8; overflow: hidden; }
 .desc :deep(img) { max-width: 100%; height: auto; }
+.coupons { cursor: pointer; }
+.cp-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.cp-tag { padding: 2px 10px; border-radius: 4px; border: 1px solid var(--theme); color: var(--theme); font-size: 12px; }
 .extras { display: flex; gap: 28px; margin-top: 18px; }
 .extra { display: inline-flex; align-items: center; gap: 6px; color: #6a665e; font-size: 14px; cursor: pointer; }
 .extra:hover, .extra.on { color: var(--theme); }

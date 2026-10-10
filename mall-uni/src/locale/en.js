@@ -50,6 +50,11 @@ export default {
   refundType: { 1: 'Refund only', 2: 'Return & refund' },
   commissionStatus: { 0: 'Pending', 1: 'Settled', 2: 'Void' },
   withdrawStatus: { 0: 'Under review', 1: 'Approved', 2: 'Paid', 3: 'Declined' },
+  coupon: {
+    title: 'Coupons', receivable: 'Available', unused: 'Unused', used: 'Used', expired: 'Expired', receive: 'Claim', received: 'Claimed', receiveOk: 'Coupon claimed', empty: 'No coupons',
+    noThreshold: 'No minimum', over: 'Orders over {n}', reduce: '{n} off', zhe: '{pct}% off', max: 'up to {n} off', validTo: 'Valid until {time}', validDays: 'Valid for {n} days after claiming',
+    scopeAll: 'All items', scopePart: 'Selected items', choose: 'Choose a coupon', none: 'No coupon', usableCount: '{n} available', noUsable: 'None available', get: 'Coupons', row: 'Coupon',
+  },
   fav: { title: 'My favourites', add: 'Save', added: 'Saved', empty: 'No saved items yet', invalid: 'Unavailable', invalidTip: 'No longer available', remove: 'Remove' },
   service: { contact: 'Contact us', online: 'Live chat', phone: 'Phone', hours: 'Hours', call: 'Call', linkCopied: 'Chat link copied. Please open it in your browser.' },
   review: {

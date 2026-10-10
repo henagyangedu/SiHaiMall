@@ -3,7 +3,8 @@ import { ref, reactive, computed, watch } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 import { state } from '@/store'
-import { getGoods, addCart, getGoodsReviews, addFavorite, removeFavorite } from '@/api'
+import { getGoods, addCart, getGoodsReviews, addFavorite, removeFavorite, getCoupons } from '@/api'
+import { couponText } from '@/utils/app'
 import { needLogin } from '@/utils/request'
 import { refreshCartCount } from '@/utils/app'
 import { usePageTitle, toast, tab, nav, hasService, contactService } from '@/utils/page'
@@ -19,6 +20,8 @@ const qty = ref(1)
 const failed = ref(false)
 // 商品页只带出最新的两条评价，其余在评价列表页看
 const reviews = ref([])
+// 这个商品现在能领的优惠券（最多显示两张的面额，点进去是领券中心）
+const coupons = ref([])
 
 async function load() {
   try {
@@ -29,6 +32,7 @@ async function load() {
     failed.value = true
     return
   }
+  getCoupons({ goods_id: id.value }).then((d) => { coupons.value = d }).catch(() => {})
   if (goods.value.review?.count) {
     getGoodsReviews(id.value, { size: 2 }).then((d) => { reviews.value = d.list }).catch(() => {})
   }
@@ -116,6 +120,12 @@ watch(() => [state.lang, state.currency], load)
       <view class="sub" style="margin-top: 8rpx">{{ t('home.sold', { n: goods.sales }) }}<text v-if="sku">　{{ t('goods.stock', { n: sku.stock }) }}</text></view>
     </view>
 
+    <view v-if="coupons.length" class="card coupons" @click="nav('/pages/coupon/index')">
+      <text class="cp-label">{{ t('coupon.get') }}</text>
+      <view class="cp-list"><text v-for="c in coupons.slice(0, 2)" :key="c.coupon_id" class="cp-tag">{{ couponText(c) }}</text></view>
+      <text class="sub">›</text>
+    </view>
+
     <view class="card">
       <view v-for="s in goods.specs" :key="s.id" class="spec">
         <view class="spec-name">{{ s.name }}</view>
@@ -168,6 +178,10 @@ watch(() => [state.lang, state.currency], load)
 .swiper { height: 750rpx; background: #fff; }
 .img { width: 100%; height: 100%; }
 .big { font-size: 44rpx; }
+.coupons { display: flex; align-items: center; }
+.cp-label { color: var(--theme); font-weight: 600; margin-right: 20rpx; flex: none; }
+.cp-list { flex: 1; min-width: 0; display: flex; gap: 12rpx; overflow: hidden; }
+.cp-tag { padding: 4rpx 16rpx; border-radius: 8rpx; border: 2rpx solid var(--theme); color: var(--theme); font-size: 22rpx; white-space: nowrap; }
 .rv-head { display: flex; justify-content: space-between; align-items: center; }
 .rv-empty { padding: 16rpx 0 8rpx; }
 .rv-more { text-align: center; color: var(--theme); font-size: 26rpx; padding-top: 20rpx; }

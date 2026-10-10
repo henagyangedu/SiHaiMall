@@ -4,7 +4,7 @@ import { onLoad, onShow } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 import { state } from '@/store'
 import { checkout, createOrder } from '@/api'
-import { money, refreshCartCount } from '@/utils/app'
+import { money, refreshCartCount, couponText } from '@/utils/app'
 import { usePageTitle, toast, nav } from '@/utils/page'
 
 const { t } = useI18n()
@@ -14,11 +14,30 @@ usePageTitle('checkout.title')
 const source = ref({})
 const addressId = ref(0)
 const usePoints = ref(false)
+// 用哪张优惠券：null 让服务端自动选减得最多的，0 不用，其余是会员券的 ID
+const couponChoice = ref(null)
 const remark = ref('')
 const data = ref(null)
 const submitting = ref(false)
 
-const payload = () => ({ ...source.value, ...(addressId.value ? { address_id: addressId.value } : {}), use_points: usePoints.value })
+const payload = () => ({
+  ...source.value, ...(addressId.value ? { address_id: addressId.value } : {}), use_points: usePoints.value,
+  ...(couponChoice.value === null ? {} : { member_coupon_id: couponChoice.value }),
+})
+const usableCoupons = () => (data.value?.coupons || []).filter((c) => c.usable)
+// 选券：列出这一单能用的券（系统的选择列表最多放 6 项，所以最多列 5 张，减得多的在前）和“不使用”
+function chooseCoupon() {
+  const usable = usableCoupons().slice(0, 5)
+  if (!usable.length) return
+  uni.showActionSheet({
+    title: t('coupon.choose'),
+    itemList: [...usable.map((c) => `${c.name}（-${money(c.amount, data.value.currency)}）`), t('coupon.none')],
+    success: ({ tapIndex }) => {
+      couponChoice.value = tapIndex < usable.length ? usable[tapIndex].id : 0
+      load()
+    },
+  })
+}
 
 // 金额、运费、区域价都由服务端按所选地址算好，这里只负责展示
 async function load() {
@@ -35,7 +54,8 @@ async function submit() {
   if (data.value.problems.length) return toast(data.value.problems[0].msg)
   submitting.value = true
   try {
-    const order = await createOrder({ ...payload(), remark: remark.value.trim() })
+    // 下单用的就是预览里算出来的那张券，保证买家看到的和实际扣的一致
+    const order = await createOrder({ ...payload(), member_coupon_id: data.value.member_coupon_id, remark: remark.value.trim() })
     refreshCartCount()
     uni.redirectTo({ url: `/pages/order/detail?order_no=${order.order_no}&pay=1` })
   } finally {
@@ -86,6 +106,11 @@ onShow(() => {
       <view class="kv"><text>{{ t('checkout.goods') }}</text><text>{{ money(data.goods_amount, data.currency) }}</text></view>
       <view class="kv"><text>{{ t('checkout.shipping') }}</text><text>{{ Number(data.shipping_fee) > 0 ? money(data.shipping_fee, data.currency) : t('checkout.free') }}</text></view>
       <view v-if="Number(data.discount_amount) > 0" class="kv"><text>{{ t('checkout.discount') }}</text><text class="price">-{{ money(data.discount_amount, data.currency) }}</text></view>
+      <view v-if="data.coupons.length" class="kv" @click="chooseCoupon">
+        <text>{{ t('coupon.row') }}</text>
+        <text v-if="data.member_coupon_id" class="price">-{{ money(data.coupon_amount, data.currency) }} ›</text>
+        <text v-else class="sub">{{ usableCoupons().length ? t('coupon.usableCount', { n: usableCoupons().length }) : t('coupon.noUsable') }} ›</text>
+      </view>
       <view v-if="data.points.enabled && data.points.usable_points > 0" class="kv" @click="togglePoints">
         <text>{{ t('checkout.usePoints', { n: data.points.usable_points, amount: money(data.points.deduct_amount, data.currency) }) }}</text>
         <view class="switch" :class="{ on: usePoints }"><view class="dot" /></view>

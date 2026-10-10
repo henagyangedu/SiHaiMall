@@ -19,6 +19,12 @@ const source = route.query.cart_ids
 const addresses = ref([])
 const addressId = ref(0)
 const usePoints = ref(false)
+// 用哪张优惠券：null 让服务端自动选减得最多的，0 不用，其余是会员券的 ID
+const couponChoice = ref(null)
+function onCoupon(id) {
+  couponChoice.value = id
+  load()
+}
 const remark = ref('')
 const data = ref(null)
 const loading = ref(false)
@@ -26,7 +32,10 @@ const submitting = ref(false)
 const dialog = ref(false)
 const editing = ref(null)
 
-const payload = () => ({ ...source, ...(addressId.value ? { address_id: addressId.value } : {}), use_points: usePoints.value })
+const payload = () => ({
+  ...source, ...(addressId.value ? { address_id: addressId.value } : {}), use_points: usePoints.value,
+  ...(couponChoice.value === null ? {} : { member_coupon_id: couponChoice.value }),
+})
 
 // 金额、运费、区域价都由服务端按所选地址算好，这里只负责展示
 async function load() {
@@ -63,7 +72,8 @@ async function submit() {
   if (data.value.problems.length) return ElMessage.warning(data.value.problems[0].msg)
   submitting.value = true
   try {
-    const order = await createOrder({ ...payload(), remark: remark.value.trim() })
+    // 下单用的就是预览里算出来的那张券，保证买家看到的和实际扣的一致
+    const order = await createOrder({ ...payload(), member_coupon_id: data.value.member_coupon_id, remark: remark.value.trim() })
     refreshCartCount()
     router.replace({ name: 'order-detail', params: { orderNo: order.order_no }, query: { pay: 1 } })
   } finally {
@@ -115,6 +125,15 @@ onMounted(async () => {
           <div class="kv"><span>{{ t('checkout.goods') }}</span><span>{{ money(data.goods_amount, data.currency) }}</span></div>
           <div class="kv"><span>{{ t('checkout.shipping') }}</span><span>{{ Number(data.shipping_fee) > 0 ? money(data.shipping_fee, data.currency) : t('checkout.free') }}</span></div>
           <div v-if="Number(data.discount_amount) > 0" class="kv"><span>{{ t('checkout.discount') }}</span><span class="price">-{{ money(data.discount_amount, data.currency) }}</span></div>
+          <div v-if="data.coupons.length" class="kv coupon-row">
+            <el-select :model-value="data.member_coupon_id" size="small" class="coupon-pick" @change="onCoupon">
+              <el-option :value="0" :label="t('coupon.none')" />
+              <!-- 这一单用不了的券也列出来，标明原因，但不能选 -->
+              <el-option v-for="c in data.coupons" :key="c.id" :value="c.id" :disabled="!c.usable"
+                :label="c.usable ? `${c.name}（-${money(c.amount, data.currency)}）` : `${c.name}（${c.reason}）`" />
+            </el-select>
+            <span v-if="data.member_coupon_id" class="price">-{{ money(data.coupon_amount, data.currency) }}</span>
+          </div>
           <div v-if="data.points.enabled && data.points.usable_points > 0" class="kv">
             <el-checkbox v-model="usePoints" @change="load">{{ t('checkout.usePoints', { n: data.points.usable_points, amount: money(data.points.deduct_amount, data.currency) }) }}</el-checkbox>
             <span v-if="usePoints" class="price">-{{ money(data.points_amount, data.currency) }}</span>
@@ -154,4 +173,6 @@ onMounted(async () => {
 .pay { text-align: right; margin: 12px 0; }
 .total { font-size: 26px; }
 .go { width: 100%; }
+.coupon-row { align-items: center; }
+.coupon-pick { width: 250px; }
 </style>

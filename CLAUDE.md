@@ -135,6 +135,7 @@ Web 服务器：
 - 测试：在 `home/` 下 `php artisan test`（单个文件：`php artisan test tests/Feature/RefundFlowTest.php`）。功能测试连独立的 MySQL 库 `gmmall_test`（`phpunit.xml` 里配置，新环境先 `CREATE DATABASE gmmall_test`），首次运行自动建表，每个测试在事务里跑完回滚；基类会拒绝在库名不以 `_test` 结尾的库上运行。新的功能测试继承 `Tests\FeatureTestCase`，用它的 `makeMember/makeAddress/makeSku/placeOrder/pay/api/adminApi`。
 - 迁移：`php artisan migrate`；若旧表是手工导入 `gm_mall_step1.sql`，只跑新增迁移用 `--path=`。
 - 定时任务：`mall:close-expired-orders`、`mall:auto-receive`、`mall:pay-compensate`、`mall:refund-compensate`、`mall:distribution-settle`、`mall:member-level-refresh`，调度已写在 `routes/console.php`；服务器上要加一条每分钟执行 `php artisan schedule:run` 的 cron 才会生效。
+- 演示数据：`php artisan mall:demo-import`（`--check` 只检查、`--clear` 只清除；生产环境要 `--force`）。数据写在一个 JSON 文件里，默认 `home/database/demo/pet-smart/data.json`（宠物智能用品，仓库里是一份小的示例，计划由 Codex 按 `docs/演示数据格式.md` 扩充）。导入不直接写表，走 `Admin\DemoImportService`：用后台表单的校验规则检查，再调后台的分类 / 品牌 / 商品 / 文章 / 广告服务创建；数据里用 code 互相引用；图片是自动生成的 SVG 占位图。导入了什么记在 `storage/app/demo-import.json`，再次导入先按它清掉上一批，只动清单里的数据。演示商品的货号以 `DEMO-` 开头。**后台“新增商品”等表单的字段或校验变了，导入会跟着变（它复用同一套规则），但 `docs/演示数据格式.md` 要手工同步。**
 - 联调命令：`mall:dev-order {member_id} {sku_id} {qty}`（造测试订单，`--paid` 模拟已付）、`mall:dev-pay {order_no} {stripe|paypal}`（发起支付，`--confirm` 确认入账）。
    ## 附件目录
    - `下载附件/` 只存放云端交付的压缩包（gm_*.zip 等）。已解压并合并进 `home/` 和 `admin-web/`，不要从这里读取代码，也不要修改或删除里面的文件。以 `home/`、`admin-web/` 里的代码为准。

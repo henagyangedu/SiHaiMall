@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\DistributionController;
 use App\Http\Controllers\Api\FavoriteController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\StockSubscribeController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PayController;
@@ -73,6 +74,12 @@ Route::middleware('api.token')->group(function () {
     Route::get('favorites', [FavoriteController::class, 'index']);
     Route::post('favorites/{goodsId}', [FavoriteController::class, 'store'])->where('goodsId', '[0-9]+')->middleware('throttle:60,1');
     Route::delete('favorites/{goodsId}', [FavoriteController::class, 'destroy'])->where('goodsId', '[0-9]+')->middleware('throttle:60,1');
+    // 站内信（消息中心）
+    Route::get('messages', [MessageController::class, 'index']);
+    Route::get('messages/unread-count', [MessageController::class, 'unread']);
+    Route::post('messages/read-all', [MessageController::class, 'readAll'])->middleware('throttle:30,1');
+    Route::post('messages/{id}/read', [MessageController::class, 'read'])->where('id', '[0-9]+')->middleware('throttle:120,1');
+    Route::delete('messages/{id}', [MessageController::class, 'destroy'])->where('id', '[0-9]+')->middleware('throttle:120,1');
     // 到货提醒：缺货的规格可以订阅，补货后通知一次
     Route::get('stock-subscribes', [StockSubscribeController::class, 'index']);
     Route::post('stock-subscribes/{skuId}', [StockSubscribeController::class, 'store'])->where('skuId', '[0-9]+')->middleware('throttle:60,1');

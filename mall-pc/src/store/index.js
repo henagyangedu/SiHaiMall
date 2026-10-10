@@ -16,6 +16,8 @@ export const state = reactive({
   // 启动配置（/config/init）：语言、币种、站点信息、短信和邮箱验证开关
   config: { languages: [], currencies: [], site: {}, sms_enabled: false, email_verify_enabled: false, wechat_login_enabled: false, base_currency: '' },
   cartCount: 0,
+  // 未读的站内信数量
+  unread: 0,
 })
 
 export function setToken(token, member = null) {
@@ -28,6 +30,7 @@ export function logout() {
   state.token = ''
   state.member = null
   state.cartCount = 0
+  state.unread = 0
   save('gm_token', '')
 }
 

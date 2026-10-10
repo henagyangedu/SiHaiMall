@@ -34,6 +34,19 @@ async function toggle(row) {
   }
 }
 
+// 站内信的开关：只提交 site_enabled
+async function toggleSite(row) {
+  const next = row.site_enabled === 1 ? 0 : 1
+  try {
+    await saveMessageTemplate(row.scene, { site_enabled: next })
+    row.site_enabled = next
+    ElMessage.success(next === 1 ? `已开启「${row.label}」站内信` : `已关闭「${row.label}」站内信`)
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
 // ---- 编辑模板
 const dialog = ref(false)
 const saving = ref(false)
@@ -94,16 +107,22 @@ onMounted(async () => {
       <el-alert :type="info.mailer === 'log' ? 'warning' : 'info'" :closable="false" show-icon style="margin-bottom: 12px">
         <template v-if="info.mailer === 'log'">当前发信方式是 log：邮件只会写进日志，不会真正发出。上线前请在服务器 .env 里配置发信邮箱（MAIL_MAILER、MAIL_HOST 等）。</template>
         <template v-else>发信方式 {{ info.mailer }}，发件人 {{ info.from }}。</template>
-        开启的场景会在对应节点自动给买家发邮件，按买家的语言选模板；只有填了邮箱的会员能收到。
+        开启邮件的场景会在对应节点自动给买家发邮件，只有填了邮箱的会员能收到。
+        站内信默认开启，所有会员都能在商城的“消息”里看到；两个渠道用同一份模板，按买家的语言选。
       </el-alert>
 
       <el-table v-loading="loading" :data="list" border stripe>
         <el-table-column prop="label" label="通知场景" min-width="180" />
-        <el-table-column label="渠道" width="90"><template #default>邮件</template></el-table-column>
+
         <el-table-column label="模板" width="120">
           <template #default="{ row: r }"><el-tag :type="r.customized ? 'success' : 'info'">{{ r.customized ? '已自定义' : '内置模板' }}</el-tag></template>
         </el-table-column>
-        <el-table-column label="启用" width="110">
+        <el-table-column label="站内信" width="110">
+          <template #default="{ row: r }">
+            <el-switch :model-value="r.site_enabled === 1" inline-prompt active-text="开启" inactive-text="关闭" :disabled="!hasPerm('setting:message:edit')" :before-change="() => toggleSite(r)" />
+          </template>
+        </el-table-column>
+        <el-table-column label="邮件" width="110">
           <template #default="{ row: r }">
             <el-switch :model-value="r.is_enabled === 1" inline-prompt active-text="开启" inactive-text="关闭" :disabled="!hasPerm('setting:message:edit')" :before-change="() => toggle(r)" />
           </template>
@@ -118,7 +137,7 @@ onMounted(async () => {
       </el-table>
     </el-card>
 
-    <el-dialog v-model="dialog" :title="`邮件模板：${row?.label || ''}`" width="820px" destroy-on-close>
+    <el-dialog v-model="dialog" :title="`消息模板：${row?.label || ''}`" width="820px" destroy-on-close>
       <template v-if="row">
         <div class="vars">
           <span class="sub">可用变量（点击插入到正文末尾）：</span>
@@ -137,7 +156,7 @@ onMounted(async () => {
           </el-tab-pane>
         </el-tabs>
         <el-form label-width="60px">
-          <el-form-item label="启用"><el-switch v-model="form.is_enabled" :active-value="1" :inactive-value="0" /></el-form-item>
+          <el-form-item label="发邮件"><el-switch v-model="form.is_enabled" :active-value="1" :inactive-value="0" /></el-form-item>
         </el-form>
       </template>
       <template #footer>

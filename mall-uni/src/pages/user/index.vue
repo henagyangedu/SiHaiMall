@@ -6,7 +6,7 @@ import { state, setLang, setCurrency, logout } from '@/store'
 import { getProfile, updateProfile, logoutApi } from '@/api'
 import { toLogin, needLogin } from '@/utils/request'
 import { applyLang } from '@/locale'
-import { refreshCartCount } from '@/utils/app'
+import { refreshCartCount, refreshUnread } from '@/utils/app'
 import { usePageTitle, confirm, nav, hasService, contactService } from '@/utils/page'
 
 const { t } = useI18n()
@@ -41,6 +41,7 @@ async function onLogout() {
 const orders = (tab = 'all') => needLogin(() => nav(`/pages/order/list?tab=${tab}`))
 
 onShow(async () => {
+  refreshUnread()
   if (!state.token) return
   try { state.member = await getProfile() } catch (e) { /* 令牌失效时请求层已清掉登录态 */ }
 })
@@ -67,6 +68,9 @@ onShow(async () => {
     </view>
 
     <view class="card list">
+      <view class="cell" @click="needLogin(() => nav('/pages/user/messages'))">
+        <text>{{ t('msg.title') }}</text><text class="sub"><text v-if="state.unread" class="unread">{{ state.unread > 99 ? '99+' : state.unread }}</text> ›</text>
+      </view>
       <view class="cell" @click="needLogin(() => nav('/pages/refund/list'))"><text>{{ t('userMenu.refunds') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="nav('/pages/coupon/index')"><text>{{ t('coupon.title') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="needLogin(() => nav('/pages/user/favorites'))"><text>{{ t('fav.title') }}</text><text class="sub">›</text></view>
@@ -110,6 +114,7 @@ onShow(async () => {
 .tab { flex: 1; text-align: center; color: #6a665e; font-size: 26rpx; padding: 12rpx 0; }
 .list { padding: 0 24rpx; }
 .cell { display: flex; justify-content: space-between; align-items: center; height: 100rpx; border-bottom: 2rpx solid var(--line); }
+.unread { display: inline-block; min-width: 36rpx; height: 36rpx; line-height: 36rpx; padding: 0 10rpx; margin-right: 8rpx; box-sizing: border-box; border-radius: 18rpx; background: var(--theme); color: #fff; font-size: 22rpx; text-align: center; }
 .list > :last-child .cell, .list > .cell:last-child { border-bottom: none; }
 .logout { margin: 40rpx 24rpx; background: #fff; border-radius: 16rpx; text-align: center; height: 92rpx; line-height: 92rpx; color: var(--theme); }
 </style>

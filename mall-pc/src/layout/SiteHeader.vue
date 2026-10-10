@@ -2,11 +2,11 @@
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ShoppingCart, Search, User } from '@element-plus/icons-vue'
+import { ShoppingCart, Search, User, Bell } from '@element-plus/icons-vue'
 import { state, setLang, setCurrency, logout } from '@/store'
 import { updateProfile, logoutApi } from '@/api'
 import { applyLang } from '@/locale'
-import { confirm } from '@/utils/app'
+import { confirm, refreshUnread } from '@/utils/app'
 import { searchHistory, addSearchHistory, clearSearchHistory } from '@/utils/search'
 import SiteLogo from '@/components/SiteLogo.vue'
 
@@ -17,6 +17,9 @@ const router = useRouter()
 const keyword = ref('')
 // 进入搜索结果页时，搜索框里显示当前的关键词
 watch(() => route.query.keyword, (k) => { keyword.value = route.name === 'goods' ? String(k || '') : '' }, { immediate: true })
+
+// 未读消息数：登录、退出、每次换页面时刷新一次（不做实时推送）
+watch(() => [route.fullPath, state.token], refreshUnread, { immediate: true })
 
 // 点开搜索框时在下面展开：搜索历史 + 后台配的热门搜索词；点别处收起。
 // 搜索之后焦点还留在输入框里，再点它不会触发 focus，所以点击时也展开
@@ -83,6 +86,11 @@ async function onCommand(cmd) {
             </template>
           </el-dropdown>
           <router-link v-else :to="{ name: 'login' }" class="user"><el-icon><User /></el-icon>{{ t('pc.loginOrRegister') }}</router-link>
+          <router-link v-if="state.member" :to="{ name: 'messages' }" class="cart msg-link">
+            <el-badge :value="state.unread" :hidden="!state.unread" :max="99">
+              <span class="cart-link"><el-icon><Bell /></el-icon>{{ t('msg.title') }}</span>
+            </el-badge>
+          </router-link>
           <router-link :to="{ name: 'cart' }" class="cart">
             <el-badge :value="state.cartCount" :hidden="!state.cartCount" :max="99">
               <span class="cart-link"><el-icon><ShoppingCart /></el-icon>{{ t('cart.title') }}</span>
@@ -130,6 +138,7 @@ async function onCommand(cmd) {
 .pick :deep(.el-select__wrapper) { background: transparent; box-shadow: none !important; padding-left: 0; }
 .user, .cart-link { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--text); font-size: 13px; outline: none; }
 .user:hover, .cart-link:hover { color: var(--theme); }
+.msg-link { margin-right: 28px; }
 .cart :deep(.el-badge__content.is-fixed) { top: 2px; right: 2px; transform: translate(100%, -50%); }
 
 .bar { background: var(--bg); border-bottom: 1px solid var(--line); }

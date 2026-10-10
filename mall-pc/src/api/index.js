@@ -41,6 +41,13 @@ export const removeFavorite = (goodsId) => del(`/favorites/${goodsId}`)
 export const getStockSubscribes = (params) => get('/stock-subscribes', params)
 export const addStockSubscribe = (skuId) => post(`/stock-subscribes/${skuId}`)
 export const removeStockSubscribe = (skuId) => del(`/stock-subscribes/${skuId}`)
+
+// 站内信（消息中心）
+export const getMessages = (params) => get('/messages', params)
+export const getUnreadCount = () => get('/messages/unread-count', {}, { auth: false, silent: true })
+export const readMessage = (id) => post(`/messages/${id}/read`)
+export const readAllMessages = () => post('/messages/read-all')
+export const deleteMessage = (id) => del(`/messages/${id}`)
 export const getSignIn = () => get('/member/signin')
 export const signIn = () => post('/member/signin')
 export const resetPasswordBySms = (data) => post('/auth/reset-password', data, { auth: false })

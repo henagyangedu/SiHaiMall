@@ -50,6 +50,7 @@ export default {
   refundType: { 1: '仅退款', 2: '退货退款' },
   commissionStatus: { 0: '待结算', 1: '已结算', 2: '已作废' },
   withdrawStatus: { 0: '待审核', 1: '待打款', 2: '已打款', 3: '已拒绝' },
+  msg: { title: '消息', readAll: '全部已读', unreadCount: '{n} 条未读', empty: '还没有消息', view: '查看详情', remove: '删除' },
   restock: { title: '到货提醒', notify: '到货提醒我', subscribed: '已订阅到货提醒', cancel: '取消提醒', soldOutTip: '这个规格暂时缺货', subscribedTip: '到货后会通知你（只通知一次）', waiting: '等待到货', arrived: '已到货', invalid: '已下架', empty: '还没有订阅到货提醒', buy: '去购买' },
   search: { history: '搜索历史', hot: '热门搜索', clear: '清空', cancel: '取消', result: '“{keyword}”的搜索结果', noResult: '没有找到和“{keyword}”相关的商品', tryOther: '换个词试试，或者看看下面这些', recommend: '看看这些' },
   extra: { params: '规格参数', related: '配套耗材与配件', fits: '适用设备' },

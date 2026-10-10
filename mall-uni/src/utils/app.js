@@ -1,5 +1,5 @@
 import { state, setLang, setCurrency, logout, currencySymbol } from '@/store'
-import { getInit, getProfile, getCart } from '@/api'
+import { getInit, getProfile, getCart, getUnreadCount } from '@/api'
 import { applyLang, t } from '@/locale'
 
 /** 应用启动：取启动配置，校正语言和币种，恢复登录态 */
@@ -22,6 +22,17 @@ export async function bootstrap() {
       logout()
     }
   }
+}
+
+/** 刷新未读消息数（PC 端页头、手机端个人中心的角标）；没登录时是 0 */
+export async function refreshUnread() {
+  if (!state.token) {
+    state.unread = 0
+    return
+  }
+  try {
+    state.unread = (await getUnreadCount()).unread
+  } catch (e) { /* 忽略 */ }
 }
 
 /** 刷新底部导航上的购物车数量角标 */

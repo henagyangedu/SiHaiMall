@@ -125,6 +125,8 @@ final class ApiMessageTranslator
         '该商品有货，可以直接购买' => 'This item is in stock. You can order it now.',
         '到货后会通知你' => "We'll let you know when it's back in stock",
         '已取消到货提醒' => 'Back-in-stock alert removed',
+        '消息不存在' => 'Message not found',
+        '已删除' => 'Deleted',
         '商品已下架，请移除' => 'This product is no longer available. Please remove it.',
         '购物车商品不存在' => 'This cart item no longer exists',
         '购物车已满，请先清理' => 'Your cart is full. Please remove some items first.',

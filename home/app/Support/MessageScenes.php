@@ -69,6 +69,27 @@ final class MessageScenes
         ],
     ];
 
+    /**
+     * 站内信点了之后跳去哪：场景 => [跳转类型, 取哪个变量的值]。
+     * 买家端按类型打开订单详情（order）、售后详情（refund）、商品详情（goods）、分销中心（withdraw，不需要值）。
+     */
+    public const LINKS = [
+        'order_paid' => ['order', 'order_no'],
+        'order_shipped' => ['order', 'order_no'],
+        'refund_done' => ['refund', 'refund_no'],
+        'refund_rejected' => ['refund', 'refund_no'],
+        'goods_restock' => ['goods', 'goods_id'],
+        'withdraw_paid' => ['withdraw', ''],
+    ];
+
+    /** @return array{0:string,1:string} [跳转类型, 值]；场景没有登记跳转时是两个空串 */
+    public static function link(string $scene, array $vars): array
+    {
+        [$type, $key] = self::LINKS[$scene] ?? ['', ''];
+
+        return [$type, $key === '' ? '' : (string) ($vars[$key] ?? '')];
+    }
+
     /** 内置默认模板：中文语言用中文，其他语言一律用英文 */
     public static function default(string $scene, string $field, string $lang): string
     {

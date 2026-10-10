@@ -13,6 +13,8 @@ export const state = reactive({
   // 启动配置（/config/init）：语言、币种、站点信息、短信和邮箱验证开关、微信登录开关
   config: { languages: [], currencies: [], site: {}, sms_enabled: false, email_verify_enabled: false, wechat_login_enabled: false, base_currency: '' },
   cartCount: 0,
+  // 未读的站内信数量
+  unread: 0,
   // 页面之间传递的一次性数据：结算页从地址列表选中的地址、首页跳分类时要选中的分类
   pickedAddressId: 0,
   pendingCategoryId: 0,
@@ -29,6 +31,7 @@ export function logout() {
   state.token = ''
   state.member = null
   state.cartCount = 0
+  state.unread = 0
   uni.removeStorageSync('gm_token')
 }
 

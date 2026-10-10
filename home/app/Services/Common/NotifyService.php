@@ -13,16 +13,21 @@ use Illuminate\Support\Facades\Mail;
 use function Illuminate\Support\defer;
 
 /**
- * 业务通知（目前只有邮件）。各业务节点调用 send()，是否发送、发什么内容由后台“消息模板”决定。
+ * 业务通知：站内信和邮件两个渠道。各业务节点调用 send()，是否发送、发什么内容由后台“消息模板”决定。
  *
- * - 场景默认不发送：后台把该场景的邮件模板打开后才发。
- * - 语言按会员的语言偏好；该语言的模板没填时用默认语言的，再没有用内置默认模板。
- * - 只发给有邮箱的会员（邮箱注册的会员）。
- * - 发信放在数据库事务提交之后、响应返回之后执行，失败只写日志，不影响业务。
+ * - 站内信默认发送（后台可以按场景关掉），所有会员都能在消息中心看到。
+ * - 邮件默认不发送：后台把该场景的邮件打开后才发，而且只发给有邮箱的会员。
+ * - 两个渠道用同一份标题和正文。语言按会员的语言偏好；该语言的模板没填时用默认语言的，再没有用内置默认模板。
+ * - 放在数据库事务提交之后、响应返回之后执行，失败只写日志，不影响业务。
  */
 class NotifyService
 {
-    public function __construct(private ConfigService $config, private LocaleService $locale, private TranslationService $trans) {}
+    public function __construct(
+        private ConfigService $config,
+        private LocaleService $locale,
+        private TranslationService $trans,
+        private MemberMessageService $messages,
+    ) {}
 
     /** @param array<string,scalar> $vars 场景变量，见 MessageScenes::ALL[场景]['vars'] */
     public function send(string $scene, int $memberId, array $vars): void
@@ -42,24 +47,37 @@ class NotifyService
         });
     }
 
-    /** 实际渲染并发送，返回是否发出（场景没开启、会员没有邮箱时返回 false） */
+    /** 实际渲染并发送，返回有没有发出去（站内信或邮件至少一个）。两个渠道都没开、会员不存在时返回 false */
     public function deliver(string $scene, int $memberId, array $vars): bool
     {
-        $tpl = MessageTemplate::query()->where('scene', $scene)->where('channel', MessageTemplate::CHANNEL_EMAIL)->first();
-        if (!$tpl || (int) $tpl->is_enabled !== 1) {
-            return false;
-        }
+        $rows = MessageTemplate::query()->where('scene', $scene)->get()->keyBy('channel');
+        $emailTpl = $rows->get(MessageTemplate::CHANNEL_EMAIL);
+        // 站内信：没有记录就是开启
+        $siteOn = (int) ($rows->get(MessageTemplate::CHANNEL_SITE)->is_enabled ?? 1) === 1;
         $member = Member::query()->find($memberId);
         $email = trim((string) ($member->email ?? ''));
-        if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+        $emailOn = $emailTpl && (int) $emailTpl->is_enabled === 1 && $email !== '' && filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+        if (!$member || (!$siteOn && !$emailOn)) {
             return false;
         }
 
         $lang = in_array($member->lang, $this->locale->codes(), true) ? (string) $member->lang : $this->locale->defaultLang();
-        [$title, $content] = $this->compose($scene, (int) $tpl->id, $lang, $vars + ['nickname' => (string) $member->nickname]);
-        Mail::to($email)->send(new TemplateMail($title, $content, $this->siteName($lang)));
+        // 标题和正文存在邮件那条记录上，两个渠道共用
+        [$title, $content] = $this->compose($scene, (int) ($emailTpl->id ?? 0), $lang, $vars + ['nickname' => (string) $member->nickname]);
+        if ($siteOn) {
+            $this->messages->push($memberId, $scene, $title, $content, MessageScenes::link($scene, $vars));
+        }
+        if ($emailOn) {
+            // 邮件发不出去不影响已经写好的站内信
+            try {
+                Mail::to($email)->send(new TemplateMail($title, $content, $this->siteName($lang)));
+            } catch (\Throwable $e) {
+                Log::warning('通知邮件发送失败', ['scene' => $scene, 'member_id' => $memberId, 'error' => mb_substr($e->getMessage(), 0, 300)]);
+                $emailOn = false;
+            }
+        }
 
-        return true;
+        return $siteOn || $emailOn;
     }
 
     /**

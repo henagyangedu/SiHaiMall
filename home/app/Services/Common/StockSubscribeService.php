@@ -108,8 +108,8 @@ class StockSubscribeService
 
     /**
      * 定时任务调用：给“等待中且规格已经有货”的订阅发到货通知。
-     * 先把记录标成已通知再发信——发信失败（或者会员没有邮箱、通知场景没开）也不会反复重试，买家在“到货提醒”列表里能看到已到货。
-     * @return array{0:int,1:int} [处理了多少条, 其中实际发出通知多少条]
+     * 先把记录标成已通知再发——发送失败（或者通知场景两个渠道都关了）也不会反复重试，买家在“到货提醒”列表里能看到已到货。
+     * @return array{0:int,1:int} [处理了多少条, 其中实际发出通知（站内信或邮件）多少条]
      */
     public function notifyRestocked(int $limit = 500): array
     {
@@ -132,7 +132,7 @@ class StockSubscribeService
                 // 商品名称和规格按会员自己的语言
                 $lang = in_array($langs[$r->member_id] ?? '', $codes, true) ? (string) $langs[$r->member_id] : $this->locale->defaultLang();
                 $b = $this->catalog->skuBriefs([(int) $r->sku_id], $lang, $this->locale->baseCurrency())[(int) $r->sku_id] ?? null;
-                if ($b && $this->notify->deliver('goods_restock', (int) $r->member_id, ['goods_title' => $b['title'], 'spec' => $b['spec_text'] !== '' ? $b['spec_text'] : '-'])) {
+                if ($b && $this->notify->deliver('goods_restock', (int) $r->member_id, ['goods_title' => $b['title'], 'spec' => $b['spec_text'] !== '' ? $b['spec_text'] : '-', 'goods_id' => $b['goods_id']])) {
                     $sent++;
                 }
             } catch (\Throwable $e) {

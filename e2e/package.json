@@ -15,7 +15,8 @@
     "reviews": "node run.js reviews",
     "coupons": "node run.js coupons",
     "search": "node run.js search",
-    "restock": "node run.js restock"
+    "restock": "node run.js restock",
+    "messages": "node run.js messages"
   },
   "devDependencies": {
     "playwright-core": "^1.48.0"

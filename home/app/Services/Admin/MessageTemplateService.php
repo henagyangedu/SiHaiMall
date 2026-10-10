@@ -14,7 +14,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
-/** 后台消息模板：按场景开关邮件通知、编辑各语言的标题和正文、测试发送。场景和变量定义见 MessageScenes */
+/**
+ * 后台消息模板：按场景分别开关站内信和邮件、编辑各语言的标题和正文（两个渠道共用一份）、测试发送邮件。
+ * 场景和变量定义见 MessageScenes。站内信默认开启（没有记录 = 开启），邮件默认关闭。
+ */
 class MessageTemplateService
 {
     private const FIELDS = ['title', 'content'];
@@ -29,6 +32,7 @@ class MessageTemplateService
     public function list(): array
     {
         $rows = MessageTemplate::query()->where('channel', MessageTemplate::CHANNEL_EMAIL)->get()->keyBy('scene');
+        $site = MessageTemplate::query()->where('channel', MessageTemplate::CHANNEL_SITE)->pluck('is_enabled', 'scene');
         $texts = $this->trans->fetch('message_template_lang', 'template_id', $rows->pluck('id')->all(), self::FIELDS);
 
         $out = [];
@@ -41,6 +45,7 @@ class MessageTemplateService
             }
             $out[] = [
                 'scene' => $scene, 'label' => $def['label'], 'is_enabled' => (int) ($row->is_enabled ?? 0),
+                'site_enabled' => (int) ($site[$scene] ?? 1),
                 'vars' => array_map(fn ($k, $v) => ['key' => $k, 'label' => $v], array_keys(MessageScenes::COMMON_VARS + $def['vars']), array_values(MessageScenes::COMMON_VARS + $def['vars'])),
                 // 管理员填写的内容（没改过则为空）和内置默认模板
                 'title' => $row ? ($texts[$row->id]['title'] ?? []) : [], 'content' => $row ? ($texts[$row->id]['content'] ?? []) : [],
@@ -53,12 +58,19 @@ class MessageTemplateService
         return ['mailer' => (string) config('mail.default'), 'from' => (string) config('mail.from.address'), 'scenes' => $out];
     }
 
-    /** @param array{is_enabled?:int,title?:array,content?:array} $d */
+    /** @param array{is_enabled?:int,site_enabled?:int,title?:array,content?:array} $d is_enabled 是邮件的开关，site_enabled 是站内信的 */
     public function save(string $scene, array $d): void
     {
         $this->assertScene($scene);
 
         DB::transaction(function () use ($scene, $d) {
+            if (isset($d['site_enabled'])) {
+                MessageTemplate::query()->updateOrCreate(['scene' => $scene, 'channel' => MessageTemplate::CHANNEL_SITE], ['is_enabled' => (int) $d['site_enabled']]);
+                // 只切换站内信开关时，不去动邮件那条记录
+                if (count(array_diff(array_keys($d), ['site_enabled'])) === 0) {
+                    return;
+                }
+            }
             $row = MessageTemplate::query()->firstOrNew(['scene' => $scene, 'channel' => MessageTemplate::CHANNEL_EMAIL]);
             $row->is_enabled = (int) ($d['is_enabled'] ?? $row->is_enabled ?? 0);
             // 没有文本变动时也更新时间，便于在列表看到最后一次操作

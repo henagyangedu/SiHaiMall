@@ -7,6 +7,7 @@ const MENU = [
   { name: 'user', label: 'pc.overview', match: ['user'] },
   { name: 'orders', label: 'user.orders', match: ['orders', 'order-detail', 'refund-apply'] },
   { name: 'refunds', label: 'userMenu.refunds', match: ['refunds', 'refund-detail'] },
+  { name: 'messages', label: 'msg.title', match: ['messages'] },
   { name: 'coupons', label: 'coupon.title', match: ['coupons'] },
   { name: 'favorites', label: 'fav.title', match: ['favorites'] },
   { name: 'restock', label: 'restock.title', match: ['restock'] },

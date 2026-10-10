@@ -82,9 +82,10 @@ class StockSubscribeTest extends FeatureTestCase
         $this->assertSame([0, 0], $service->notifyRestocked());
         Mail::assertNothingSent();
 
-        // 补货：两个人的订阅都处理了，只有有邮箱的那位收到邮件；没补货的那个规格不受影响
+        // 补货：两个人的订阅都处理了，都收到站内信，只有有邮箱的那位还收到邮件；没补货的那个规格不受影响
         $this->setStock($sku, 3);
-        $this->assertSame([2, 1], $service->notifyRestocked());
+        $this->assertSame([2, 2], $service->notifyRestocked());
+        $this->assertSame(1, DB::table('member_message')->where('member_id', $b->id)->where('scene', 'goods_restock')->where('link_type', 'goods')->where('link_value', (string) $this->goodsId($sku))->count());
         Mail::assertSent(TemplateMail::class, 1);
         Mail::assertSent(TemplateMail::class, fn (TemplateMail $m) => $m->hasTo($a->email));
         $this->assertSame(1, DB::table('stock_subscribe')->where('sku_id', $other)->where('status', 0)->count());
@@ -123,9 +124,11 @@ class StockSubscribeTest extends FeatureTestCase
         // 补了货但商品下架了：不处理，留着等它重新上架；列表里标成失效
         $this->setStock($offShelf, 5);
         DB::table('goods')->where('id', $this->goodsId($offShelf))->update(['is_on_sale' => 0]);
-        // 通知场景没开：照样标成已通知（买家在列表里能看到），只是不发邮件
+        // 邮件没开、站内信也关掉：照样标成已通知（买家在列表里能看到），只是什么都不发
+        $this->adminApi('PUT', '/message/goods_restock', ['site_enabled' => 0])->assertJsonPath('code', 0);
         $this->setStock($sku, 5);
         $this->assertSame([1, 0], $service->notifyRestocked());
+        $this->assertSame(0, DB::table('member_message')->count());
         Mail::assertNothingSent();
 
         $list = collect($this->api('GET', '/stock-subscribes', [], $token)->json('data.list'))->keyBy('sku_id');

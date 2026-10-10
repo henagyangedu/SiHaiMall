@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\OrderRefund;
 use App\Models\PayTrade;
 use App\Services\Common\ConfigService;
+use App\Services\Common\MemberMessageService;
 use Illuminate\Support\Facades\DB;
 use Tests\FeatureTestCase;
 
@@ -150,6 +151,20 @@ class CrossMemberAccessTest extends FeatureTestCase
 
         $this->assertSame(0, (int) OrderRefund::query()->where('refund_no', $refundNo)->value('status'), '甲的售后单仍是待审核');
         $this->assertSame([], $this->api('GET', '/refunds', [], $this->bToken)->json('data.list'));
+    }
+
+    public function test_messages(): void
+    {
+        app(MemberMessageService::class)->push($this->aId, 'order_paid', '甲的消息', '甲的地址', ['order', 'GM1']);
+        $id = (int) DB::table('member_message')->where('member_id', $this->aId)->value('id');
+
+        $this->denied('POST', "/messages/{$id}/read");
+        $this->denied('DELETE', "/messages/{$id}");
+        // 乙点“全部已读”只影响自己的
+        $this->api('POST', '/messages/read-all', [], $this->bToken)->assertJsonPath('code', 0);
+        $this->assertSame([], $this->api('GET', '/messages', [], $this->bToken)->json('data.list'));
+        $this->assertSame(0, $this->api('GET', '/messages/unread-count', [], $this->bToken)->json('data.unread'));
+        $this->assertSame(0, (int) DB::table('member_message')->where('id', $id)->value('is_read'), '甲的消息仍是未读，也没被删');
     }
 
     public function test_distribution_data_is_scoped_to_the_member(): void

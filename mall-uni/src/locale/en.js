@@ -50,6 +50,7 @@ export default {
   refundType: { 1: 'Refund only', 2: 'Return & refund' },
   commissionStatus: { 0: 'Pending', 1: 'Settled', 2: 'Void' },
   withdrawStatus: { 0: 'Under review', 1: 'Approved', 2: 'Paid', 3: 'Declined' },
+  msg: { title: 'Messages', readAll: 'Mark all as read', unreadCount: '{n} unread', empty: 'No messages yet', view: 'View details', remove: 'Delete' },
   restock: { title: 'Back-in-stock alerts', notify: 'Notify me', subscribed: 'Alert set', cancel: 'Cancel alert', soldOutTip: 'This option is out of stock', subscribedTip: "We'll let you know once when it's back", waiting: 'Waiting', arrived: 'Back in stock', invalid: 'Unavailable', empty: 'No back-in-stock alerts yet', buy: 'Buy now' },
   search: { history: 'Recent searches', hot: 'Popular', clear: 'Clear', cancel: 'Cancel', result: 'Results for "{keyword}"', noResult: 'No products found for "{keyword}"', tryOther: 'Try another word, or take a look at these', recommend: 'You may like' },
   extra: { params: 'Specifications', related: 'Accessories & refills', fits: 'Works with' },

@@ -29,6 +29,7 @@ const routes = [
       { path: 'coupons', name: 'coupons', component: () => import('@/pages/Coupons.vue') },
       { path: 'favorites', name: 'favorites', component: () => import('@/pages/Favorites.vue') },
       { path: 'restock', name: 'restock', component: () => import('@/pages/Restock.vue') },
+      { path: 'messages', name: 'messages', component: () => import('@/pages/Messages.vue') },
       { path: 'points', name: 'points', component: () => import('@/pages/Points.vue') },
       { path: 'profile', name: 'profile', component: () => import('@/pages/Profile.vue') },
       { path: 'security', name: 'security', component: () => import('@/pages/Security.vue') },

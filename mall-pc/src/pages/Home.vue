@@ -6,7 +6,7 @@ import { ArrowRight, Bell, QuestionFilled } from '@element-plus/icons-vue'
 import { getAds, getArticles, getCategories, getGoodsList, getHelp } from '@/api'
 import GoodsCard from '@/components/GoodsCard.vue'
 
-// 首页（“温暖生活方式”版式）：通栏主视觉 → 公告 → 按场景逛（一级分类）→ 推荐商品 → 主题横幅 → 选购指南 → 帮助入口。
+// 首页（“温暖生活方式”版式）：主视觉 → 公告 → 按场景逛（一级分类）→ 推荐商品 → 主题横幅 → 选购指南 → 帮助入口。
 // 每一块都取后台的真实数据，哪一块没有数据就整块不显示。
 const { t } = useI18n()
 const router = useRouter()
@@ -49,14 +49,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- 主视觉：轮播图铺满整个页宽，文字压在左侧 -->
-  <section class="hero">
+  <!-- 主视觉：和下面的内容区等宽（不铺满窗口，宽屏上才能和其他区块对齐），文字压在轮播图左侧 -->
+  <section class="container hero">
     <el-carousel v-if="banners.length" height="440px" :interval="6000" arrow="never" indicator-position="none" @change="slide = $event">
       <el-carousel-item v-for="b in banners" :key="b.id">
         <div class="slide">
           <img :src="b.image" alt="" class="slide-img" />
           <div class="slide-shade" />
-          <div class="container slide-body">
+          <div class="slide-body">
             <div class="eyebrow">{{ t('pc.heroEyebrow') }}</div>
             <h1 class="hero-title">{{ b.title }}</h1>
             <p class="hero-sub">{{ t('pc.heroSub') }}</p>
@@ -69,14 +69,14 @@ onMounted(() => {
       </el-carousel-item>
     </el-carousel>
     <div v-else class="slide empty-hero">
-      <div class="container slide-body">
+      <div class="slide-body">
         <div class="eyebrow">{{ t('pc.heroEyebrow') }}</div>
         <h1 class="hero-title">{{ t('pc.heroFallback') }}</h1>
         <p class="hero-sub">{{ t('pc.heroSub') }}</p>
         <div class="hero-actions"><router-link :to="{ name: 'goods' }" class="btn solid">{{ t('pc.heroCta') }}</router-link></div>
       </div>
     </div>
-    <div v-if="banners.length > 1" class="container hero-count">{{ pad(slide + 1) }} / {{ pad(banners.length) }}</div>
+    <div v-if="banners.length > 1" class="hero-count">{{ pad(slide + 1) }} / {{ pad(banners.length) }}</div>
   </section>
 
   <div class="container">
@@ -151,19 +151,19 @@ onMounted(() => {
 
 <style scoped>
 /* ---- 主视觉 */
-.hero { position: relative; }
+.hero { position: relative; border-radius: var(--radius); overflow: hidden; }
 .slide { position: relative; height: 440px; background: var(--cream-deep); overflow: hidden; }
 /* 图片铺满并裁切，靠右对齐：主体在右侧，窗口窄的时候裁掉的是左边被文字盖住的那一段 */
 .slide-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right center; }
-/* 左侧压一层奶油色渐变，保证文字在任何图片上都看得清 */
-.slide-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(247, 243, 235, 0.94) 0%, rgba(247, 243, 235, 0.78) 34%, rgba(247, 243, 235, 0) 62%); }
+/* 左侧压一层奶油色渐变，保证文字在任何图片上都看得清；用比页面底色深一档的颜色，主视觉的左边缘才看得出来 */
+.slide-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(240, 233, 221, 0.96) 0%, rgba(240, 233, 221, 0.8) 34%, rgba(240, 233, 221, 0) 62%); }
 .empty-hero { background: linear-gradient(120deg, var(--cream-deep), #ead9c8); }
-.slide-body { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+.slide-body { position: relative; height: 100%; padding: 0 56px; display: flex; flex-direction: column; justify-content: center; }
 .eyebrow { font-size: 13px; letter-spacing: 0.32em; color: var(--text); opacity: 0.75; }
 .hero-title { margin: 14px 0 12px; max-width: 520px; font-size: 46px; line-height: 1.22; font-weight: 700; letter-spacing: 0.02em; color: var(--text); }
 .hero-sub { margin: 0; font-size: 17px; color: var(--text); opacity: 0.8; }
 .hero-actions { display: flex; gap: 14px; margin-top: 30px; }
-.hero-count { position: absolute; left: 0; right: 0; bottom: 18px; text-align: right; font-size: 13px; letter-spacing: 0.08em; color: var(--text); opacity: 0.7; z-index: 3; pointer-events: none; }
+.hero-count { position: absolute; right: 28px; bottom: 20px; font-size: 13px; letter-spacing: 0.08em; color: var(--text); opacity: 0.7; z-index: 3; pointer-events: none; }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 30px; border-radius: 22px; font-size: 15px; cursor: pointer; border: 1.5px solid var(--theme); font-family: inherit; transition: background 0.15s, color 0.15s; }
 .btn.solid { background: var(--theme); color: #fff; }

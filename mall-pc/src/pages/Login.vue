@@ -17,6 +17,9 @@ const bySms = ref(false)
 const form = reactive({ account: '', password: '', nickname: '', code: '', invite_code: '' })
 const submitting = ref(false)
 const protocols = ref([])
+// 后台填了用户协议或隐私政策时，注册必须勾选同意
+const agreed = ref(false)
+const needAgree = computed(() => mode.value === 'register' && !!state.config.agree_required)
 
 const isEmail = computed(() => form.account.includes('@'))
 const isPhone = computed(() => /^\d{6,15}$/.test(form.account.trim()))
@@ -58,6 +61,7 @@ async function submit() {
   if (!account) return ElMessage.warning(t(smsLogin.value ? 'auth.needMobile' : 'login.needAccount'))
   if (!smsLogin.value && form.password.length < 6) return ElMessage.warning(t('login.needPassword'))
   if (needCode.value && !form.code.trim()) return ElMessage.warning(t('auth.needCode'))
+  if (needAgree.value && !agreed.value) return ElMessage.warning(t('login.needAgree'))
   submitting.value = true
   try {
     let data
@@ -70,6 +74,7 @@ async function submit() {
         account, password: form.password, nickname: form.nickname.trim(),
         ...(needCode.value ? { code: form.code.trim() } : {}),
         ...(form.invite_code.trim() ? { invite_code: form.invite_code.trim() } : {}),
+        ...(needAgree.value ? { agree: 1 } : {}),
       })
     }
     setToken(data.token, data.info)
@@ -125,7 +130,8 @@ onMounted(() => {
     </el-form>
 
     <div v-if="mode === 'register' && protocols.length" class="agree sub">
-      {{ t('login.agree') }}
+      <el-checkbox v-if="needAgree" v-model="agreed" class="agree-box">{{ t('login.agreeCheck') }}</el-checkbox>
+      <template v-else>{{ t('login.agree') }}</template>
       <router-link v-for="p in protocols" :key="p.key" :to="{ name: 'protocols', params: { key: p.key } }" target="_blank" class="link"> {{ p.title }}</router-link>
     </div>
 
@@ -139,7 +145,9 @@ onMounted(() => {
 .box { width: 420px; margin: 40px auto; padding: 28px 36px 32px; }
 .code-row { display: flex; gap: 10px; width: 100%; }
 .links { display: flex; justify-content: space-between; margin: -6px 0 14px; font-size: 13px; }
-.agree { text-align: center; margin-top: 14px; }
+.agree { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 8px; margin-top: 14px; }
 .submit { width: 100%; }
 .switch { text-align: center; margin-top: 18px; font-size: 13px; }
+.agree-box { margin-right: 0; vertical-align: middle; height: auto; }
+.agree-box :deep(.el-checkbox__label) { font-size: 13px; color: var(--sub); }
 </style>

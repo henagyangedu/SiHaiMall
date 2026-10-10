@@ -16,6 +16,9 @@ usePageTitle(() => t(mode.value === 'login' ? 'login.title' : 'login.register'))
 const form = reactive({ account: '', password: '', nickname: '', code: '', invite_code: '' })
 const submitting = ref(false)
 const protocols = ref([])
+// 后台填了用户协议或隐私政策时，注册（和小程序里微信一键登录的首次登录）必须勾选同意
+const agreed = ref(false)
+const needAgree = computed(() => !!state.config.agree_required)
 
 const isEmail = computed(() => form.account.includes('@'))
 const isPhone = computed(() => /^\d{6,15}$/.test(form.account.trim()))
@@ -50,6 +53,7 @@ async function submit() {
   if (!account) return toast(t(smsLogin.value ? 'auth.needMobile' : 'login.needAccount'))
   if (!smsLogin.value && form.password.length < 6) return toast(t('login.needPassword'))
   if (needCode.value && !form.code.trim()) return toast(t('auth.needCode'))
+  if (mode.value === 'register' && needAgree.value && !agreed.value) return toast(t('login.needAgree'))
   submitting.value = true
   try {
     let data
@@ -62,6 +66,7 @@ async function submit() {
         account, password: form.password, nickname: form.nickname.trim(),
         ...(needCode.value ? { code: form.code.trim() } : {}),
         ...(form.invite_code.trim() ? { invite_code: form.invite_code.trim() } : {}),
+        ...(needAgree.value ? { agree: 1 } : {}),
       })
     }
     afterLogin(data)
@@ -82,11 +87,13 @@ function afterLogin(data) {
 // 微信一键登录：向微信要一个一次性的登录凭证交给后端，第一次登录时后端会自动注册
 async function wechatLogin() {
   if (submitting.value) return
+  // 一键登录的第一次就是注册，所以也要先同意
+  if (needAgree.value && !agreed.value) return toast(t('login.needAgree'))
   submitting.value = true
   try {
     const code = await new Promise((resolve) => uni.login({ provider: 'weixin', success: (x) => resolve(x.code || ''), fail: () => resolve('') }))
     if (!code) return toast(t('auth.wechatFail'))
-    afterLogin(await loginByWechatMini({ code, ...(form.invite_code.trim() ? { invite_code: form.invite_code.trim() } : {}) }))
+    afterLogin(await loginByWechatMini({ code, ...(form.invite_code.trim() ? { invite_code: form.invite_code.trim() } : {}), ...(needAgree.value ? { agree: 1 } : {}) }))
   } finally {
     submitting.value = false
   }
@@ -107,6 +114,10 @@ onLoad(async (q) => {
     <!-- #ifdef MP-WEIXIN -->
     <view v-if="state.config.wechat_login_enabled" class="wx">
       <view class="btn wx-btn" :class="{ disabled: submitting }" @click="wechatLogin">{{ t('auth.wechatLogin') }}</view>
+      <view v-if="needAgree && protocols.length" class="agree" @click="agreed = !agreed">
+        <text class="tick" :class="{ on: agreed }">{{ agreed ? '✓' : '' }}</text>{{ t('login.agreeCheck') }}
+        <text v-for="p in protocols" :key="p.key" class="link" @click.stop="nav(`/pages/protocol/index?key=${p.key}`)"> {{ p.title }}</text>
+      </view>
       <view class="wx-or">{{ t('auth.orAccount') }}</view>
     </view>
     <!-- #endif -->
@@ -136,9 +147,10 @@ onLoad(async (q) => {
       <view class="btn" :class="{ disabled: submitting }" style="margin-top: 40rpx" @click="!submitting && submit()">
         {{ t(mode === 'login' ? 'login.submitLogin' : 'login.submitRegister') }}
       </view>
-      <view v-if="mode === 'register' && protocols.length" class="agree">
-        {{ t('login.agree') }}
-        <text v-for="p in protocols" :key="p.key" class="link" @click="nav(`/pages/protocol/index?key=${p.key}`)"> {{ p.title }}</text>
+      <view v-if="mode === 'register' && protocols.length" class="agree" @click="needAgree && (agreed = !agreed)">
+        <template v-if="needAgree"><text class="tick" :class="{ on: agreed }">{{ agreed ? '✓' : '' }}</text>{{ t('login.agreeCheck') }}</template>
+        <template v-else>{{ t('login.agree') }}</template>
+        <text v-for="p in protocols" :key="p.key" class="link" @click.stop="nav(`/pages/protocol/index?key=${p.key}`)"> {{ p.title }}</text>
       </view>
       <view class="switch" @click="switchMode(mode === 'login' ? 'register' : 'login')">{{ t(mode === 'login' ? 'login.toRegister' : 'login.toLogin') }}</view>
     </view>
@@ -160,5 +172,7 @@ onLoad(async (q) => {
 .links { display: flex; justify-content: space-between; color: #6a665e; font-size: 26rpx; margin-top: 12rpx; }
 .agree { text-align: center; color: var(--sub); font-size: 24rpx; margin-top: 24rpx; }
 .link { color: var(--theme); margin-left: 12rpx; }
+.tick { display: inline-block; width: 30rpx; height: 30rpx; line-height: 28rpx; border: 2rpx solid #cfc7b8; border-radius: 8rpx; margin-right: 12rpx; vertical-align: -6rpx; font-size: 22rpx; color: #fff; box-sizing: border-box; }
+.tick.on { background: var(--theme); border-color: var(--theme); }
 .switch { text-align: center; color: var(--sub); margin-top: 32rpx; font-size: 26rpx; }
 </style>

@@ -28,6 +28,10 @@ export const getProfile = () => get('/member/profile', {}, { auth: false, silent
 export const updateProfile = (data) => put('/member/profile', data)
 export const changePassword = (data) => put('/member/password', data)
 export const bindContact = (data) => post('/member/bind', data)
+// 隐私：注销前的检查、注销账号、导出自己的数据
+export const cancelCheck = () => get('/member/cancel-check')
+export const cancelAccount = (data) => post('/member/cancel', data)
+export const exportMyData = () => get('/member/export')
 export const getPointLogs = (params) => get('/member/points', params)
 export const getCoupons = (params) => get('/coupons', params, { auth: false, silent: true })
 export const receiveCoupon = (id) => post(`/coupons/${id}/receive`)

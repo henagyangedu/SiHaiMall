@@ -16,6 +16,8 @@ class WechatMiniLoginRequest extends FormRequest
         return [
             'code'        => ['required', 'string', 'max:128'],
             'invite_code' => ['nullable', 'string', 'max:20'],
+            // 同意用户协议和隐私政策：只在第一次登录（要新建会员）时看
+            'agree'       => ['nullable', 'boolean'],
         ];
     }
 

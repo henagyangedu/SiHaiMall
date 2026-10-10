@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 /**
  * C 端接口的提示多语言：业务代码里的提示都是中文，买家的语言不是中文时，在响应返回前翻译成英文。
- * 处理四处买家会看到的文字：顶层的 msg、结算预览的 data.problems[].msg 和 data.coupons[].reason、可退信息的 data.reason。
+ * 处理五处买家会看到的文字：顶层的 msg、结算预览的 data.problems[].msg 和 data.coupons[].reason、可退信息的 data.reason、注销检查的 data.blockers[]。
  * 只作用于 /api/*，后台管理端不翻译。
  */
 class TranslateApiMessages
@@ -39,6 +39,14 @@ class TranslateApiMessages
                 foreach ($body['data']['problems'] as $i => $p) {
                     if (is_array($p) && is_string($p['msg'] ?? null)) {
                         $body['data']['problems'][$i]['msg'] = ApiMessageTranslator::translate($p['msg'], $lang);
+                    }
+                }
+            }
+            // 注销账号前的检查：现在不能注销的原因
+            if (is_array($body['data']['blockers'] ?? null)) {
+                foreach ($body['data']['blockers'] as $i => $b) {
+                    if (is_string($b)) {
+                        $body['data']['blockers'][$i] = ApiMessageTranslator::translate($b, $lang);
                     }
                 }
             }

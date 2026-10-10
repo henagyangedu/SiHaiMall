@@ -22,6 +22,8 @@ class RegisterRequest extends FormRequest
             'invite_code' => ['nullable', 'string', 'max:20'],
             'lang'       => ['nullable', 'string', 'max:10'],
             'currency'   => ['nullable', 'string', 'max:10'],
+            // 同意用户协议和隐私政策：后台填了协议时必须为真（在服务里判断）
+            'agree'      => ['nullable', 'boolean'],
         ];
     }
 

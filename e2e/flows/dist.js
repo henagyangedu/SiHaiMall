@@ -67,6 +67,13 @@ module.exports = async function distFlow(browser, data) {
         await guest.getByPlaceholder('邮箱或手机号').fill(email);
         await guest.getByPlaceholder('密码').fill('Secret#123');
         await guest.getByPlaceholder('昵称（可选）').fill(nick);
+        // 后台填了用户协议或隐私政策时，要先勾选同意才能注册
+        const agree = guest.locator('.agree .el-checkbox');
+        if (await agree.count()) {
+          await guest.locator('.submit').click();
+          await el.message(guest, '请先阅读并勾选同意协议');
+          await agree.click();
+        }
         await guest.locator('.submit').click();
         await guest.locator('.user', { hasText: nick }).waitFor();
       } finally {

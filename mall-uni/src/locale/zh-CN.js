@@ -20,7 +20,7 @@ export default {
   login: {
     title: '登录', register: '注册', account: '邮箱或手机号', password: '密码', nickname: '昵称（可选）', code: '验证码', getCode: '获取验证码',
     resend: '{n} 秒后重发', inviteCode: '邀请码（可选）', submitLogin: '登录', submitRegister: '注册', toRegister: '没有账号？去注册', toLogin: '已有账号？去登录',
-    needAccount: '请输入邮箱或手机号', needPassword: '密码至少 6 位', codeSent: '验证码已发送', welcome: '欢迎回来', agree: '注册即表示同意',
+    needAccount: '请输入邮箱或手机号', needPassword: '密码至少 6 位', codeSent: '验证码已发送', welcome: '欢迎回来', agree: '注册即表示同意', agreeCheck: '我已阅读并同意', needAgree: '请先阅读并勾选同意协议',
   },
   checkout: {
     title: '确认订单', addAddress: '请添加收货地址', goods: '商品金额', shipping: '运费', discount: '会员优惠', points: '积分抵扣',
@@ -115,6 +115,13 @@ export default {
     title: '账号与安全', tip: '绑定邮箱或手机号并设置密码后，就可以在网页上用它登录。', password: '登录密码', pwdSet: '已设置', pwdUnset: '未设置',
     set: '设置', change: '修改', bind: '绑定', unbound: '未绑定', oldPwd: '原密码', againPwd: '再输入一次新密码', needOld: '请输入原密码',
     pwdMismatch: '两次输入的密码不一致', pwdSaved: '密码已保存', emailPh: '邮箱地址', needEmail: '请输入正确的邮箱', needPhone: '请输入正确的手机号', bound: '绑定成功',
+  },
+  privacy: {
+    exportTitle: '导出我的数据', exportTip: '下载一份你在本站的资料、地址、订单、评价等数据（JSON 文件）', exportBtn: '导出', exported: '已开始下载', exportWeb: '请在浏览器里打开本站（手机网页或电脑端）导出',
+    cancelTitle: '注销账号', cancelTip: '永久删除账号和个人信息，不能恢复', cancelBtn: '注销',
+    cancelWarn: '注销后：登录账号、手机号、邮箱、收货地址、收藏、购物车和消息会被删除；{points} 积分和 {coupons} 张未使用的优惠券作废；订单、售后和发票记录会按规定保留；你写过的评价改为匿名显示。注销立即生效，不能恢复。',
+    cancelBlocked: '现在还不能注销：', cancelPwd: '输入登录密码确认', cancelConfirm: '确认注销', cancelAsk: '确定要永久注销这个账号吗？', cancelDone: '账号已注销',
+    noticeText: '本站只使用必要的本地存储（保持登录、记住语言和币种等），不使用广告或跟踪类 Cookie。', noticeLink: '隐私政策', noticeOk: '知道了',
   },
   points: { title: '我的积分', balance: '当前积分', growth: '成长值 {n}', nextLevel: '再获得 {n} 成长值升级到{name}', topLevel: '已是最高等级', signIn: '签到 +{n}', signed: '今日已签到', signOk: '签到成功，获得 {n} 积分', after: '余 {n}', other: '其他' },
   pointType: { 1: '注册奖励', 2: '签到', 3: '消费获得', 4: '下单抵扣', 5: '系统调整', 6: '退款扣回' },

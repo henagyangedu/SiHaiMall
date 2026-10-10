@@ -242,7 +242,8 @@ onMounted(async () => {
               <el-descriptions-item label="注册来源">{{ sourceText(detail.register_source) }}</el-descriptions-item>
               <el-descriptions-item label="第三方绑定">{{ detail.bindings.length ? detail.bindings.join('、') : '无' }}</el-descriptions-item>
               <el-descriptions-item label="最后登录">{{ detail.last_login_at || '-' }}<span v-if="detail.last_login_ip" style="color: #909399"> ({{ detail.last_login_ip }})</span></el-descriptions-item>
-              <el-descriptions-item label="注册时间" :span="2">{{ detail.created_at }}</el-descriptions-item>
+              <el-descriptions-item label="注册时间">{{ detail.created_at }}</el-descriptions-item>
+              <el-descriptions-item label="同意协议时间">{{ detail.agreed_at || '未记录' }}</el-descriptions-item>
             </el-descriptions>
             <div style="margin: 16px 0 8px; font-weight: 600">收货地址（{{ detail.addresses.length }}）</div>
             <el-table :data="detail.addresses" border size="small" empty-text="暂无地址">

@@ -20,7 +20,7 @@ export default {
   login: {
     title: 'Sign in', register: 'Sign up', account: 'Email or phone', password: 'Password', nickname: 'Nickname (optional)', code: 'Verification code', getCode: 'Get code',
     resend: 'Resend in {n}s', inviteCode: 'Invite code (optional)', submitLogin: 'Sign in', submitRegister: 'Create account', toRegister: 'New here? Create an account', toLogin: 'Have an account? Sign in',
-    needAccount: 'Enter your email or phone', needPassword: 'Password must be at least 6 characters', codeSent: 'Code sent', welcome: 'Welcome back', agree: 'By signing up you agree to the',
+    needAccount: 'Enter your email or phone', needPassword: 'Password must be at least 6 characters', codeSent: 'Code sent', welcome: 'Welcome back', agree: 'By signing up you agree to the', agreeCheck: 'I have read and agree to the', needAgree: 'Please read and accept the terms first',
   },
   checkout: {
     title: 'Checkout', addAddress: 'Add a shipping address', goods: 'Subtotal', shipping: 'Shipping', discount: 'Member discount', points: 'Points',
@@ -115,6 +115,13 @@ export default {
     title: 'Account & security', tip: 'Link an email or phone number and set a password to sign in on the web.', password: 'Password', pwdSet: 'Set', pwdUnset: 'Not set',
     set: 'Set', change: 'Change', bind: 'Link', unbound: 'Not linked', oldPwd: 'Current password', againPwd: 'Repeat the new password', needOld: 'Please enter your current password',
     pwdMismatch: 'The two passwords do not match', pwdSaved: 'Password saved', emailPh: 'Email address', needEmail: 'Please enter a valid email', needPhone: 'Please enter a valid phone number', bound: 'Linked',
+  },
+  privacy: {
+    exportTitle: 'Export my data', exportTip: 'Download a copy of your profile, addresses, orders, reviews and more (JSON file)', exportBtn: 'Export', exported: 'Download started', exportWeb: 'Please open this site in a browser (mobile web or desktop) to export',
+    cancelTitle: 'Delete account', cancelTip: 'Permanently delete your account and personal information. This cannot be undone.', cancelBtn: 'Delete',
+    cancelWarn: 'After deletion: your sign-in details, phone, email, addresses, favorites, cart and messages are removed; {points} points and {coupons} unused coupon(s) are forfeited; order, after-sales and invoice records are kept as required by law; your reviews stay but become anonymous. Deletion takes effect immediately and cannot be undone.',
+    cancelBlocked: 'You cannot delete your account yet:', cancelPwd: 'Enter your password to confirm', cancelConfirm: 'Delete my account', cancelAsk: 'Permanently delete this account?', cancelDone: 'Your account has been deleted',
+    noticeText: 'This site only uses essential local storage (to keep you signed in and remember your language and currency). No advertising or tracking cookies.', noticeLink: 'Privacy Policy', noticeOk: 'Got it',
   },
   points: { growth: 'Growth {n}', nextLevel: '{n} more to reach {name}', topLevel: 'You are at the top level', signIn: 'Check in +{n}', signed: 'Checked in today', signOk: 'Checked in. You earned {n} points.', title: 'My points', balance: 'Points balance', after: 'Balance {n}', other: 'Other' },
   pointType: { 1: 'Sign-up bonus', 2: 'Check-in', 3: 'Earned from order', 4: 'Used on order', 5: 'Adjustment', 6: 'Refund deduction' },

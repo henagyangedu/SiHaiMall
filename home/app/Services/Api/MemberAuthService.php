@@ -24,17 +24,19 @@ use Illuminate\Support\Str;
  * 未启用短信时不校验。
  * 邮箱注册：基础设置里开启“邮箱注册需要验证码”后必须带邮箱验证码；未开启时不校验。
  * 微信小程序登录：后台“应用 → 小程序”启用后可用，绑定关系存 gm_member_auth（platform = wechat_mini）。
+ * 同意协议：后台填了用户协议或隐私政策时，注册（含微信一键登录的首次登录）必须带 agree，同意的时间记在 agreed_at。
  */
 class MemberAuthService
 {
     public function __construct(private LocaleService $locale, private SmsCodeService $sms, private EmailCodeService $emailCodes,
         private DistributionService $distribution, private UploadService $uploads, private DriverManager $drivers,
-        private MemberGrowthService $growth, private PointRewardService $rewards) {}
+        private MemberGrowthService $growth, private PointRewardService $rewards, private MemberPrivacyService $privacy) {}
 
-    /** @param array{account:string,password:string,nickname?:string,phone_area?:string,code?:string,invite_code?:string,lang?:string,currency?:string} $d */
+    /** @param array{account:string,password:string,nickname?:string,phone_area?:string,code?:string,invite_code?:string,lang?:string,currency?:string,agree?:mixed} $d */
     public function register(array $d, string $source, string $ip, string $ua): array
     {
         $account = trim($d['account']);
+        $agreedAt = $this->privacy->agreedAt($d['agree'] ?? null, (string) ($d['lang'] ?? ''));
         $isEmail = str_contains($account, '@');
         $isPhone = !$isEmail && preg_match('/^\d{6,15}$/', $account) === 1;
 
@@ -86,6 +88,7 @@ class MemberAuthService
                 'parent_id'       => $parentId,
                 'level_id'        => 1,
                 'status'          => 1,
+                'agreed_at'       => $agreedAt,
             ]);
             $this->rewards->onRegister($member);
         } finally {
@@ -124,7 +127,8 @@ class MemberAuthService
     /**
      * 微信小程序一键登录。这个微信号登录过就直接登录；没登录过就自动注册一个会员并绑定。
      * 自动注册的会员没有密码（账号是随机的 wx_ 开头），只能用微信登录。
-     * @param array{invite_code?:string,lang?:string,currency?:string} $d
+     * 第一次登录（要新建会员）时同样要同意协议；已经注册过的直接登录，不看 agree。
+     * @param array{invite_code?:string,lang?:string,currency?:string,agree?:mixed} $d
      */
     public function loginByWechatMini(string $code, array $d, string $source, string $ip, string $ua): array
     {
@@ -190,7 +194,9 @@ class MemberAuthService
                 }
             }
             $lang = in_array($d['lang'] ?? '', $this->locale->codes(), true) ? $d['lang'] : $this->locale->defaultLang();
+            $agreedAt = $this->privacy->agreedAt($d['agree'] ?? null, $lang);
             $member = Member::query()->create([
+                'agreed_at'       => $agreedAt,
                 'account'         => 'wx_' . Str::lower(Str::random(12)),
                 'password'        => '',
                 'nickname'        => (str_starts_with($lang, 'zh') ? '微信用户' : 'WeChat User ') . Str::lower(Str::random(4)),

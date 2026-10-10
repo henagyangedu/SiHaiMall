@@ -61,7 +61,7 @@ class AuthController extends ApiController
     {
         return ApiResponse::ok($this->service->loginByWechatMini(
             (string) $request->validated('code'),
-            ['invite_code' => (string) ($request->validated('invite_code') ?? ''), 'lang' => $this->lang($request), 'currency' => $this->currency($request)],
+            ['invite_code' => (string) ($request->validated('invite_code') ?? ''), 'agree' => $request->validated('agree'), 'lang' => $this->lang($request), 'currency' => $this->currency($request)],
             $this->source($request), (string) $request->ip(), (string) $request->userAgent()
         ));
     }

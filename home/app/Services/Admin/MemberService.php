@@ -46,6 +46,7 @@ class MemberService
             ])->all();
 
         return $this->row($m, $levels) + [
+            'agreed_at' => $m->agreed_at ? (string) $m->agreed_at : null,
             'gender'    => (int) $m->gender,
             'birthday'  => $m->birthday?->format('Y-m-d'),
             'phone_area' => $m->phone_area,

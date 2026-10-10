@@ -11,7 +11,8 @@ use App\Services\Common\SmsCodeService;
 /** C 端启动配置：语言、币种、站点信息，客户端（H5 / 小程序 / APP）启动时调用一次 */
 class InitService
 {
-    public function __construct(private LocaleService $locale, private ConfigService $config, private SmsCodeService $sms, private EmailCodeService $emailCodes) {}
+    public function __construct(private LocaleService $locale, private ConfigService $config, private SmsCodeService $sms, private EmailCodeService $emailCodes,
+        private MemberPrivacyService $privacy) {}
 
     public function init(string $lang): array
     {
@@ -26,6 +27,8 @@ class InitService
             'sms_enabled'   => $this->sms->enabled(),
             // 为 true 时：邮箱注册必须带邮箱验证码，并可使用邮箱找回密码
             'email_verify_enabled' => $this->emailCodes->enabled(),
+            // 为 true 时：注册（含微信一键登录的首次登录）必须勾选同意用户协议和隐私政策，请求里带 agree=1
+            'agree_required' => $this->privacy->agreeRequired($lang),
             // 为 true 时：小程序里可以用微信一键登录
             'wechat_login_enabled' => DriverConfig::query()->where('type', 'app')->where('driver', 'wechat_mini')->where('is_enabled', 1)->exists(),
         ];

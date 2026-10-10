@@ -31,6 +31,7 @@ class ConfigService
             'site_closed'   => ['label' => '关闭站点', 'type' => 'bool', 'default' => 0],
             'close_notice'  => ['label' => '关闭提示', 'type' => 'text', 'lang' => true, 'max' => 500],
             'email_verify_enabled' => ['label' => '邮箱注册需要验证码', 'type' => 'bool', 'default' => 0],
+            'storage_notice_enabled' => ['label' => '显示本地存储告知条', 'type' => 'bool', 'default' => 0],
         ],
         'trade' => [
             'order_expire_minutes' => ['label' => '未支付订单自动关闭（分钟）', 'type' => 'int', 'min' => 1, 'max' => 10080, 'default' => 30],
@@ -88,7 +89,7 @@ class ConfigService
     /** 可公开给 C 端的配置项 */
     public const PUBLIC_KEYS = [
         'base' => ['site_name', 'site_logo', 'site_favicon', 'site_desc', 'site_keywords', 'company_name',
-                   'service_email', 'service_phone', 'service_url', 'service_hours', 'copyright', 'site_icp', 'site_closed', 'close_notice'],
+                   'service_email', 'service_phone', 'service_url', 'service_hours', 'copyright', 'site_icp', 'site_closed', 'close_notice', 'storage_notice_enabled'],
     ];
 
     public function __construct(private LocaleService $locale) {}

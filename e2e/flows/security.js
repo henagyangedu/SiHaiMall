@@ -1,3 +1,4 @@
+const fs = require('fs');
 const config = require('../lib/config');
 const { backend } = require('../lib/backend');
 const { Flow, Skip, el, desktop, mobile, pcLogin, uniGo, uniLogin } = require('../lib/harness');
@@ -5,8 +6,10 @@ const { Flow, Skip, el, desktop, mobile, pcLogin, uniGo, uniLogin } = require('.
 /**
  * 账号与安全，跨 PC 端和手机端：
  * 一个没有密码、没有邮箱和手机号的会员（微信一键登录注册出来的就是这样）
- * 签到 → 设置密码 → 修改密码 → 绑定邮箱 → 换一个浏览器用邮箱和密码登录 → 在手机端绑定手机号。
- * 会员是现造的，结束时注销，不占库存。运行期间临时把“每日签到”设为送 5 积分，结束时恢复原值。
+ * 签到 → 设置密码 → 修改密码 → 绑定邮箱 → 换一个浏览器用邮箱和密码登录 → 在手机端绑定手机号
+ * → 导出自己的数据 → 本地存储告知条（两端）→ 在页面上注销账号。
+ * 会员是现造的，最后在页面上注销（中途失败时由后端脚本清掉），不占库存。
+ * 运行期间临时把“每日签到”设为送 5 积分、临时打开“本地存储告知条”，结束时都恢复原值。
  */
 module.exports = async function securityFlow(browser) {
   const flow = new Flow('security');
@@ -22,6 +25,8 @@ module.exports = async function securityFlow(browser) {
   const phone = '139' + stamp;
   const pwd1 = 'First#' + stamp;
   const pwd2 = 'Second#' + stamp;
+  // “本地存储告知条”运行前的开关值；没动过是 null
+  let notice = null;
 
   try {
     await flow.step('PC：会员中心菜单进入“账号与安全”，密码、邮箱、手机号都是空的', pc, async () => {
@@ -138,8 +143,69 @@ module.exports = async function securityFlow(browser) {
       await pc.reload();
       await row('phone').getByText(phone).waitFor();
     });
+    await flow.step('PC：导出我的数据，下载到的文件里有这个会员的资料和签到的积分记录', pc, async () => {
+      const [download] = await Promise.all([pc.waitForEvent('download'), row('export').getByRole('button', { name: '导出' }).click()]);
+      if (!/^my-data-\d{4}-\d{2}-\d{2}\.json$/.test(download.suggestedFilename())) throw new Error('文件名不对：' + download.suggestedFilename());
+      const data = JSON.parse(fs.readFileSync(await download.path(), 'utf8'));
+      if (data.profile.account !== made.account) throw new Error('导出的不是这个会员：' + data.profile.account);
+      if (!data.points_log.some((p) => p.type === 2 && p.change_points === 5)) throw new Error('导出的积分记录里没有签到');
+      if (JSON.stringify(data).includes('password')) throw new Error('导出的数据里不应该有密码');
+    });
+    await flow.step('两端：后台打开告知条后，新访客在底部看到说明，点“知道了”后刷新不再出现', pc, async () => {
+      notice = backend('security', { E2E_STEP: 'notice', E2E_VALUE: '1' }).original;
+      const guest = flow.watch(await (await browser.newContext(desktop)).newPage(), 'PC 访客');
+      const mctx = await browser.newContext(mobile);
+      const m = flow.watch(await mctx.newPage(), '手机端访客');
+      try {
+        await guest.goto(config.pc + '/#/');
+        await guest.locator('.notice', { hasText: '本站只使用必要的本地存储' }).waitFor();
+        await guest.locator('.notice').getByRole('link', { name: '隐私政策' }).waitFor();
+        await guest.locator('.notice').getByRole('button', { name: '知道了' }).click();
+        await guest.locator('.notice').waitFor({ state: 'detached' });
+        await guest.reload();
+        await guest.locator('.site-footer, footer').first().waitFor();
+        if (await guest.locator('.notice').count()) throw new Error('PC：点过“知道了”之后不应该再出现');
+
+        await m.goto(config.uni + '/#/');
+        await m.locator('#gm-storage-notice', { hasText: '本站只使用必要的本地存储' }).waitFor();
+        await m.locator('#gm-storage-notice').getByText('知道了').click();
+        await m.locator('#gm-storage-notice').waitFor({ state: 'detached' });
+        await m.reload();
+        await m.locator('uni-tabbar').waitFor();
+        await m.waitForTimeout(1500);
+        if (await m.locator('#gm-storage-notice').count()) throw new Error('手机端：点过“知道了”之后不应该再出现');
+      } finally {
+        await guest.context().close();
+        await mctx.close();
+      }
+    });
+    await flow.step('PC：注销账号，密码不对被拒绝，确认后退出登录，原来的密码登不上了', pc, async () => {
+      await pc.goto(config.pc + '/#/security');
+      await row('cancel').getByRole('button', { name: '注销', exact: true }).click();
+      await row('cancel').getByText('注销立即生效，不能恢复').waitFor();
+      await row('cancel').getByText('5 积分').waitFor();
+      await row('cancel').getByRole('button', { name: '确认注销' }).click();
+      await el.message(pc, '输入登录密码确认');
+      await row('cancel').getByPlaceholder('输入登录密码确认').fill('wrong-' + stamp);
+      await row('cancel').getByRole('button', { name: '确认注销' }).click();
+      await pc.locator('.el-message-box').getByRole('button', { name: '确认注销' }).click();
+      await el.message(pc, '密码不正确');
+      await row('cancel').getByPlaceholder('输入登录密码确认').fill(pwd2);
+      await row('cancel').getByRole('button', { name: '确认注销' }).click();
+      await pc.locator('.el-message-box').getByRole('button', { name: '确认注销' }).click();
+      await el.message(pc, '账号已注销');
+      await pc.waitForURL(/#\/$/);
+      const left = backend('security', { E2E_STEP: 'left', E2E_MEMBER: String(made.member_id) });
+      if (!left.deleted || left.account !== 'deleted_' + made.member_id || left.email !== '' || left.tokens !== 0) throw new Error('注销后的会员记录不对：' + JSON.stringify(left));
+      if (made.email_code) return;
+      await pc.goto(config.pc + '/#/login');
+      await pc.getByPlaceholder('邮箱或手机号').fill(email);
+      await pc.getByPlaceholder('密码').fill(pwd2);
+      await pc.locator('.submit').click();
+      await el.message(pc, '账号或密码错误');
+    });
   } finally {
-    backend('security', { E2E_STEP: 'drop', E2E_MEMBER: String(made.member_id), E2E_SIGNIN: String(made.signin_original) });
+    backend('security', { E2E_STEP: 'drop', E2E_MEMBER: String(made.member_id), E2E_SIGNIN: String(made.signin_original), ...(notice === null ? {} : { E2E_NOTICE: String(notice) }) });
     await ctx.close();
   }
 

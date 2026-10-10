@@ -1,13 +1,15 @@
 <script setup>
 import { reactive, ref, onMounted, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ElMessage } from 'element-plus'
-import { state } from '@/store'
-import { getProfile, changePassword, bindContact, sendSmsCode, sendEmailCode } from '@/api'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { state, logout } from '@/store'
+import { getProfile, changePassword, bindContact, sendSmsCode, sendEmailCode, cancelCheck, cancelAccount, exportMyData } from '@/api'
 
 const { t } = useI18n()
+const router = useRouter()
 const member = ref(null)
-// 当前展开的表单：'' | 'pwd' | 'email' | 'phone'
+// 当前展开的表单：'' | 'pwd' | 'email' | 'phone' | 'cancel'
 const open = ref('')
 const saving = ref(false)
 const pwd = reactive({ old: '', next: '', again: '' })
@@ -72,6 +74,51 @@ async function saveBind(type) {
   }
 }
 
+// 导出我的数据：接口给的是一个对象，存成 JSON 文件
+const exporting = ref(false)
+async function exportData() {
+  if (exporting.value) return
+  exporting.value = true
+  try {
+    const data = await exportMyData()
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `my-data-${new Date().toISOString().slice(0, 10)}.json`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    ElMessage.success(t('privacy.exported'))
+  } finally {
+    exporting.value = false
+  }
+}
+
+// 注销账号：展开时先问后端现在能不能注销
+const check = ref(null)
+const cancelPwd = ref('')
+async function openCancel() {
+  toggle('cancel')
+  cancelPwd.value = ''
+  check.value = null
+  if (open.value === 'cancel') check.value = await cancelCheck()
+}
+async function doCancel() {
+  if (saving.value) return
+  if (check.value.has_password && !cancelPwd.value) return ElMessage.warning(t('privacy.cancelPwd'))
+  await ElMessageBox.confirm(t('privacy.cancelAsk'), t('privacy.cancelTitle'), { type: 'warning', confirmButtonText: t('privacy.cancelConfirm'), cancelButtonText: t('common.cancel') })
+  saving.value = true
+  try {
+    await cancelAccount(check.value.has_password ? { password: cancelPwd.value } : {})
+    logout()
+    ElMessage.success(t('privacy.cancelDone'))
+    router.replace('/')
+  } finally {
+    saving.value = false
+  }
+}
+
 onMounted(async () => {
   fill(await getProfile())
 })
@@ -120,6 +167,36 @@ onMounted(async () => {
         </div>
       </div>
     </div>
+
+    <div class="row" data-row="export">
+      <div class="head">
+        <span class="name">{{ t('privacy.exportTitle') }}</span>
+        <span class="val sub">{{ t('privacy.exportTip') }}</span>
+        <el-button link type="primary" :loading="exporting" @click="exportData">{{ t('privacy.exportBtn') }}</el-button>
+      </div>
+    </div>
+
+    <div class="row" data-row="cancel">
+      <div class="head">
+        <span class="name">{{ t('privacy.cancelTitle') }}</span>
+        <span class="val sub">{{ t('privacy.cancelTip') }}</span>
+        <el-button link type="danger" @click="openCancel">{{ t('privacy.cancelBtn') }}</el-button>
+      </div>
+      <div v-if="open === 'cancel' && check" class="form wide">
+        <template v-if="check.can_cancel">
+          <div class="warn">{{ t('privacy.cancelWarn', { points: check.points, coupons: check.coupons }) }}</div>
+          <el-input v-if="check.has_password" v-model="cancelPwd" type="password" show-password :placeholder="t('privacy.cancelPwd')" style="max-width: 360px" />
+          <div>
+            <el-button type="danger" :loading="saving" @click="doCancel">{{ t('privacy.cancelConfirm') }}</el-button>
+            <el-button @click="toggle('cancel')">{{ t('common.cancel') }}</el-button>
+          </div>
+        </template>
+        <template v-else>
+          <div class="warn">{{ t('privacy.cancelBlocked') }}</div>
+          <ul class="blockers"><li v-for="b in check.blockers" :key="b">{{ b }}</li></ul>
+        </template>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -132,4 +209,7 @@ onMounted(async () => {
 .val { flex: 1; }
 .form { display: flex; flex-direction: column; gap: 12px; max-width: 360px; margin: 16px 0 0 120px; }
 .code-row { display: flex; gap: 10px; }
+.form.wide { max-width: 640px; }
+.warn { line-height: 1.7; color: var(--text); }
+.blockers { margin: 0; padding-left: 20px; line-height: 1.8; color: var(--el-color-danger); }
 </style>

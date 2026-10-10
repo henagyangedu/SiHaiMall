@@ -11,7 +11,10 @@ use Illuminate\Support\Str;
  * “账号与安全”点击测试的后端辅助步骤。环境变量 E2E_STEP：
  * - make：造一个像微信一键登录注册出来的会员（随机账号，没有密码、邮箱、手机号）并发一个登录令牌；
  *   同时临时把“每日签到”设为送 5 积分，返回原来的值
- * - drop：测试结束后注销这个会员（E2E_MEMBER 是它的 ID，只处理 wx_e2e 开头的账号），并把签到设置恢复成 E2E_SIGNIN
+ * - notice：把“本地存储告知条”的开关设为 E2E_VALUE，返回原来的值
+ * - left：会员在页面上注销之后，报告他的记录还剩什么
+ * - drop：测试结束后删掉这个会员（E2E_MEMBER 是它的 ID；流程走完时他已经在页面上注销了，中途失败时还是 wx_e2e 开头的账号），
+ *   并把签到设置恢复成 E2E_SIGNIN、告知条开关恢复成 E2E_NOTICE
  */
 $out = function (array $data): void {
     echo 'RESULT ', json_encode($data, JSON_UNESCAPED_UNICODE), PHP_EOL;
@@ -46,6 +49,25 @@ if ($step === 'make') {
     return;
 }
 
+if ($step === 'notice') {
+    $config = app(ConfigService::class);
+    $original = (int) $config->get('base')['storage_notice_enabled'];
+    $config->save('base', ['storage_notice_enabled' => (int) getenv('E2E_VALUE')]);
+    $out(['original' => $original]);
+
+    return;
+}
+
+if ($step === 'left') {
+    $m = Member::withTrashed()->find((int) getenv('E2E_MEMBER'));
+    $out([
+        'deleted' => $m !== null && $m->deleted_at !== null, 'account' => (string) $m?->account, 'email' => (string) $m?->email,
+        'tokens' => MemberToken::query()->where('member_id', (int) getenv('E2E_MEMBER'))->count(),
+    ]);
+
+    return;
+}
+
 if ($step === 'drop') {
     $member = Member::query()->where('id', (int) getenv('E2E_MEMBER'))->where('account', 'like', 'wx\_e2e%')->first();
     if ($member) {
@@ -56,6 +78,9 @@ if ($step === 'drop') {
     if (getenv('E2E_SIGNIN') !== false && ctype_digit((string) getenv('E2E_SIGNIN'))) {
         app(ConfigService::class)->save('trade', ['points_signin' => (int) getenv('E2E_SIGNIN')]);
         $restored = (int) getenv('E2E_SIGNIN');
+    }
+    if (getenv('E2E_NOTICE') !== false && ctype_digit((string) getenv('E2E_NOTICE'))) {
+        app(ConfigService::class)->save('base', ['storage_notice_enabled' => (int) getenv('E2E_NOTICE')]);
     }
     $out(['dropped' => $member !== null, 'signin_restored' => $restored]);
 

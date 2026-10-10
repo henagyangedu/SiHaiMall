@@ -12,7 +12,7 @@ const saving = ref(false)
 const form = reactive({
   site_name: {}, site_logo: '', site_favicon: '', site_desc: {}, site_keywords: {},
   company_name: '', service_email: '', service_phone: '', service_url: '', service_hours: {}, search_hot_words: {}, copyright: {}, site_icp: '',
-  site_closed: 0, close_notice: {}, email_verify_enabled: 0,
+  site_closed: 0, close_notice: {}, email_verify_enabled: 0, storage_notice_enabled: 0,
 })
 
 async function load() {
@@ -86,6 +86,13 @@ onMounted(load)
           <el-switch v-model="form.email_verify_enabled" :active-value="1" :inactive-value="0" />
           <span style="margin-left: 12px; color: #909399">开启后邮箱注册必须填写邮箱验证码，并开放邮箱找回密码。需先在服务器 .env 里配好发信邮箱（MAIL_*）</span>
         </el-form-item>
+
+        <el-divider content-position="left">隐私</el-divider>
+        <el-form-item label="本地存储告知条">
+          <el-switch v-model="form.storage_notice_enabled" :active-value="1" :inactive-value="0" />
+          <span style="margin-left: 12px; color: #909399">开启后，买家第一次打开网页版（PC 端、手机网页）时底部显示一条说明：本站只用必要的本地存储、不做跟踪。面向欧洲等地区的买家时建议开启</span>
+        </el-form-item>
+        <el-alert type="info" :closable="false" show-icon style="margin: 0 0 18px 0" title="在“协议管理”里填了用户协议或隐私政策后，买家注册时必须勾选同意，同意的时间会记在会员资料里。" />
 
         <el-form-item>
           <el-button v-perm="'setting:base:edit'" type="primary" :loading="saving" @click="submit">保存设置</el-button>

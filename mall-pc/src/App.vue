@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { state } from '@/store'
 import SiteHeader from '@/layout/SiteHeader.vue'
 import SiteFooter from '@/layout/SiteFooter.vue'
+import StorageNotice from '@/components/StorageNotice.vue'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -28,6 +29,7 @@ watch(() => state.config.site?.site_favicon, (icon) => {
     <router-view :key="`${route.fullPath}|${state.lang}|${state.currency}`" />
   </main>
   <SiteFooter />
+  <StorageNotice />
 </template>
 
 <style scoped>

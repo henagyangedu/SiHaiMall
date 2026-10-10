@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\PointController;
 use App\Http\Controllers\Api\ProtocolController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\RefundController;
+use App\Http\Controllers\Api\PrivacyController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\UploadController;
 use App\Support\ApiResponse;
@@ -90,6 +91,10 @@ Route::middleware('api.token')->group(function () {
     Route::put('member/password', [AuthController::class, 'password'])->middleware('throttle:10,1');
     // 绑定邮箱或手机号（验证码用 auth/email-code、auth/sms-code 以 register 用途获取）
     Route::post('member/bind', [AuthController::class, 'bind'])->middleware('throttle:10,1');
+    // 隐私：注销账号（先查能不能注销）、导出自己的数据
+    Route::get('member/cancel-check', [PrivacyController::class, 'cancelCheck']);
+    Route::post('member/cancel', [PrivacyController::class, 'cancel'])->middleware('throttle:5,1');
+    Route::get('member/export', [PrivacyController::class, 'export'])->middleware('throttle:3,60');
 
     // 买家上传图片（售后凭证、头像），另有每人每天的张数上限
     Route::post('upload/image', [UploadController::class, 'image'])->middleware('throttle:30,1');

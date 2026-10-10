@@ -22,6 +22,14 @@ final class ApiMessageTranslator
         '系统繁忙，请重试' => 'The system is busy. Please try again.',
         '操作过于频繁，请稍后再试' => 'Too many attempts. Please try again later.',
         '支付完成跳转地址不在允许范围内' => 'The return address for this payment is not allowed. Please contact support.',
+        // 隐私：同意协议、注销账号
+        '请先阅读并同意用户协议和隐私政策' => 'Please read and accept the Terms of Service and Privacy Policy first',
+        '账户里还有余额，请先联系客服处理' => 'Your account still has a balance. Please contact support first.',
+        '还有没结清的佣金（待结算、可提现或提现中）' => 'You still have unsettled commission (pending, available or being withdrawn)',
+        '请输入登录密码' => 'Please enter your password',
+        '密码不正确' => 'Incorrect password',
+        '账号不存在' => 'Account not found',
+        '账号已注销' => 'Your account has been deleted',
         // 支付宝
         '支付宝只支持人民币订单' => 'Alipay is only available for orders in CNY',
         '支付宝暂不支持当前终端' => 'Alipay is not available on this device',
@@ -253,6 +261,7 @@ final class ApiMessageTranslator
 
         return [
             '/^登录失败次数过多，请 (\d+) 分钟后再试$/u' => fn ($m) => "Too many failed sign-in attempts. Please try again in {$m[1]} minutes.",
+            '/^还有 (\d+) 张订单没有完成（待支付、待发货、待收货或售后中）$/u' => fn ($m) => "You still have {$m[1]} open order(s) (unpaid, to ship, to receive or in after-sales)",
             '/^到货提醒最多 (\d+) 个，请先取消一些$/u' => fn ($m) => "You can have up to {$m[1]} back-in-stock alerts. Please remove some first.",
             '/^最多保存 (\d+) 个收货地址$/u' => fn ($m) => "You can save up to {$m[1]} addresses",
             '/^单个商品最多加入 (\d+) 件$/u' => fn ($m) => "You can add at most {$m[1]} of each item",

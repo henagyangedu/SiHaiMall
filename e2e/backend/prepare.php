@@ -92,5 +92,7 @@ $out([
     'single' => ['goods_id' => (int) $single->goods_id, 'sku_id' => (int) $single->sku_id, 'title' => $title((int) $single->goods_id), 'title_default' => $titleDefault ?: $title((int) $single->goods_id)],
     'multi_goods_id' => $multiId,
     'paid_order_no' => $paid->order_no, 'shipped_order_no' => $shipped->order_no,
+    // 已发货订单可能是以前留下的、买的是别的商品，所以单独给出它里面的商品名（订单上的快照）
+    'shipped_item_title' => (string) DB::table('order_item')->where('order_id', $shipped->id)->value('title'),
     'admin_token' => $token,
 ]);

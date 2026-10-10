@@ -48,7 +48,7 @@ module.exports = async function adminFlow(browser, data) {
     await frame.waitFor({ state: 'attached' });
     const html = await frame.getAttribute('srcdoc');
     if (!html.includes(data.shipped_order_no)) throw new Error('小票里没有订单号');
-    if (!html.includes(data.single.title_default)) throw new Error('小票里没有商品名');
+    if (!html.includes(data.shipped_item_title)) throw new Error('小票里没有商品名');
     await page.keyboard.press('Escape');
   });
   await step('小票配置：页面有预览，改抬头后预览跟着变（不保存）', async () => {
@@ -140,9 +140,65 @@ module.exports = async function adminFlow(browser, data) {
     await d.getByRole('button', { name: '取消' }).click();
   });
 
+  // 测试建的券名字都以“点击测试券”开头，结束时由 cleanup.php 连同发出去的券一起删掉
+  const couponName = '点击测试券 ' + Date.now().toString().slice(-6);
+  await step('营销 → 优惠券：新建一张满 300 减 30 的券，不填名称会被拦住', async () => {
+    await go('/dashboard');
+    await page.locator('.el-sub-menu__title', { hasText: '营销' }).click();
+    await page.locator('.el-menu-item', { hasText: '优惠券' }).click();
+    await page.waitForURL(/\/marketing\/coupon$/);
+    await page.getByRole('button', { name: '新建优惠券' }).click();
+    const d = el.dialog(page);
+    const num = (label) => d.locator('.el-form-item', { hasText: label }).locator('.el-input-number input').first();
+    await num('使用门槛').fill('300');
+    await num('满减金额').fill('30');
+    await d.locator('.el-radio', { hasText: '领取后若干天' }).click();
+    await d.getByRole('button', { name: '保存' }).click();
+    await el.message(page, '请填写券名称');
+    await d.getByPlaceholder(/买家能看到/).fill(couponName);
+    await d.getByRole('button', { name: '保存' }).click();
+    await el.message(page, '保存成功');
+    const row = el.row(page, couponName);
+    await row.getByText('满 300 减 30').waitFor();
+    await row.getByText('领取后 7 天内').waitFor();
+  });
+  await step('优惠券：发放给测试会员，找不到的会员会被拦住，记录里能看到', async () => {
+    await el.row(page, couponName).getByRole('button', { name: '发放' }).click();
+    let d = el.dialog(page);
+    await d.locator('textarea').fill('nobody-e2e@example.com');
+    await d.getByRole('button', { name: '发放' }).click();
+    await el.message(page, '找不到这些会员');
+    await d.locator('textarea').fill(config.account);
+    await d.getByRole('button', { name: '发放' }).click();
+    await el.message(page, '已发放给 1 位会员');
+    await el.row(page, couponName).getByText('不限 / 1 / 0').waitFor();
+    await el.row(page, couponName).getByRole('button', { name: '记录' }).click();
+    const drawer = el.drawer(page);
+    const rec = drawer.locator('.el-table__row', { hasText: data.nickname }).first();
+    await rec.getByText('后台发放').waitFor();
+    await rec.getByText('未使用').waitFor();
+    await page.keyboard.press('Escape');
+  });
+  await step('优惠券：有人领过之后不能删除、面额被锁定，可以停用', async () => {
+    const row = () => el.row(page, couponName);
+    if (!(await row().getByRole('button', { name: '删除' }).isDisabled())) throw new Error('有人领过的券不应该能删除');
+    await row().getByRole('button', { name: '编辑' }).click();
+    const d = el.dialog(page);
+    await d.getByText('面额、门槛、适用范围和有效期不能再改').waitFor();
+    if (!(await d.locator('.el-form-item', { hasText: '满减金额' }).locator('.el-input-number input').isDisabled())) throw new Error('满减金额应该被锁定');
+    await d.getByRole('button', { name: '取消' }).click();
+    await row().getByRole('button', { name: '停用' }).click();
+    await el.boxOk(page);
+    await el.message(page, '已停用');
+    await row().locator('.el-tag', { hasText: '停用' }).waitFor();
+    if (!(await row().getByRole('button', { name: '发放' }).isDisabled())) throw new Error('停用的券不应该还能发放');
+  });
+
   await step('商品编辑：单独设置佣金比例并保存，重新打开仍在，再改回原样', async () => {
     await go('/goods/list');
-    // 后台按默认语言显示商品名，和测试会员当前用什么语言无关
+    // 后台按默认语言显示商品名，和测试会员当前用什么语言无关。商品多了不一定在第一页，先按名称搜
+    await page.getByPlaceholder('标题 / 商品编码 / 规格编码').fill(data.single.title_default);
+    await page.getByPlaceholder('标题 / 商品编码 / 规格编码').press('Enter');
     const r = () => el.row(page, data.single.title_default);
     await r().getByRole('button', { name: '编辑' }).click();
     let d = el.drawer(page);

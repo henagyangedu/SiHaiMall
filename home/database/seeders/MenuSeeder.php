@@ -17,7 +17,7 @@ class MenuSeeder extends Seeder
         'remark' => '备注', 'price' => '改价', 'cancel' => '取消订单', 'do' => '发货', 'print' => '打印',
         'audit' => '审核', 'confirm' => '确认收货', 'pay' => '执行退款', 'retry' => '重新处理',
         'status' => '禁用/启用', 'balance' => '调整余额', 'points' => '调整积分', 'sale' => '上下架',
-        'stock' => '修改库存', 'rate' => '更新汇率', 'test' => '测试', 'reset' => '重置密码', 'paid' => '登记打款', 'apply' => '发起售后', 'reply' => '回复',
+        'stock' => '修改库存', 'rate' => '更新汇率', 'test' => '测试', 'reset' => '重置密码', 'paid' => '登记打款', 'apply' => '发起售后', 'reply' => '回复', 'grant' => '发放',
     ];
 
     /**
@@ -95,6 +95,9 @@ class MenuSeeder extends Seeder
                 ['t' => '会员列表', 'path' => '/member/list', 'perm' => 'member:list', 'acts' => ['detail', 'edit', 'status', 'balance', 'points', 'export']],
                 ['t' => '会员等级', 'path' => '/member/level', 'perm' => 'member:level', 'acts' => ['add', 'edit', 'del']],
                 ['t' => '积分记录', 'path' => '/member/points', 'perm' => 'member:points'],
+            ]],
+            ['t' => '营销', 'path' => '/marketing', 'icon' => 'Present', 'children' => [
+                ['t' => '优惠券', 'path' => '/marketing/coupon', 'perm' => 'marketing:coupon', 'acts' => ['add', 'edit', 'del', 'grant']],
             ]],
             ['t' => '分销', 'path' => '/distribution', 'icon' => 'Share', 'children' => [
                 ['t' => '分销员', 'path' => '/distribution/distributor', 'perm' => 'distribution:distributor', 'acts' => ['audit', 'status', 'edit']],

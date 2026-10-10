@@ -2,9 +2,10 @@
 
 use App\Models\AdminToken;
 use App\Models\DriverConfig;
+use Illuminate\Support\Facades\DB;
 
 /**
- * 浏览器点击测试的清理步骤：删掉临时管理员令牌，以及测试时保存的假物流配置、假小程序配置。
+ * 浏览器点击测试的清理步骤：删掉临时管理员令牌，以及测试时保存的假物流配置、假小程序配置、测试建的优惠券。
  * 测试产生的订单、售后单、下级账号不清理（它们是正常的业务数据，留在开发库里无害）。
  */
 if (app()->isProduction()) {
@@ -22,10 +23,18 @@ if ($row && !$row->is_enabled && (($row->config ?? [])['customer'] ?? '') === 'E
     $express = (int) $row->delete();
 }
 
+// 测试建的优惠券（名字以“点击测试券”开头）和它发出去的券
+$couponIds = DB::table('coupon')->where('name', 'like', '点击测试券%')->pluck('id');
+$coupons = 0;
+if ($couponIds->isNotEmpty()) {
+    DB::table('member_coupon')->whereIn('coupon_id', $couponIds)->where('status', 0)->delete();
+    $coupons = DB::table('coupon')->whereIn('id', $couponIds)->delete();
+}
+
 $mini = 0;
 $row = DriverConfig::query()->where('type', 'app')->where('driver', 'wechat_mini')->first();
 if ($row && !$row->is_enabled && (($row->config ?? [])['app_id'] ?? '') === 'wxe2e0000000000000') {
     $mini = (int) $row->delete();
 }
 
-echo 'RESULT ', json_encode(['tokens_deleted' => $tokens, 'express_config_deleted' => $express, 'mini_config_deleted' => $mini]), PHP_EOL;
+echo 'RESULT ', json_encode(['tokens_deleted' => $tokens, 'express_config_deleted' => $express, 'mini_config_deleted' => $mini, 'coupons_deleted' => $coupons]), PHP_EOL;

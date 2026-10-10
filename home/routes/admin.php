@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\LanguageController;
 use App\Http\Controllers\Admin\LogController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\MemberLevelController;
+use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\GoodsReviewController;
 use App\Http\Controllers\Admin\MemberPointController;
 use App\Http\Controllers\Admin\MenuController;
@@ -167,9 +168,20 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::post('upload/image', [UploadController::class, 'image'])->middleware('throttle:60,1');
 
     // 商品：分类、品牌、商品、库存流水
+    // ---- 营销：优惠券
+    Route::prefix('marketing/coupon')->group(function () {
+        Route::get('list', [CouponController::class, 'index'])->middleware('perm:marketing:coupon:view');
+        Route::post('/', [CouponController::class, 'store'])->middleware('perm:marketing:coupon:add');
+        Route::put('{id}', [CouponController::class, 'update'])->where('id', '[0-9]+')->middleware('perm:marketing:coupon:edit');
+        Route::post('{id}/status', [CouponController::class, 'status'])->where('id', '[0-9]+')->middleware('perm:marketing:coupon:edit');
+        Route::delete('{id}', [CouponController::class, 'destroy'])->where('id', '[0-9]+')->middleware('perm:marketing:coupon:del');
+        Route::post('{id}/grant', [CouponController::class, 'grant'])->where('id', '[0-9]+')->middleware('perm:marketing:coupon:grant');
+        Route::get('{id}/records', [CouponController::class, 'records'])->where('id', '[0-9]+')->middleware('perm:marketing:coupon:view');
+    });
+
     Route::prefix('goods')->group(function () {
         Route::prefix('category')->group(function () {
-            Route::get('tree', [CategoryController::class, 'tree'])->middleware('perm:goods:category:view,goods:list:view');
+            Route::get('tree', [CategoryController::class, 'tree'])->middleware('perm:goods:category:view,goods:list:view,marketing:coupon:view');
             Route::post('/', [CategoryController::class, 'store'])->middleware('perm:goods:category:add');
             Route::put('{id}', [CategoryController::class, 'update'])->middleware('perm:goods:category:edit');
             Route::post('{id}/status', [CategoryController::class, 'status'])->middleware('perm:goods:category:edit');
@@ -192,7 +204,8 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::post('review/{id}/reply', [GoodsReviewController::class, 'reply'])->where('id', '[0-9]+')->middleware('perm:goods:review:reply');
 
         // 商品本身（放在分类、品牌之后；{id} 只匹配数字，不会和上面的路径冲突）
-        Route::get('list', [GoodsController::class, 'index'])->middleware('perm:goods:list:view');
+        // 优惠券页面选“指定商品”时也要搜商品
+        Route::get('list', [GoodsController::class, 'index'])->middleware('perm:goods:list:view,marketing:coupon:view');
         Route::get('{id}', [GoodsController::class, 'show'])->middleware('perm:goods:list:view');
         Route::post('/', [GoodsController::class, 'store'])->middleware('perm:goods:list:add');
         Route::put('{id}', [GoodsController::class, 'update'])->middleware('perm:goods:list:edit');

@@ -49,6 +49,15 @@ final class MessageScenes
                 'en' => "Hi {nickname},\n\nWe are sorry, your refund request {refund_no} for order {order_no} was declined.\nReason: {reject_reason}\n\nPlease contact us if you have any questions.",
             ],
         ],
+        'goods_restock' => [
+            'label' => '到货提醒',
+            'vars' => ['goods_title' => '商品名称', 'spec' => '规格'],
+            'title' => ['zh' => '【{site_name}】您关注的商品到货了', 'en' => '[{site_name}] An item you were waiting for is back in stock'],
+            'content' => [
+                'zh' => "{nickname}，您好：\n\n您订阅了到货提醒的商品已经到货：\n{goods_title}（规格：{spec}）\n\n数量有限，请尽快登录商城购买。本次提醒只发送一次。",
+                'en' => "Hi {nickname},\n\nAn item you asked us to watch is back in stock:\n{goods_title} (option: {spec})\n\nStock is limited, so sign in soon to order. This reminder is only sent once.",
+            ],
+        ],
         'withdraw_paid' => [
             'label' => '分销提现已打款',
             'vars' => ['withdraw_no' => '提现单号', 'amount' => '提现金额'],

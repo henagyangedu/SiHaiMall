@@ -71,6 +71,8 @@ class GoodsService
             ->where('warn_stock', '>', 0)
             ->whereColumn('stock', '<=', 'warn_stock')
             ->pluck('goods_id')->unique()->flip()->all();
+        // 订阅了到货提醒、还在等的人数
+        $waiting = app(\App\Services\Common\StockSubscribeService::class)->waitingCounts($items->pluck('id')->all());
 
         $paginator->through(fn (Goods $g) => [
             'id'            => (int) $g->id,
@@ -82,6 +84,7 @@ class GoodsService
             'price'         => (string) $g->price,
             'stock'         => (int) $g->stock,
             'low_stock'     => isset($lowIds[$g->id]),
+            'restock_waiting' => $waiting[$g->id] ?? 0,
             'sales'         => (int) $g->sales,
             'spec_type'     => (int) $g->spec_type,
             'is_on_sale'    => (int) $g->is_on_sale,

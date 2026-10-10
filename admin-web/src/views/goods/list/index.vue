@@ -141,8 +141,12 @@ onMounted(async () => {
         <el-table-column :label="`售价（${baseCurrency?.code || ''}）`" width="130">
           <template #default="{ row }">{{ row.price }}<span v-if="row.spec_type === 2" style="color: #909399"> 起</span></template>
         </el-table-column>
-        <el-table-column label="库存" width="90">
-          <template #default="{ row }"><span :style="{ color: row.low_stock ? '#f56c6c' : '', fontWeight: row.low_stock ? 600 : 400 }">{{ row.stock }}</span></template>
+        <el-table-column label="库存" width="110">
+          <template #default="{ row }">
+            <span :style="{ color: row.low_stock ? '#f56c6c' : '', fontWeight: row.low_stock ? 600 : 400 }">{{ row.stock }}</span>
+            <!-- 有买家订阅了到货提醒、还在等补货 -->
+            <div v-if="row.restock_waiting" class="waiting">{{ row.restock_waiting }} 人等到货</div>
+          </template>
         </el-table-column>
         <el-table-column prop="sales" label="销量" width="80" />
         <el-table-column label="规格" width="80"><template #default="{ row }">{{ row.spec_type === 1 ? '单规格' : '多规格' }}</template></el-table-column>
@@ -173,6 +177,7 @@ onMounted(async () => {
 
 <style scoped>
 .goods-cell { display: flex; align-items: center; gap: 10px; }
+.waiting { color: #e6a23c; font-size: 12px; line-height: 1.4; }
 .thumb { width: 52px; height: 52px; border-radius: 4px; flex: none; }
 .thumb.empty { background: #f5f7fa; color: #c0c4cc; font-size: 12px; display: flex; align-items: center; justify-content: center; }
 .title { font-weight: 500; line-height: 1.4; }

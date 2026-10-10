@@ -14,7 +14,8 @@
     "wxpay": "node run.js wxpay",
     "reviews": "node run.js reviews",
     "coupons": "node run.js coupons",
-    "search": "node run.js search"
+    "search": "node run.js search",
+    "restock": "node run.js restock"
   },
   "devDependencies": {
     "playwright-core": "^1.48.0"

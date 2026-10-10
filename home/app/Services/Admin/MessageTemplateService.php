@@ -101,6 +101,7 @@ class MessageTemplateService
             'nickname' => '测试会员', 'order_no' => 'GM261009120000123456', 'pay_amount' => '199.00', 'currency' => $this->locale->baseCurrency(),
             'express_name' => 'DHL', 'express_no' => 'DH1234567890', 'refund_no' => 'RF261009120000654321', 'refund_amount' => '99.00',
             'reject_reason' => '商品已超过售后期限', 'withdraw_no' => 'WD261009120000112233', 'amount' => '500.00',
+            'goods_title' => '智能喂食器 5 升', 'spec' => '白色',
         ];
 
         return array_intersect_key($samples, MessageScenes::COMMON_VARS + MessageScenes::ALL[$scene]['vars']);

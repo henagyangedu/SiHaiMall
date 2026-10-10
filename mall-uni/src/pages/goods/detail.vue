@@ -3,7 +3,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 import { state } from '@/store'
-import { getGoods, addCart, getGoodsReviews, addFavorite, removeFavorite, getCoupons } from '@/api'
+import { getGoods, addCart, getGoodsReviews, addFavorite, removeFavorite, getCoupons, addStockSubscribe, removeStockSubscribe } from '@/api'
 import { couponText } from '@/utils/app'
 import { needLogin } from '@/utils/request'
 import { refreshCartCount } from '@/utils/app'
@@ -71,6 +71,24 @@ function toggleFav() {
       await (g.favorited ? addFavorite(g.id) : removeFavorite(g.id))
     } catch (e) {
       g.favorited = !g.favorited
+    }
+  })
+}
+
+// 选中的规格缺货时，“加入购物车 / 立即购买”换成“到货提醒我”
+const soldOut = computed(() => !!sku.value && sku.value.stock <= 0)
+const subscribed = computed(() => !!sku.value && (goods.value.restock_sku_ids || []).includes(sku.value.id))
+function toggleRestock() {
+  needLogin(async () => {
+    const g = goods.value
+    const id = sku.value.id
+    if (subscribed.value) {
+      await removeStockSubscribe(id)
+      g.restock_sku_ids = g.restock_sku_ids.filter((x) => x !== id)
+    } else {
+      await addStockSubscribe(id)
+      g.restock_sku_ids = [...(g.restock_sku_ids || []), id]
+      toast(t('restock.subscribedTip'))
     }
   })
 }
@@ -189,8 +207,12 @@ watch(() => [state.lang, state.currency], load)
       <view class="cart-link" @click="tab('/pages/cart/index')">
         <image src="/static/tab/cart.png" class="cart-icon" /><text v-if="state.cartCount" class="badge">{{ state.cartCount }}</text>
       </view>
-      <view class="btn plain flex" @click="onAddCart">{{ t('goods.addCart') }}</view>
-      <view class="btn flex" @click="onBuy">{{ t('goods.buyNow') }}</view>
+      <!-- 选中的规格缺货：可以订阅到货提醒 -->
+      <view v-if="soldOut" class="btn flex restock" :class="{ plain: subscribed }" @click="toggleRestock">{{ t(subscribed ? 'restock.cancel' : 'restock.notify') }}</view>
+      <template v-else>
+        <view class="btn plain flex" @click="onAddCart">{{ t('goods.addCart') }}</view>
+        <view class="btn flex" @click="onBuy">{{ t('goods.buyNow') }}</view>
+      </template>
     </view>
   </view>
   <view v-else-if="failed" class="empty">{{ t('goods.offShelf') }}</view>

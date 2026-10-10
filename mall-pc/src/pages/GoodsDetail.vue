@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { Star, StarFilled, Service } from '@element-plus/icons-vue'
 import { state } from '@/store'
-import { getGoods, addCart, addFavorite, removeFavorite, getCoupons } from '@/api'
+import { getGoods, addCart, addFavorite, removeFavorite, getCoupons, addStockSubscribe, removeStockSubscribe } from '@/api'
 import { couponText } from '@/utils/app'
 import { needLogin } from '@/utils/request'
 import { refreshCartCount } from '@/utils/app'
@@ -63,6 +63,24 @@ const maxQty = computed(() => Math.max(1, Math.min(sku.value ? sku.value.stock :
 watch(maxQty, (m) => { if (qty.value > m) qty.value = m })
 // 选中带图的规格时，大图切到这个规格的图
 watch(sku, (k) => { if (k?.image) current.value = k.image })
+
+// 选中的规格缺货时，“加入购物车 / 立即购买”换成“到货提醒我”
+const soldOut = computed(() => !!sku.value && sku.value.stock <= 0)
+const subscribed = computed(() => !!sku.value && (goods.value.restock_sku_ids || []).includes(sku.value.id))
+function toggleRestock() {
+  needLogin(async () => {
+    const g = goods.value
+    const id = sku.value.id
+    if (subscribed.value) {
+      await removeStockSubscribe(id)
+      g.restock_sku_ids = g.restock_sku_ids.filter((x) => x !== id)
+    } else {
+      await addStockSubscribe(id)
+      g.restock_sku_ids = [...(g.restock_sku_ids || []), id]
+      ElMessage.success(t('restock.subscribedTip'))
+    }
+  })
+}
 
 function pick(specId, valueId) {
   picked[specId] = picked[specId] === valueId ? 0 : valueId
@@ -136,7 +154,12 @@ onMounted(async () => {
           <div class="cp-list"><span v-for="c in coupons.slice(0, 3)" :key="c.coupon_id" class="cp-tag">{{ couponText(c) }}</span></div>
         </router-link>
 
-        <div class="actions">
+        <!-- 选中的规格缺货：可以订阅到货提醒 -->
+        <div v-if="soldOut" class="actions restock">
+          <el-button size="large" type="primary" :plain="subscribed" @click="toggleRestock">{{ t(subscribed ? 'restock.cancel' : 'restock.notify') }}</el-button>
+          <span class="sub">{{ t(subscribed ? 'restock.subscribedTip' : 'restock.soldOutTip') }}</span>
+        </div>
+        <div v-else class="actions">
           <el-button size="large" type="primary" plain @click="onAddCart">{{ t('goods.addCart') }}</el-button>
           <el-button size="large" type="primary" @click="onBuy">{{ t('goods.buyNow') }}</el-button>
         </div>
@@ -201,6 +224,7 @@ onMounted(async () => {
 .coupons { cursor: pointer; }
 .cp-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .cp-tag { padding: 2px 10px; border-radius: 4px; border: 1px solid var(--theme); color: var(--theme); font-size: 12px; }
+.actions.restock { display: flex; align-items: center; gap: 16px; }
 .rel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
 .rel-card { border: 1px solid var(--line); }
 .params { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 40px; }

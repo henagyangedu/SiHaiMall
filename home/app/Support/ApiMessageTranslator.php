@@ -122,6 +122,9 @@ final class ApiMessageTranslator
         // 商品、购物车
         '商品不存在或已下架' => 'This product is unavailable',
         '商品已下架或不存在' => 'This product is unavailable',
+        '该商品有货，可以直接购买' => 'This item is in stock. You can order it now.',
+        '到货后会通知你' => "We'll let you know when it's back in stock",
+        '已取消到货提醒' => 'Back-in-stock alert removed',
         '商品已下架，请移除' => 'This product is no longer available. Please remove it.',
         '购物车商品不存在' => 'This cart item no longer exists',
         '购物车已满，请先清理' => 'Your cart is full. Please remove some items first.',
@@ -226,6 +229,7 @@ final class ApiMessageTranslator
 
         return [
             '/^登录失败次数过多，请 (\d+) 分钟后再试$/u' => fn ($m) => "Too many failed sign-in attempts. Please try again in {$m[1]} minutes.",
+            '/^到货提醒最多 (\d+) 个，请先取消一些$/u' => fn ($m) => "You can have up to {$m[1]} back-in-stock alerts. Please remove some first.",
             '/^最多保存 (\d+) 个收货地址$/u' => fn ($m) => "You can save up to {$m[1]} addresses",
             '/^单个商品最多加入 (\d+) 件$/u' => fn ($m) => "You can add at most {$m[1]} of each item",
             '/^库存不足，当前库存 (\d+) 件$/u' => fn ($m) => "Not enough stock. Only {$m[1]} available.",

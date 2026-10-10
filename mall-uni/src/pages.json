@@ -27,6 +27,7 @@
     { "path": "pages/user/security", "style": { "navigationBarTitleText": "" } },
     { "path": "pages/coupon/index", "style": { "navigationBarTitleText": "" } },
     { "path": "pages/user/favorites", "style": { "navigationBarTitleText": "", "enablePullDownRefresh": true } },
+    { "path": "pages/user/restock", "style": { "navigationBarTitleText": "", "enablePullDownRefresh": true } },
     { "path": "pages/user/points", "style": { "navigationBarTitleText": "", "enablePullDownRefresh": true } }
   ],
   "globalStyle": {

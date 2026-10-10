@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\ContentController;
 use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\DistributionController;
 use App\Http\Controllers\Api\FavoriteController;
+use App\Http\Controllers\Api\StockSubscribeController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PayController;
 use App\Http\Controllers\Api\PointController;
@@ -72,6 +73,10 @@ Route::middleware('api.token')->group(function () {
     Route::get('favorites', [FavoriteController::class, 'index']);
     Route::post('favorites/{goodsId}', [FavoriteController::class, 'store'])->where('goodsId', '[0-9]+')->middleware('throttle:60,1');
     Route::delete('favorites/{goodsId}', [FavoriteController::class, 'destroy'])->where('goodsId', '[0-9]+')->middleware('throttle:60,1');
+    // 到货提醒：缺货的规格可以订阅，补货后通知一次
+    Route::get('stock-subscribes', [StockSubscribeController::class, 'index']);
+    Route::post('stock-subscribes/{skuId}', [StockSubscribeController::class, 'store'])->where('skuId', '[0-9]+')->middleware('throttle:60,1');
+    Route::delete('stock-subscribes/{skuId}', [StockSubscribeController::class, 'destroy'])->where('skuId', '[0-9]+')->middleware('throttle:60,1');
     Route::get('member/signin', [PointController::class, 'signInStatus']);
     Route::post('member/signin', [PointController::class, 'signIn'])->middleware('throttle:10,1');
     Route::put('member/password', [AuthController::class, 'password'])->middleware('throttle:10,1');

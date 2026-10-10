@@ -70,6 +70,7 @@ onShow(async () => {
       <view class="cell" @click="needLogin(() => nav('/pages/refund/list'))"><text>{{ t('userMenu.refunds') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="nav('/pages/coupon/index')"><text>{{ t('coupon.title') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="needLogin(() => nav('/pages/user/favorites'))"><text>{{ t('fav.title') }}</text><text class="sub">›</text></view>
+      <view class="cell" @click="needLogin(() => nav('/pages/user/restock'))"><text>{{ t('restock.title') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="needLogin(() => nav('/pages/user/points'))"><text>{{ t('userMenu.points') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="needLogin(() => nav('/pages/address/list'))"><text>{{ t('user.address') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="needLogin(() => nav('/pages/user/security'))"><text>{{ t('security.title') }}</text><text class="sub">›</text></view>

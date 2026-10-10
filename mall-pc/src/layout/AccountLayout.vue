@@ -9,6 +9,7 @@ const MENU = [
   { name: 'refunds', label: 'userMenu.refunds', match: ['refunds', 'refund-detail'] },
   { name: 'coupons', label: 'coupon.title', match: ['coupons'] },
   { name: 'favorites', label: 'fav.title', match: ['favorites'] },
+  { name: 'restock', label: 'restock.title', match: ['restock'] },
   { name: 'points', label: 'userMenu.points', match: ['points'] },
   { name: 'distribution', label: 'userMenu.distribution', match: ['distribution'] },
   { name: 'profile', label: 'profile.title', match: ['profile'] },

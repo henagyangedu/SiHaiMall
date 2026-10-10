@@ -1,151 +1,2298 @@
 {
-  "name": "宠物智能用品演示数据（示例，供 Codex 按同样的格式扩充）",
+  "name": "宠物智能用品商城演示数据",
   "categories": [
     {
-      "code": "feeding",
-      "name": { "zh-CN": "智能喂养", "en": "Smart Feeding" },
       "children": [
-        { "code": "feeder", "name": { "zh-CN": "自动喂食器", "en": "Automatic Feeders" } },
-        { "code": "fountain", "name": { "zh-CN": "智能饮水机", "en": "Water Fountains" } }
-      ]
+        {
+          "name": {
+            "zh-CN": "自动喂食器",
+            "en": "Automatic Feeders"
+          },
+          "code": "feeder"
+        },
+        {
+          "name": {
+            "zh-CN": "智能饮水机",
+            "en": "Water Fountains"
+          },
+          "code": "fountain"
+        },
+        {
+          "name": {
+            "zh-CN": "喂养耗材与配件",
+            "en": "Feeding Supplies"
+          },
+          "code": "feeding-parts"
+        }
+      ],
+      "name": {
+        "zh-CN": "智能喂养",
+        "en": "Smart Feeding"
+      },
+      "code": "feeding"
     },
     {
-      "code": "cleaning",
-      "name": { "zh-CN": "智能清洁", "en": "Smart Cleaning" },
       "children": [
-        { "code": "litter-box", "name": { "zh-CN": "智能猫砂盆", "en": "Self-Cleaning Litter Boxes" } }
-      ]
+        {
+          "name": {
+            "zh-CN": "智能猫砂盆",
+            "en": "Self-Cleaning Litter Boxes"
+          },
+          "code": "litter-box"
+        },
+        {
+          "name": {
+            "zh-CN": "除味与清洁设备",
+            "en": "Odor Control and Cleaning"
+          },
+          "code": "odor-control"
+        },
+        {
+          "name": {
+            "zh-CN": "清洁耗材与配件",
+            "en": "Cleaning Supplies"
+          },
+          "code": "cleaning-parts"
+        }
+      ],
+      "name": {
+        "zh-CN": "智能清洁",
+        "en": "Smart Cleaning"
+      },
+      "code": "cleaning"
+    },
+    {
+      "children": [
+        {
+          "name": {
+            "zh-CN": "宠物摄像头",
+            "en": "Pet Cameras"
+          },
+          "code": "pet-camera"
+        },
+        {
+          "name": {
+            "zh-CN": "互动玩具",
+            "en": "Interactive Toys"
+          },
+          "code": "interactive-toy"
+        },
+        {
+          "name": {
+            "zh-CN": "陪伴设备配件",
+            "en": "Play and Camera Accessories"
+          },
+          "code": "companion-parts"
+        }
+      ],
+      "name": {
+        "zh-CN": "智能监控与陪伴",
+        "en": "Monitoring and Play"
+      },
+      "code": "companion"
+    },
+    {
+      "children": [
+        {
+          "name": {
+            "zh-CN": "定位器",
+            "en": "Location Trackers"
+          },
+          "code": "tracker"
+        },
+        {
+          "name": {
+            "zh-CN": "智能出行装备",
+            "en": "Travel Gear"
+          },
+          "code": "travel-gear"
+        },
+        {
+          "name": {
+            "zh-CN": "出行配件",
+            "en": "Travel Accessories"
+          },
+          "code": "travel-parts"
+        }
+      ],
+      "name": {
+        "zh-CN": "智能出行与定位",
+        "en": "Travel and Tracking"
+      },
+      "code": "travel"
+    },
+    {
+      "children": [
+        {
+          "name": {
+            "zh-CN": "宠物体重秤",
+            "en": "Pet Scales"
+          },
+          "code": "pet-scale"
+        },
+        {
+          "name": {
+            "zh-CN": "活动监测器",
+            "en": "Activity Monitors"
+          },
+          "code": "activity-monitor"
+        },
+        {
+          "name": {
+            "zh-CN": "监测配件",
+            "en": "Monitoring Accessories"
+          },
+          "code": "health-parts"
+        }
+      ],
+      "name": {
+        "zh-CN": "智能健康监测",
+        "en": "Everyday Health Tracking"
+      },
+      "code": "health"
+    },
+    {
+      "children": [
+        {
+          "name": {
+            "zh-CN": "恒温窝垫",
+            "en": "Heated Beds"
+          },
+          "code": "heated-bed"
+        },
+        {
+          "name": {
+            "zh-CN": "降温与环境监测",
+            "en": "Cooling and Room Sensors"
+          },
+          "code": "cooling-mat"
+        },
+        {
+          "name": {
+            "zh-CN": "窝垫配件",
+            "en": "Bed Accessories"
+          },
+          "code": "bed-parts"
+        }
+      ],
+      "name": {
+        "zh-CN": "智能窝垫与恒温",
+        "en": "Beds and Temperature Control"
+      },
+      "code": "comfort"
     }
   ],
   "brands": [
-    { "code": "pawlink", "name": { "zh-CN": "PawLink 爪联", "en": "PawLink" } },
-    { "code": "furhome", "name": { "zh-CN": "FurHome 毛屋", "en": "FurHome" } }
+    {
+      "name": {
+        "zh-CN": "绮芙洛米",
+        "en": "Qevlumi"
+      },
+      "code": "qevlumi"
+    },
+    {
+      "name": {
+        "zh-CN": "暖芙里洛",
+        "en": "Nuvrilo"
+      },
+      "code": "nuvrilo"
+    },
+    {
+      "name": {
+        "zh-CN": "泽柯珞拉",
+        "en": "Zelqora"
+      },
+      "code": "zelqora"
+    },
+    {
+      "name": {
+        "zh-CN": "米芙奇洛",
+        "en": "Mivqelo"
+      },
+      "code": "mivqelo"
+    },
+    {
+      "name": {
+        "zh-CN": "欧芙旭里",
+        "en": "Orvexuli"
+      },
+      "code": "orvexuli"
+    },
+    {
+      "name": {
+        "zh-CN": "塔柯维诺",
+        "en": "Talquveno"
+      },
+      "code": "talquveno"
+    },
+    {
+      "name": {
+        "zh-CN": "维奇茉拉",
+        "en": "Velqimora"
+      },
+      "code": "velqimora"
+    }
   ],
   "goods": [
     {
-      "code": "feeder-5l-cam",
+      "brand": "qevlumi",
+      "description": {
+        "zh-CN": "<p>5L 密封粮桶，1080p 摄像头，每天可设 10 餐，每份约 5g，适配 3–12mm 干粮；采用 5V 插电供电。</p><p>适合单猫或小型犬家庭，远程视频需 2.4GHz 网络。首次使用先称量连续 10 份出粮，再按实际克数设置计划；备用电池需另购。</p><p>每周拆洗粮碗或水盆并晾干；滤芯按型号和使用频率更换。电机、供电底座和插头不可浸水，重新装配后先检查，再交给宠物使用。</p>",
+        "en": "<p>A sealed 5L hopper, 1080p camera and up to 10 meals a day support portions of approximately 5g. Fits 3–12mm dry kibble and runs on 5V power.</p><p>Designed for one cat or a small dog. Remote video requires a 2.4GHz network. Weigh ten test portions before scheduling meals; backup batteries are sold separately.</p><p>Wash removable bowls or reservoirs weekly and dry thoroughly. Replace filters for the model and usage level. Never immerse motors, powered bases or plugs; check reassembly before pet use.</p>"
+      },
+      "title": {
+        "zh-CN": "绮芙洛米 5L 可视自动喂食器",
+        "en": "Qevlumi 5L Camera Feeder"
+      },
       "category": "feeder",
-      "brand": "pawlink",
-      "title": { "zh-CN": "PawLink 可视自动喂食器 5L", "en": "PawLink 5L Automatic Feeder with Camera" },
-      "subtitle": { "zh-CN": "1080P 摄像头，手机远程喂食，双向语音", "en": "1080p camera, remote feeding from your phone, two-way audio" },
-      "keywords": { "zh-CN": "喂食器,自动喂食,摄像头", "en": "feeder,automatic,camera" },
-      "description": {
-        "zh-CN": "<p>出门在外也能准时开饭。</p><ul><li>5L 大粮桶，成猫可用约 20 天</li><li>1080P 广角摄像头，夜视</li><li>App 定时定量，每天最多 10 餐</li><li>断电可用电池供电</li></ul>",
-        "en": "<p>Meals on time, even when you are away.</p><ul><li>5L hopper, about 20 days for an adult cat</li><li>1080p wide-angle camera with night vision</li><li>Schedule up to 10 meals a day in the app</li><li>Battery backup during power cuts</li></ul>"
+      "subtitle": {
+        "zh-CN": "准时开饭，也能看看它有没有吃好",
+        "en": "Schedule meals and check in at feeding time"
       },
-      "unit": "台",
-      "images": 4,
-      "price": "599.00",
-      "market_price": "799.00",
-      "stock": 200,
-      "weight": "2.6",
-      "prices": { "USD": "89.99" },
-      "sales": 1280
-    },
-    {
-      "code": "fountain-2l",
-      "category": "fountain",
-      "brand": "furhome",
-      "title": { "zh-CN": "FurHome 无线水泵智能饮水机", "en": "FurHome Smart Water Fountain with Wireless Pump" },
-      "subtitle": { "zh-CN": "水电分离，四重过滤，缺水提醒", "en": "Pump isolated from water, 4-stage filter, low-water alert" },
-      "description": {
-        "zh-CN": "<p>水电分离设计，清洗时整机可冲洗。</p><p>滤芯建议每 30 天更换一次，App 会提醒。</p>",
-        "en": "<p>The pump never touches the water, so the whole tank can be rinsed.</p><p>Replace the filter every 30 days. The app will remind you.</p>"
-      },
-      "unit": "台",
-      "images": 3,
-      "specs": [
+      "unit": "件",
+      "skus": [
         {
-          "name": { "zh-CN": "颜色", "en": "Color" },
+          "weight": "2.60",
           "values": [
-            { "key": "white", "name": { "zh-CN": "奶白", "en": "Cream White" } },
-            { "key": "green", "name": { "zh-CN": "薄荷绿", "en": "Mint Green" } }
-          ]
+            "cream"
+          ],
+          "stock": 20,
+          "price": "599.00",
+          "market_price": "731.00",
+          "prices": {
+            "USD": "91.99"
+          }
         },
         {
-          "name": { "zh-CN": "容量", "en": "Capacity" },
+          "weight": "2.60",
           "values": [
-            { "key": "2l", "name": { "zh-CN": "2L", "en": "2L" } },
-            { "key": "3l", "name": { "zh-CN": "3L", "en": "3L" } }
-          ]
+            "slate"
+          ],
+          "stock": 103,
+          "price": "599.00",
+          "market_price": "731.00",
+          "prices": {
+            "USD": "91.99"
+          }
         }
       ],
-      "skus": [
-        { "values": ["white", "2l"], "price": "199.00", "market_price": "259.00", "stock": 150, "weight": "1.2", "prices": { "USD": "29.99" } },
-        { "values": ["white", "3l"], "price": "239.00", "market_price": "299.00", "stock": 120, "weight": "1.5", "prices": { "USD": "35.99" } },
-        { "values": ["green", "2l"], "price": "199.00", "market_price": "259.00", "stock": 80, "weight": "1.2", "prices": { "USD": "29.99" } },
-        { "values": ["green", "3l"], "price": "239.00", "market_price": "299.00", "stock": 60, "weight": "1.5", "prices": { "USD": "35.99" } }
+      "sales": 1280,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "cream",
+              "name": {
+                "zh-CN": "奶油白",
+                "en": "Cream"
+              }
+            },
+            {
+              "key": "slate",
+              "name": {
+                "zh-CN": "岩灰",
+                "en": "Slate"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          }
+        }
       ],
-      "sales": 3560
+      "code": "feeder-5l-cam",
+      "images": 3
     },
     {
-      "code": "litter-box-pro",
-      "category": "litter-box",
-      "brand": "pawlink",
-      "title": { "zh-CN": "PawLink 全自动智能猫砂盆 Pro", "en": "PawLink Self-Cleaning Litter Box Pro" },
-      "subtitle": { "zh-CN": "自动铲屎，体重与如厕记录，多猫识别", "en": "Auto scooping, weight and visit tracking, multi-cat recognition" },
-      "description": {
-        "zh-CN": "<p>猫咪离开后自动清理，集便仓可用约 14 天。</p><p>多重安全感应，猫咪靠近立即停止转动。</p>",
-        "en": "<p>Cleans itself after every visit. The waste drawer lasts about 14 days.</p><p>Multiple safety sensors stop the drum the moment a cat comes close.</p>"
+      "market_price": "286.00",
+      "stock": 81,
+      "images": 4,
+      "category": "feeder",
+      "title": {
+        "zh-CN": "暖芙里洛 3L 桌边定时喂食器",
+        "en": "Nuvrilo 3L Compact Scheduled Feeder"
       },
-      "unit": "台",
+      "description": {
+        "zh-CN": "<p>3L 粮桶，每天最多 6 餐，每份约 6g；机身 18×18×29cm，配可拆不锈钢碗，5V 供电。</p><p>适合小户型单猫家庭，支持机身按键设定计划。只放干粮，不适用于湿粮或直径超过 12mm 的粮粒。</p><p>每周拆洗粮碗或水盆并晾干；滤芯按型号和使用频率更换。电机、供电底座和插头不可浸水，重新装配后先检查，再交给宠物使用。</p>",
+        "en": "<p>The 3L hopper supports six meals a day in roughly 6g portions. A removable steel bowl sits in an 18 × 18 × 29cm body powered by 5V.</p><p>A practical fit for smaller homes with one cat. Set schedules on the device itself. Use dry kibble only, with pieces no larger than 12mm.</p><p>Wash removable bowls or reservoirs weekly and dry thoroughly. Replace filters for the model and usage level. Never immerse motors, powered bases or plugs; check reassembly before pet use.</p>"
+      },
+      "weight": "1.60",
+      "subtitle": {
+        "zh-CN": "小巧粮桶，给日常喂食留出空间",
+        "en": "A compact hopper for an everyday feeding routine"
+      },
+      "code": "feeder-3l-mini",
+      "brand": "nuvrilo",
+      "sales": 6740,
+      "price": "229.00",
+      "prices": {
+        "USD": "35.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "461.00",
+      "stock": 142,
       "images": 5,
-      "price": "1899.00",
-      "market_price": "2299.00",
-      "stock": 60,
-      "weight": "9.5",
-      "prices": { "USD": "279.00" },
-      "sales": 430
+      "category": "feeder",
+      "title": {
+        "zh-CN": "泽柯珞拉 4L 双碗分流喂食器",
+        "en": "Zelqora 4L Twin-Bowl Feeder"
+      },
+      "description": {
+        "zh-CN": "<p>4L 粮桶，双出口分流，可设 8 餐，单次总出粮约 10–80g；两碗中心间距 24cm。</p><p>适合进食节奏接近的两只宠物。分流量受粮形影响，需分别称重校准；不适合必须严格分开饮食的家庭。</p><p>每周拆洗粮碗或水盆并晾干；滤芯按型号和使用频率更换。电机、供电底座和插头不可浸水，重新装配后先检查，再交给宠物使用。</p>",
+        "en": "<p>A 4L hopper feeds two outlets with up to eight scheduled meals. Total servings range from about 10–80g; bowl centers are 24cm apart.</p><p>Suited to two pets with similar eating habits. Check each bowl by weight because kibble shape affects the split. Separate feeding is needed when diets must stay strictly apart.</p><p>Wash removable bowls or reservoirs weekly and dry thoroughly. Replace filters for the model and usage level. Never immerse motors, powered bases or plugs; check reassembly before pet use.</p>"
+      },
+      "weight": "2.10",
+      "subtitle": {
+        "zh-CN": "两只食碗，固定餐点更省心",
+        "en": "Two bowls for a consistent mealtime routine"
+      },
+      "code": "feeder-dual-bowl",
+      "brand": "zelqora",
+      "sales": 830,
+      "price": "369.00",
+      "prices": {
+        "USD": "56.99"
+      },
+      "unit": "件"
+    },
+    {
+      "brand": "mivqelo",
+      "description": {
+        "zh-CN": "<p>容量可选 2L 或 3L；红外感应距离约 1m，5V 供电，滤芯由棉层、活性炭和树脂组成。</p><p>适合室内猫犬饮水，可切换持续循环模式。每天查看水位并换入新鲜饮水，不以容量推算可以无人照看的天数。</p><p>每周拆洗粮碗或水盆并晾干；滤芯按型号和使用频率更换。电机、供电底座和插头不可浸水，重新装配后先检查，再交给宠物使用。</p>",
+        "en": "<p>Choose a 2L or 3L reservoir. An infrared sensor triggers flow within approximately 1m. The 5V system uses a cotton, activated-carbon and resin filter.</p><p>For indoor cats and dogs, with a continuous-flow option. Check the level and refresh the water daily; capacity is not a measure of how long a pet can be left unattended.</p><p>Wash removable bowls or reservoirs weekly and dry thoroughly. Replace filters for the model and usage level. Never immerse motors, powered bases or plugs; check reassembly before pet use.</p>"
+      },
+      "title": {
+        "zh-CN": "米芙奇洛 感应循环智能饮水机",
+        "en": "Mivqelo Motion-Activated Water Fountain"
+      },
+      "category": "fountain",
+      "subtitle": {
+        "zh-CN": "靠近出水，低水位亮灯提醒",
+        "en": "Water on approach, with a low-water indicator"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "1.20",
+          "values": [
+            "2l"
+          ],
+          "stock": 161,
+          "price": "199.00",
+          "market_price": "243.00",
+          "prices": {
+            "USD": "30.99"
+          }
+        },
+        {
+          "weight": "1.20",
+          "values": [
+            "3l"
+          ],
+          "stock": 23,
+          "price": "239.00",
+          "market_price": "292.00",
+          "prices": {
+            "USD": "36.99"
+          }
+        }
+      ],
+      "sales": 7820,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "2l",
+              "name": {
+                "zh-CN": "2L",
+                "en": "2L"
+              }
+            },
+            {
+              "key": "3l",
+              "name": {
+                "zh-CN": "3L",
+                "en": "3L"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "容量",
+            "en": "Capacity"
+          }
+        }
+      ],
+      "code": "fountain-2l",
+      "images": 3
+    },
+    {
+      "brand": "orvexuli",
+      "description": {
+        "zh-CN": "<p>3L 容量，304 不锈钢上盆，两档水流；水泵额定 2W，供电线长 1.5m，5V 供电。</p><p>适合偏爱流动水的猫，也可供小型犬使用。放在平整台面，水泵需保持浸没；缺水灯亮后及时加水。</p><p>每周拆洗粮碗或水盆并晾干；滤芯按型号和使用频率更换。电机、供电底座和插头不可浸水，重新装配后先检查，再交给宠物使用。</p>",
+        "en": "<p>A 3L reservoir sits beneath a 304 stainless steel basin. Two flow settings use a 2W pump, with a 1.5m cable and 5V power.</p><p>For cats that prefer moving water and for small dogs. Place on a level surface and keep the pump submerged. Refill promptly when the low-water light comes on.</p><p>Wash removable bowls or reservoirs weekly and dry thoroughly. Replace filters for the model and usage level. Never immerse motors, powered bases or plugs; check reassembly before pet use.</p>"
+      },
+      "title": {
+        "zh-CN": "欧芙旭里 3L 不锈钢饮水机",
+        "en": "Orvexuli 3L Stainless Steel Fountain"
+      },
+      "category": "fountain",
+      "subtitle": {
+        "zh-CN": "可拆钢盆，让日常刷洗更顺手",
+        "en": "A removable steel basin makes cleaning easier"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "1.50",
+          "values": [
+            "cream"
+          ],
+          "stock": 208,
+          "price": "289.00",
+          "market_price": "353.00",
+          "prices": {
+            "USD": "44.99"
+          }
+        },
+        {
+          "weight": "1.50",
+          "values": [
+            "slate"
+          ],
+          "stock": 70,
+          "price": "289.00",
+          "market_price": "353.00",
+          "prices": {
+            "USD": "44.99"
+          }
+        }
+      ],
+      "sales": 3460,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "cream",
+              "name": {
+                "zh-CN": "奶油白",
+                "en": "Cream"
+              }
+            },
+            {
+              "key": "slate",
+              "name": {
+                "zh-CN": "岩灰",
+                "en": "Slate"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          }
+        }
+      ],
+      "code": "fountain-steel-3l",
+      "images": 4
+    },
+    {
+      "market_price": "74.00",
+      "stock": 325,
+      "images": 5,
+      "category": "feeding-parts",
+      "title": {
+        "zh-CN": "塔柯维诺 饮水机复合滤芯 6 枚装",
+        "en": "Talquveno Fountain Filters, Pack of 6"
+      },
+      "description": {
+        "zh-CN": "<p>每盒 6 枚，单枚 60×60×10mm；适配本店感应循环饮水机，不适配 3L 不锈钢款。</p><p>安装前用饮用水冲洗并浸泡 5 分钟，通常每 2–4 周更换；多宠或水质较硬时缩短周期。</p><p>每周拆洗粮碗或水盆并晾干；滤芯按型号和使用频率更换。电机、供电底座和插头不可浸水，重新装配后先检查，再交给宠物使用。</p>",
+        "en": "<p>Contains six 60 × 60 × 10mm filters. Fits this collection's motion-activated fountain, but not the 3L stainless steel model.</p><p>Rinse with drinking water and soak for five minutes before fitting. Replace every two to four weeks, or sooner in multi-pet homes or with hard water.</p><p>Wash removable bowls or reservoirs weekly and dry thoroughly. Replace filters for the model and usage level. Never immerse motors, powered bases or plugs; check reassembly before pet use.</p>"
+      },
+      "weight": "0.18",
+      "subtitle": {
+        "zh-CN": "按时换芯，让循环水路保持畅通",
+        "en": "Fresh filters help keep the fountain flowing"
+      },
+      "code": "fountain-filter-6",
+      "brand": "talquveno",
+      "sales": 5980,
+      "price": "59.00",
+      "prices": {
+        "USD": "9.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "61.00",
+      "stock": 386,
+      "images": 3,
+      "category": "feeding-parts",
+      "title": {
+        "zh-CN": "维奇茉拉 喂食器替换食碗套装",
+        "en": "Velqimora Replacement Feeder Bowl Set"
+      },
+      "description": {
+        "zh-CN": "<p>含 2 只 304 不锈钢碗，每只直径 14cm、深 3cm，适配 3L 桌边定时喂食器。</p><p>适合每日换洗或两处摆放食碗。购买前核对设备型号，碗沿卡位不适配双碗分流款。</p><p>每周拆洗粮碗或水盆并晾干；滤芯按型号和使用频率更换。电机、供电底座和插头不可浸水，重新装配后先检查，再交给宠物使用。</p>",
+        "en": "<p>Includes two 304 stainless steel bowls, each 14cm wide and 3cm deep. Designed for the 3L compact scheduled feeder.</p><p>Useful for daily bowl rotation or feeding in two spots. Check the model before ordering; the rim fittings do not fit the twin-bowl feeder.</p><p>Wash removable bowls or reservoirs weekly and dry thoroughly. Replace filters for the model and usage level. Never immerse motors, powered bases or plugs; check reassembly before pet use.</p>"
+      },
+      "weight": "0.32",
+      "subtitle": {
+        "zh-CN": "备用一只碗，轮换清洗更从容",
+        "en": "Keep a spare bowl ready for cleaning days"
+      },
+      "code": "feeder-bowl-kit",
+      "brand": "velqimora",
+      "sales": 2170,
+      "price": "49.00",
+      "prices": {
+        "USD": "7.99"
+      },
+      "unit": "件"
+    },
+    {
+      "brand": "qevlumi",
+      "description": {
+        "zh-CN": "<p>68L 内舱，8L 集便仓，入口直径 25cm；适用体重 1.5–8kg 的成年猫，额定 24W，适配结团矿砂。</p><p>离盆后等待 5 分钟再清理，入口与重量感应触发时暂停。幼猫和体重范围外的猫不启用自动模式，初次使用需主人观察。</p><p>处理污物前断电，戴手套清洁可拆部件并晾干；电子底座只擦拭。清理感应窗口积尘，耗材按兼容型号使用，换袋后检查固定状态。</p>",
+        "en": "<p>A 68L chamber and 8L drawer have a 25cm entry. For adult cats weighing 1.5–8kg, with 24W rated power. Uses clumping mineral litter.</p><p>Starts cleaning five minutes after departure and pauses on entry or weight sensor signals. Keep automatic mode off for kittens and cats outside the stated range; supervise first use.</p><p>Unplug before handling waste. Wear gloves to clean removable parts and dry fully; wipe powered bases only. Keep sensors clear, match supplies to compatible models and check liner fittings.</p>"
+      },
+      "title": {
+        "zh-CN": "绮芙洛米 68L 自动清理猫砂盆",
+        "en": "Qevlumi 68L Self-Cleaning Litter Box"
+      },
+      "category": "litter-box",
+      "subtitle": {
+        "zh-CN": "离盆延时清理，少一点每天铲砂的忙碌",
+        "en": "Delayed cleaning takes some work out of litter duty"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "9.50",
+          "values": [
+            "cream"
+          ],
+          "stock": 128,
+          "price": "1899.00",
+          "market_price": "2317.00",
+          "prices": {
+            "USD": "288.99"
+          }
+        },
+        {
+          "weight": "9.50",
+          "values": [
+            "slate"
+          ],
+          "stock": 211,
+          "price": "1899.00",
+          "market_price": "2317.00",
+          "prices": {
+            "USD": "288.99"
+          }
+        }
+      ],
+      "sales": 430,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "cream",
+              "name": {
+                "zh-CN": "奶油白",
+                "en": "Cream"
+              }
+            },
+            {
+              "key": "slate",
+              "name": {
+                "zh-CN": "岩灰",
+                "en": "Slate"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          }
+        }
+      ],
+      "code": "litter-box-pro",
+      "images": 4
+    },
+    {
+      "brand": "nuvrilo",
+      "description": {
+        "zh-CN": "<p>砂盘 45×32cm，集便盒 4L，耙齿间隙 6mm；适合结团矿砂，24V 供电，猫离开后延时 10 分钟清理。</p><p>适合体重 2–7kg 的成年猫。沿刻度加砂，避免过量导致耙齿受阻；长条豆腐砂不适合此结构，幼猫使用时关闭自动模式。</p><p>处理污物前断电，戴手套清洁可拆部件并晾干；电子底座只擦拭。清理感应窗口积尘，耗材按兼容型号使用，换袋后检查固定状态。</p>",
+        "en": "<p>The 45 × 32cm tray uses a 4L bin and a rake with 6mm spacing. Uses clumping mineral litter and 24V power, with a ten-minute departure delay.</p><p>For adult cats weighing 2–7kg. Fill to the line to avoid obstructing the rake. Long tofu-litter pellets are unsuitable; disable automatic mode for kittens.</p><p>Unplug before handling waste. Wear gloves to clean removable parts and dry fully; wipe powered bases only. Keep sensors clear, match supplies to compatible models and check liner fittings.</p>"
+      },
+      "title": {
+        "zh-CN": "暖芙里洛 开放式自动平耙猫砂盆",
+        "en": "Nuvrilo Open-Top Raking Litter Box"
+      },
+      "category": "litter-box",
+      "subtitle": {
+        "zh-CN": "开放入口，给不爱钻舱的猫一个选择",
+        "en": "An open entrance for cats that dislike enclosed boxes"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "6.80",
+          "values": [
+            "cream"
+          ],
+          "stock": 175,
+          "price": "999.00",
+          "market_price": "1219.00",
+          "prices": {
+            "USD": "151.99"
+          }
+        },
+        {
+          "weight": "6.80",
+          "values": [
+            "slate"
+          ],
+          "stock": 37,
+          "price": "999.00",
+          "market_price": "1219.00",
+          "prices": {
+            "USD": "151.99"
+          }
+        }
+      ],
+      "sales": 175,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "cream",
+              "name": {
+                "zh-CN": "奶油白",
+                "en": "Cream"
+              }
+            },
+            {
+              "key": "slate",
+              "name": {
+                "zh-CN": "岩灰",
+                "en": "Slate"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          }
+        }
+      ],
+      "code": "litter-box-open",
+      "images": 5
+    },
+    {
+      "market_price": "199.00",
+      "stock": 88,
+      "images": 3,
+      "category": "odor-control",
+      "title": {
+        "zh-CN": "泽柯珞拉 猫砂区循环除味风机",
+        "en": "Zelqora Litter-Area Carbon Filter Fan"
+      },
+      "description": {
+        "zh-CN": "<p>USB 5V 供电，额定 3W，两档风速，配可更换活性炭片；机身 12×12×6cm。</p><p>适合放在猫砂区侧面，风口保持至少 10cm 空间。使用风机与滤片，不使用臭氧发生器，也不能替代铲砂和通风。</p><p>处理污物前断电，戴手套清洁可拆部件并晾干；电子底座只擦拭。清理感应窗口积尘，耗材按兼容型号使用，换袋后检查固定状态。</p>",
+        "en": "<p>A USB-powered 5V, 3W fan offers two speeds and a replaceable carbon pad. The body measures 12 × 12 × 6cm.</p><p>Place beside the litter area with at least 10cm clear around vents. Uses a fan and carbon pad without an ozone generator. Regular scooping and ventilation are still needed.</p><p>Unplug before handling waste. Wear gloves to clean removable parts and dry fully; wipe powered bases only. Keep sensors clear, match supplies to compatible models and check liner fittings.</p>"
+      },
+      "weight": "0.45",
+      "subtitle": {
+        "zh-CN": "循环送风，照顾小空间的气味体验",
+        "en": "Filtered airflow for smaller litter areas"
+      },
+      "code": "odor-fan-mini",
+      "brand": "zelqora",
+      "sales": 680,
+      "price": "159.00",
+      "prices": {
+        "USD": "24.99"
+      },
+      "unit": "件"
+    },
+    {
+      "brand": "mivqelo",
+      "description": {
+        "zh-CN": "<p>杯口直径 8cm，硅胶刷内衬可拆，转速约 60rpm；电池 1200mAh，USB 5V 充电。</p><p>适合爪宽不超过 6cm 的犬只。只加常温清水，先让宠物接触静止杯体，清洗后用毛巾擦干。</p><p>处理污物前断电，戴手套清洁可拆部件并晾干；电子底座只擦拭。清理感应窗口积尘，耗材按兼容型号使用，换袋后检查固定状态。</p>",
+        "en": "<p>An 8cm opening holds a removable silicone liner rotating at about 60rpm. The 1200mAh battery charges from USB 5V.</p><p>For dogs with paws up to 6cm wide. Use room-temperature water, introduce the cup with the motor off, and towel-dry paws afterwards.</p><p>Unplug before handling waste. Wear gloves to clean removable parts and dry fully; wipe powered bases only. Keep sensors clear, match supplies to compatible models and check liner fittings.</p>"
+      },
+      "title": {
+        "zh-CN": "米芙奇洛 旋转软刷洗爪杯",
+        "en": "Mivqelo Powered Soft-Brush Paw Washer"
+      },
+      "category": "odor-control",
+      "subtitle": {
+        "zh-CN": "散步回来，低速软刷洗掉浮尘",
+        "en": "A gentle brush cycle for dusty paws after walks"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "0.65",
+          "values": [
+            "cream"
+          ],
+          "stock": 48,
+          "price": "129.00",
+          "market_price": "157.00",
+          "prices": {
+            "USD": "20.99"
+          }
+        },
+        {
+          "weight": "0.65",
+          "values": [
+            "slate"
+          ],
+          "stock": 131,
+          "price": "129.00",
+          "market_price": "157.00",
+          "prices": {
+            "USD": "20.99"
+          }
+        }
+      ],
+      "sales": 96,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "cream",
+              "name": {
+                "zh-CN": "奶油白",
+                "en": "Cream"
+              }
+            },
+            {
+              "key": "slate",
+              "name": {
+                "zh-CN": "岩灰",
+                "en": "Slate"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          }
+        }
+      ],
+      "code": "paw-washer-auto",
+      "images": 4
+    },
+    {
+      "market_price": "49.00",
+      "stock": 210,
+      "images": 5,
+      "category": "cleaning-parts",
+      "title": {
+        "zh-CN": "欧芙旭里 集便仓抽绳袋 40 只装",
+        "en": "Orvexuli Drawstring Waste Liners, 40 Pack"
+      },
+      "description": {
+        "zh-CN": "<p>40 只装，单只平铺 45×50cm，厚约 0.025mm；适配 68L 自动清理猫砂盆的 8L 集便仓。</p><p>袋边压在固定槽内，勿遮住感应区域。满袋及时更换，扎紧袋口后按当地生活垃圾要求处理。</p><p>处理污物前断电，戴手套清洁可拆部件并晾干；电子底座只擦拭。清理感应窗口积尘，耗材按兼容型号使用，换袋后检查固定状态。</p>",
+        "en": "<p>Forty liners, each 45 × 50cm laid flat and about 0.025mm thick. Fits the 8L drawer in the 68L self-cleaning box.</p><p>Secure edges in the retaining groove without covering sensors. Replace when full, tie closed and follow local household-waste rules.</p><p>Unplug before handling waste. Wear gloves to clean removable parts and dry fully; wipe powered bases only. Keep sensors clear, match supplies to compatible models and check liner fittings.</p>"
+      },
+      "weight": "0.45",
+      "subtitle": {
+        "zh-CN": "抽绳收口，换袋少接触",
+        "en": "Drawstring closure makes changing liners easier"
+      },
+      "code": "litter-bag-40",
+      "brand": "orvexuli",
+      "sales": 7290,
+      "price": "39.00",
+      "prices": {
+        "USD": "6.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "45.00",
+      "stock": 271,
+      "images": 3,
+      "category": "cleaning-parts",
+      "title": {
+        "zh-CN": "塔柯维诺 除味风机活性炭片 4 片装",
+        "en": "Talquveno Carbon Fan Pads, 4 Pack"
+      },
+      "description": {
+        "zh-CN": "<p>4 片装，每片 90×90×8mm，仅适配猫砂区循环除味风机；无香精添加。</p><p>建议每 4 周检查，积尘明显或气味体验下降时更换。滤片不可水洗，不适用于猫砂盆集便仓。</p><p>处理污物前断电，戴手套清洁可拆部件并晾干；电子底座只擦拭。清理感应窗口积尘，耗材按兼容型号使用，换袋后检查固定状态。</p>",
+        "en": "<p>Four 90 × 90 × 8mm pads for the litter-area carbon filter fan only. No added fragrance.</p><p>Inspect every four weeks and replace if dusty or less effective. These pads cannot be washed and are not waste-drawer filters.</p><p>Unplug before handling waste. Wear gloves to clean removable parts and dry fully; wipe powered bases only. Keep sensors clear, match supplies to compatible models and check liner fittings.</p>"
+      },
+      "weight": "0.12",
+      "subtitle": {
+        "zh-CN": "备好替换片，维持顺畅风路",
+        "en": "Keep spare pads ready for clear airflow"
+      },
+      "code": "carbon-pad-4",
+      "brand": "talquveno",
+      "sales": 1800,
+      "price": "35.00",
+      "prices": {
+        "USD": "5.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "311.00",
+      "stock": 332,
+      "images": 4,
+      "category": "pet-camera",
+      "title": {
+        "zh-CN": "维奇茉拉 旋转夜视宠物摄像头",
+        "en": "Velqimora Pan-and-Tilt Pet Camera"
+      },
+      "description": {
+        "zh-CN": "<p>1080p 视频，水平旋转 350°、俯仰 60°，红外夜视约 5m；支持最大 128GB 存储卡，卡需另购。</p><p>适合客厅观察与双向语音，需 2.4GHz 网络和 5V 插电。仅放在室内，避开私密区域和宠物可咬到的线材。</p><p>充电和安装时让宠物远离设备，线材沿墙固定。玩具在看护下使用，破损附件及时收起；摄像头定期检查访问权限并擦拭镜头。</p>",
+        "en": "<p>1080p video with 350° pan, 60° tilt and infrared night vision up to roughly 5m. Supports cards up to 128GB, sold separately.</p><p>For living-room check-ins and two-way audio over a 2.4GHz network, with 5V power. Use indoors and avoid private areas and chewable cable routes.</p><p>Keep pets away during charging and setup and secure cables along a wall. Supervise toys and remove damaged parts. Review camera access permissions and wipe lenses regularly.</p>"
+      },
+      "weight": "0.28",
+      "subtitle": {
+        "zh-CN": "转动视角，看看它今天躲在哪儿",
+        "en": "Pan around the room to find a favorite hiding spot"
+      },
+      "code": "pet-camera-pan",
+      "brand": "velqimora",
+      "sales": 4230,
+      "price": "249.00",
+      "prices": {
+        "USD": "38.99"
+      },
+      "unit": "件"
+    },
+    {
+      "brand": "qevlumi",
+      "description": {
+        "zh-CN": "<p>2K 视频，零食仓 300mL，适配 5–10mm 干燥零食；每次约 1–3 颗，USB 5V 供电，需 2.4GHz 网络。</p><p>适合短时离家互动。零食计入每日摄入，先在家测试投射距离；不放软黏、油脂过多或碎屑较多的零食。</p><p>充电和安装时让宠物远离设备，线材沿墙固定。玩具在看护下使用，破损附件及时收起；摄像头定期检查访问权限并擦拭镜头。</p>",
+        "en": "<p>2K video and a 300mL hopper take 5–10mm dry treats, releasing about one to three at a time. Uses USB 5V power and a 2.4GHz network.</p><p>For brief check-ins while away. Count treats toward daily intake and test the launch distance at home. Avoid sticky, oily or crumbly treats.</p><p>Keep pets away during charging and setup and secure cables along a wall. Supervise toys and remove damaged parts. Review camera access permissions and wipe lenses regularly.</p>"
+      },
+      "title": {
+        "zh-CN": "绮芙洛米 零食投喂互动摄像头",
+        "en": "Qevlumi Treat-Dispensing Pet Camera"
+      },
+      "category": "pet-camera",
+      "subtitle": {
+        "zh-CN": "看看它，也给它一小口奖励",
+        "en": "Check in and offer a small reward"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "1.10",
+          "values": [
+            "cream"
+          ],
+          "stock": 236,
+          "price": "499.00",
+          "market_price": "609.00",
+          "prices": {
+            "USD": "76.99"
+          }
+        },
+        {
+          "weight": "1.10",
+          "values": [
+            "slate"
+          ],
+          "stock": 98,
+          "price": "499.00",
+          "market_price": "609.00",
+          "prices": {
+            "USD": "76.99"
+          }
+        }
+      ],
+      "sales": 305,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "cream",
+              "name": {
+                "zh-CN": "奶油白",
+                "en": "Cream"
+              }
+            },
+            {
+              "key": "slate",
+              "name": {
+                "zh-CN": "岩灰",
+                "en": "Slate"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          }
+        }
+      ],
+      "code": "pet-camera-treat",
+      "images": 5
+    },
+    {
+      "market_price": "111.00",
+      "stock": 454,
+      "images": 3,
+      "category": "interactive-toy",
+      "title": {
+        "zh-CN": "暖芙里洛 避障滚动互动球",
+        "en": "Nuvrilo Obstacle-Aware Rolling Toy"
+      },
+      "description": {
+        "zh-CN": "<p>球径 6cm，电池 400mAh，慢速与标准两档；运行 10 分钟休眠，支持触碰唤醒，5V 充电。</p><p>适合硬地板上的猫咪追逐游戏。避开楼梯、厚地毯和积水，首次玩耍需主人陪同，不让宠物啃咬充电口。</p><p>充电和安装时让宠物远离设备，线材沿墙固定。玩具在看护下使用，破损附件及时收起；摄像头定期检查访问权限并擦拭镜头。</p>",
+        "en": "<p>A 6cm ball with a 400mAh battery offers slow and standard modes. Sleeps after ten minutes and wakes on contact. Charges at 5V.</p><p>For supervised cat play on hard floors. Keep away from stairs, deep carpet and wet areas. Introduce with supervision and prevent chewing near the charging port.</p><p>Keep pets away during charging and setup and secure cables along a wall. Supervise toys and remove damaged parts. Review camera access permissions and wipe lenses regularly.</p>"
+      },
+      "weight": "0.16",
+      "subtitle": {
+        "zh-CN": "随机滚动，让室内游戏多点变化",
+        "en": "Unpredictable movement adds variety to indoor play"
+      },
+      "code": "rolling-ball-smart",
+      "brand": "nuvrilo",
+      "sales": 6480,
+      "price": "89.00",
+      "prices": {
+        "USD": "13.99"
+      },
+      "unit": "件"
+    },
+    {
+      "brand": "zelqora",
+      "description": {
+        "zh-CN": "<p>底座直径 18cm，摆臂长 22cm，三档摆动速度；单轮 8 分钟，电池 1500mAh，5V 充电。</p><p>适合主人在旁时地面互动，不连续整天运行。收起松动羽毛和绳线，表现紧张时停止并改为手动陪玩。</p><p>充电和安装时让宠物远离设备，线材沿墙固定。玩具在看护下使用，破损附件及时收起；摄像头定期检查访问权限并擦拭镜头。</p>",
+        "en": "<p>An 18cm base supports a 22cm arm with three speeds. Each session lasts eight minutes; the 1500mAh battery charges at 5V.</p><p>For floor-level play with a person nearby, rather than all-day operation. Remove loose feathers or cords and switch to hand-held play if your pet seems uneasy.</p><p>Keep pets away during charging and setup and secure cables along a wall. Supervise toys and remove damaged parts. Review camera access permissions and wipe lenses regularly.</p>"
+      },
+      "title": {
+        "zh-CN": "泽柯珞拉 定时摆动逗猫台",
+        "en": "Zelqora Timed Wand Play Station"
+      },
+      "category": "interactive-toy",
+      "subtitle": {
+        "zh-CN": "短时摆动，陪它活动一会儿",
+        "en": "Short play sessions with a moving feather wand"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "0.55",
+          "values": [
+            "cream"
+          ],
+          "stock": 109,
+          "price": "139.00",
+          "market_price": "170.00",
+          "prices": {
+            "USD": "21.99"
+          }
+        },
+        {
+          "weight": "0.55",
+          "values": [
+            "slate"
+          ],
+          "stock": 192,
+          "price": "139.00",
+          "market_price": "170.00",
+          "prices": {
+            "USD": "21.99"
+          }
+        }
+      ],
+      "sales": 790,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "cream",
+              "name": {
+                "zh-CN": "奶油白",
+                "en": "Cream"
+              }
+            },
+            {
+              "key": "slate",
+              "name": {
+                "zh-CN": "岩灰",
+                "en": "Slate"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          }
+        }
+      ],
+      "code": "wand-timer-toy",
+      "images": 4
+    },
+    {
+      "market_price": "39.00",
+      "stock": 95,
+      "images": 5,
+      "category": "companion-parts",
+      "title": {
+        "zh-CN": "米芙奇洛 互动球替换软壳套装",
+        "en": "Mivqelo Replacement Soft Shells for Rolling Toy"
+      },
+      "description": {
+        "zh-CN": "<p>含两只直径 6cm 硅胶外壳，适配避障滚动互动球，预留充电孔位；不含球芯。</p><p>适合原壳磨损后的替换。套入前关闭电源，安装后检查无松脱；外壳出现缺口时停止使用。</p><p>充电和安装时让宠物远离设备，线材沿墙固定。玩具在看护下使用，破损附件及时收起；摄像头定期检查访问权限并擦拭镜头。</p>",
+        "en": "<p>Two 6cm silicone shells for the obstacle-aware rolling toy, with charging-port cutouts. Motorized core not included.</p><p>Replace worn shells with the power off. Check that the new shell sits securely; stop use if it tears or develops missing pieces.</p><p>Keep pets away during charging and setup and secure cables along a wall. Supervise toys and remove damaged parts. Review camera access permissions and wipe lenses regularly.</p>"
+      },
+      "weight": "0.09",
+      "subtitle": {
+        "zh-CN": "换个外壳，继续滚动玩耍",
+        "en": "Refresh the shell and keep playtime rolling"
+      },
+      "code": "ball-shell-kit",
+      "brand": "mivqelo",
+      "sales": 5210,
+      "price": "29.00",
+      "prices": {
+        "USD": "4.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "49.00",
+      "stock": 156,
+      "images": 3,
+      "category": "companion-parts",
+      "title": {
+        "zh-CN": "欧芙旭里 摄像头可调墙面支架",
+        "en": "Orvexuli Adjustable Wall Mount for Pet Camera"
+      },
+      "description": {
+        "zh-CN": "<p>承重 1kg，俯仰调节 90°，底板 7×7cm；配固定螺钉，适配旋转夜视宠物摄像头。</p><p>适合结实墙面，建议安装高度 1.5–2m。按墙体选择膨胀件，不安装在疏松饰面或宠物能攀爬拉扯的位置。</p><p>充电和安装时让宠物远离设备，线材沿墙固定。玩具在看护下使用，破损附件及时收起；摄像头定期检查访问权限并擦拭镜头。</p>",
+        "en": "<p>Rated for 1kg, with 90° tilt adjustment and a 7 × 7cm base plate. Includes screws and fits the pan-and-tilt pet camera.</p><p>Mount on a sound wall at about 1.5–2m. Use wall-appropriate anchors and avoid loose finishes or spots your pet can climb to and pull at.</p><p>Keep pets away during charging and setup and secure cables along a wall. Supervise toys and remove damaged parts. Review camera access permissions and wipe lenses regularly.</p>"
+      },
+      "weight": "0.20",
+      "subtitle": {
+        "zh-CN": "抬高视角，避开爪子和尾巴",
+        "en": "Lift the view above paws and tails"
+      },
+      "code": "camera-wall-mount",
+      "brand": "orvexuli",
+      "sales": 2300,
+      "price": "39.00",
+      "prices": {
+        "USD": "6.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "499.00",
+      "stock": 217,
+      "images": 4,
+      "category": "tracker",
+      "title": {
+        "zh-CN": "塔柯维诺 户外卫星定位挂件",
+        "en": "Talquveno Outdoor Satellite Tracking Tag"
+      },
+      "description": {
+        "zh-CN": "<p>42×35×16mm，重 32g，电池 800mAh；卫星定位与移动网络回传，含 30 天演示流量，后续流量另购。</p><p>适合体重 5kg 以上犬只。需卫星与网络覆盖，室内误差可能较大；挂件不能替代牵引绳，也不保证找回宠物。</p><p>出行前检查电量、固定件与织带，电子部件不浸水。回家后用微湿布擦拭晾干；水碗单独清洗，定位与灯光仅为辅助，仍需牵引和看护。</p>",
+        "en": "<p>Measures 42 × 35 × 16mm and weighs 32g, with an 800mAh battery. Satellite positioning reports through a mobile network. Includes 30 days of demo data; ongoing plans are sold separately.</p><p>For dogs over 5kg. Requires satellite reception and network coverage; accuracy may drop indoors. The tag does not replace a leash or guarantee recovery.</p><p>Check charge, fittings and webbing before trips. Keep electronics out of water; wipe and dry afterwards. Wash bowls separately. Tracking and lighting are aids; use suitable restraints and supervision.</p>"
+      },
+      "weight": "0.08",
+      "subtitle": {
+        "zh-CN": "查看位置记录，出门多一份线索",
+        "en": "Location history adds context to outdoor adventures"
+      },
+      "code": "tracker-outdoor",
+      "brand": "talquveno",
+      "sales": 1540,
+      "price": "399.00",
+      "prices": {
+        "USD": "60.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "86.00",
+      "stock": 278,
+      "images": 5,
+      "category": "tracker",
+      "title": {
+        "zh-CN": "维奇茉拉 近距蓝牙寻物挂件",
+        "en": "Velqimora Nearby Bluetooth Finder Tag"
+      },
+      "description": {
+        "zh-CN": "<p>重 9g，直径 28mm，使用可更换纽扣电池；空旷条件下蓝牙连接距离约 30m。</p><p>适合室内找项圈或携带包。超出范围无法实时追踪，只显示最后连接记录；电池仓需锁紧并远离宠物嘴部。</p><p>出行前检查电量、固定件与织带，电子部件不浸水。回家后用微湿布擦拭晾干；水碗单独清洗，定位与灯光仅为辅助，仍需牵引和看护。</p>",
+        "en": "<p>A 9g, 28mm tag with a replaceable coin-cell battery. Bluetooth range is approximately 30m in open conditions.</p><p>For finding a collar or carrier indoors. Outside Bluetooth range it shows only the last connection record. Keep the battery compartment secured and away from mouths.</p><p>Check charge, fittings and webbing before trips. Keep electronics out of water; wipe and dry afterwards. Wash bowls separately. Tracking and lighting are aids; use suitable restraints and supervision.</p>"
+      },
+      "weight": "0.03",
+      "subtitle": {
+        "zh-CN": "在附近响铃，找找窝边的小挂件",
+        "en": "Ring the tag to find it nearby"
+      },
+      "code": "tracker-nearby",
+      "brand": "velqimora",
+      "sales": 7600,
+      "price": "69.00",
+      "prices": {
+        "USD": "10.99"
+      },
+      "unit": "件"
+    },
+    {
+      "brand": "qevlumi",
+      "description": {
+        "zh-CN": "<p>35×28×42cm，建议体重不超过 6kg；双 5V 风扇，三档风速，移动电源需另购。</p><p>适合短程步行和公共交通携带。先核对站立转身空间；风扇不能低于环境温度，炎热天气缩短外出并随时观察。</p><p>出行前检查电量、固定件与织带，电子部件不浸水。回家后用微湿布擦拭晾干；水碗单独清洗，定位与灯光仅为辅助，仍需牵引和看护。</p>",
+        "en": "<p>Measures 35 × 28 × 42cm for pets up to 6kg. Two 5V fans offer three speeds; a power bank is sold separately.</p><p>For short walks and public transport. Check standing and turning space. Fans cannot cool below ambient temperature; shorten trips in hot weather and monitor closely.</p><p>Check charge, fittings and webbing before trips. Keep electronics out of water; wipe and dry afterwards. Wash bowls separately. Tracking and lighting are aids; use suitable restraints and supervision.</p>"
+      },
+      "title": {
+        "zh-CN": "绮芙洛米 双风扇通风宠物背包",
+        "en": "Qevlumi Dual-Fan Pet Backpack"
+      },
+      "category": "travel-gear",
+      "subtitle": {
+        "zh-CN": "短途出行，背包内也有循环风",
+        "en": "Circulating airflow for short trips"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "1.45",
+          "values": [
+            "cream"
+          ],
+          "stock": 123,
+          "price": "299.00",
+          "market_price": "365.00",
+          "prices": {
+            "USD": "45.99"
+          }
+        },
+        {
+          "weight": "1.45",
+          "values": [
+            "slate"
+          ],
+          "stock": 206,
+          "price": "299.00",
+          "market_price": "365.00",
+          "prices": {
+            "USD": "45.99"
+          }
+        }
+      ],
+      "sales": 210,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "cream",
+              "name": {
+                "zh-CN": "奶油白",
+                "en": "Cream"
+              }
+            },
+            {
+              "key": "slate",
+              "name": {
+                "zh-CN": "岩灰",
+                "en": "Slate"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          }
+        }
+      ],
+      "code": "travel-fan-carrier",
+      "images": 3
+    },
+    {
+      "brand": "nuvrilo",
+      "description": {
+        "zh-CN": "<p>绳长 1.5m、宽 2cm，三档灯光，电池 300mAh，5V 充电；建议用于体重 15kg 以下犬只。</p><p>适合傍晚散步，灯带增加可见性，不能替代道路照明。每次检查扣具和织带，充电前擦干接口。</p><p>出行前检查电量、固定件与织带，电子部件不浸水。回家后用微湿布擦拭晾干；水碗单独清洗，定位与灯光仅为辅助，仍需牵引和看护。</p>",
+        "en": "<p>A 1.5m leash, 2cm wide, with three lighting modes and a 300mAh battery charged at 5V. Recommended for dogs under 15kg.</p><p>For evening walks. Lighting improves visibility but does not illuminate the road. Inspect the clip and webbing before each walk and dry the charging port before use.</p><p>Check charge, fittings and webbing before trips. Keep electronics out of water; wipe and dry afterwards. Wash bowls separately. Tracking and lighting are aids; use suitable restraints and supervision.</p>"
+      },
+      "title": {
+        "zh-CN": "暖芙里洛 夜行发光牵引绳",
+        "en": "Nuvrilo Illuminated Walking Leash"
+      },
+      "category": "travel-gear",
+      "subtitle": {
+        "zh-CN": "柔和灯带，夜间步行更醒目",
+        "en": "A soft light strip for better visibility at night"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "0.24",
+          "values": [
+            "cream"
+          ],
+          "stock": 170,
+          "price": "119.00",
+          "market_price": "145.00",
+          "prices": {
+            "USD": "18.99"
+          }
+        },
+        {
+          "weight": "0.24",
+          "values": [
+            "slate"
+          ],
+          "stock": 32,
+          "price": "119.00",
+          "market_price": "145.00",
+          "prices": {
+            "USD": "18.99"
+          }
+        }
+      ],
+      "sales": 39,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "cream",
+              "name": {
+                "zh-CN": "奶油白",
+                "en": "Cream"
+              }
+            },
+            {
+              "key": "slate",
+              "name": {
+                "zh-CN": "岩灰",
+                "en": "Slate"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          }
+        }
+      ],
+      "code": "travel-light-leash",
+      "images": 4
+    },
+    {
+      "market_price": "35.00",
+      "stock": 461,
+      "images": 5,
+      "category": "travel-parts",
+      "title": {
+        "zh-CN": "泽柯珞拉 定位器硅胶项圈固定套",
+        "en": "Zelqora Silicone Collar Holder for Tracking Tag"
+      },
+      "description": {
+        "zh-CN": "<p>适配户外卫星定位挂件，穿带槽宽 25mm；柔性硅胶结构，含一个固定套，不含定位器。</p><p>把定位器贴合项圈背面，安装后仍留两指间隙。定期查看固定槽是否撕裂，避免宠物咬啃。</p><p>出行前检查电量、固定件与织带，电子部件不浸水。回家后用微湿布擦拭晾干；水碗单独清洗，定位与灯光仅为辅助，仍需牵引和看护。</p>",
+        "en": "<p>One flexible silicone holder for the outdoor satellite tag, fitting collars up to 25mm wide. Tracker not included.</p><p>Holds the tracker against the collar. Leave a two-finger gap after fitting and check slots for tears. Keep away from chewing.</p><p>Check charge, fittings and webbing before trips. Keep electronics out of water; wipe and dry afterwards. Wash bowls separately. Tracking and lighting are aids; use suitable restraints and supervision.</p>"
+      },
+      "weight": "0.02",
+      "subtitle": {
+        "zh-CN": "贴合项圈，减少挂件晃动",
+        "en": "A snug collar fit reduces tag movement"
+      },
+      "code": "tracker-collar-holder",
+      "brand": "zelqora",
+      "sales": 920,
+      "price": "25.00",
+      "prices": {
+        "USD": "4.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "45.00",
+      "stock": 41,
+      "images": 3,
+      "category": "travel-parts",
+      "title": {
+        "zh-CN": "米芙奇洛 出行定量折叠水碗",
+        "en": "Mivqelo Graduated Folding Travel Bowl"
+      },
+      "description": {
+        "zh-CN": "<p>展开容量 500mL，碗径 13cm，食品接触级硅胶，内壁标有 100mL 间隔刻度。</p><p>适合日常散步，挂扣仅用于挂包。装水后放在平地，洗后晾干，不装沸水或用作长期储水容器。</p><p>出行前检查电量、固定件与织带，电子部件不浸水。回家后用微湿布擦拭晾干；水碗单独清洗，定位与灯光仅为辅助，仍需牵引和看护。</p>",
+        "en": "<p>A 500mL, 13cm bowl made from food-contact silicone, with volume marks every 100mL.</p><p>For daily walks; the clip attaches to a bag only. Stand on level ground, wash and dry after use, and avoid boiling water or long-term storage.</p><p>Check charge, fittings and webbing before trips. Keep electronics out of water; wipe and dry afterwards. Wash bowls separately. Tracking and lighting are aids; use suitable restraints and supervision.</p>"
+      },
+      "weight": "0.10",
+      "subtitle": {
+        "zh-CN": "一眼看水量，散步补水更方便",
+        "en": "Visible volume marks make water breaks easier"
+      },
+      "code": "travel-bowl-fold",
+      "brand": "mivqelo",
+      "sales": 0,
+      "price": "35.00",
+      "prices": {
+        "USD": "5.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "249.00",
+      "stock": 102,
+      "images": 4,
+      "category": "pet-scale",
+      "title": {
+        "zh-CN": "欧芙旭里 20kg 宠物体重平台秤",
+        "en": "Orvexuli 20kg Pet Platform Scale"
+      },
+      "description": {
+        "zh-CN": "<p>称量范围 0.2–20kg，显示分度 10g，平台 55×32cm；使用两节七号电池，需另购。</p><p>适合猫和中小型犬在家记录。固定同一时间和地面，站稳后读数；显示分度不代表每次测量的绝对误差。</p><p>电子主体用干软布擦拭，不浸水；可拆钢碗与防滑垫分别清洗晾干。长期不用时取出可拆电池，记录条件尽量一致，数值不作为诊断依据。</p>",
+        "en": "<p>Weighs 0.2–20kg in displayed increments of 10g on a 55 × 32cm platform. Uses two AAA batteries, sold separately.</p><p>For home logs for cats and small to medium dogs. Use the same time and floor surface and wait for a steady stance. Display resolution is not a guarantee of absolute accuracy.</p><p>Wipe electronics with a dry cloth and keep out of water. Wash removable bowls and mats separately. Remove replaceable batteries for storage. Keep recording conditions consistent; readings are not diagnostic.</p>"
+      },
+      "weight": "1.85",
+      "subtitle": {
+        "zh-CN": "记录体重变化，从每次站稳开始",
+        "en": "Track weight trends one steady reading at a time"
+      },
+      "code": "pet-scale-platform",
+      "brand": "orvexuli",
+      "sales": 6800,
+      "price": "199.00",
+      "prices": {
+        "USD": "30.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "111.00",
+      "stock": 163,
+      "images": 5,
+      "category": "pet-scale",
+      "title": {
+        "zh-CN": "塔柯维诺 食物称量智能碗秤",
+        "en": "Talquveno Food Portion Bowl Scale"
+      },
+      "description": {
+        "zh-CN": "<p>范围 1–2000g，显示分度 1g，含 800mL 可拆钢碗；支持去皮和克、盎司切换。</p><p>适合称量干粮和湿粮。以包装建议与实际情况确定分量，秤只记录重量，不提供饮食诊断。</p><p>电子主体用干软布擦拭，不浸水；可拆钢碗与防滑垫分别清洗晾干。长期不用时取出可拆电池，记录条件尽量一致，数值不作为诊断依据。</p>",
+        "en": "<p>Measures 1–2000g in 1g displayed increments, with a removable 800mL steel bowl. Includes tare and gram/ounce modes.</p><p>For dry and wet food. Choose portions using the food label and your pet's needs. The scale records weight and does not provide dietary diagnoses.</p><p>Wipe electronics with a dry cloth and keep out of water. Wash removable bowls and mats separately. Remove replaceable batteries for storage. Keep recording conditions consistent; readings are not diagnostic.</p>"
+      },
+      "weight": "0.42",
+      "subtitle": {
+        "zh-CN": "先称再喂，每顿分量看得见",
+        "en": "Weigh meals before serving"
+      },
+      "code": "pet-scale-bowl",
+      "brand": "talquveno",
+      "sales": 350,
+      "price": "89.00",
+      "prices": {
+        "USD": "13.99"
+      },
+      "unit": "件"
+    },
+    {
+      "brand": "velqimora",
+      "description": {
+        "zh-CN": "<p>重 12g，电池 90mAh，记录活动与静止时段，通过蓝牙同步近 7 天记录，5V 充电。</p><p>适合体重 3kg 以上猫犬日常观察。数据是运动估计，不能识别疾病；佩戴后出现抓挠或不适时取下。</p><p>电子主体用干软布擦拭，不浸水；可拆钢碗与防滑垫分别清洗晾干。长期不用时取出可拆电池，记录条件尽量一致，数值不作为诊断依据。</p>",
+        "en": "<p>A 12g tag with a 90mAh battery records active and still periods. Sync up to seven days of history over Bluetooth. Charges at 5V.</p><p>For everyday observation of cats and dogs over 3kg. Readings estimate movement and cannot detect illness. Remove if your pet scratches at it or seems uncomfortable.</p><p>Wipe electronics with a dry cloth and keep out of water. Wash removable bowls and mats separately. Remove replaceable batteries for storage. Keep recording conditions consistent; readings are not diagnostic.</p>"
+      },
+      "title": {
+        "zh-CN": "维奇茉拉 轻量活动记录挂件",
+        "en": "Velqimora Lightweight Activity Logger"
+      },
+      "category": "activity-monitor",
+      "subtitle": {
+        "zh-CN": "看看活动时段，让陪玩安排有依据",
+        "en": "Use daily activity patterns to plan playtime"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "0.04",
+          "values": [
+            "cream"
+          ],
+          "stock": 184,
+          "price": "159.00",
+          "market_price": "194.00",
+          "prices": {
+            "USD": "24.99"
+          }
+        },
+        {
+          "weight": "0.04",
+          "values": [
+            "slate"
+          ],
+          "stock": 46,
+          "price": "159.00",
+          "market_price": "194.00",
+          "prices": {
+            "USD": "24.99"
+          }
+        }
+      ],
+      "sales": 2340,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "cream",
+              "name": {
+                "zh-CN": "奶油白",
+                "en": "Cream"
+              }
+            },
+            {
+              "key": "slate",
+              "name": {
+                "zh-CN": "岩灰",
+                "en": "Slate"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          }
+        }
+      ],
+      "code": "activity-tag-lite",
+      "images": 3
+    },
+    {
+      "market_price": "336.00",
+      "stock": 285,
+      "images": 4,
+      "category": "activity-monitor",
+      "title": {
+        "zh-CN": "绮芙洛米 长续航活动记录项圈",
+        "en": "Qevlumi Extended-Battery Activity Collar"
+      },
+      "description": {
+        "zh-CN": "<p>电池 300mAh，每天同步一次时估算续航约 14 天；记录活动分钟数与休息时段，项圈可调 25–45cm。</p><p>适合颈围在调节范围内的犬只，防泼溅但不用于游泳。步态影响统计，只供生活记录，异常行为需专业评估。</p><p>电子主体用干软布擦拭，不浸水；可拆钢碗与防滑垫分别清洗晾干。长期不用时取出可拆电池，记录条件尽量一致，数值不作为诊断依据。</p>",
+        "en": "<p>A 300mAh battery lasts about 14 days with one daily sync. Logs active minutes and rest periods; collar adjusts from 25–45cm.</p><p>For dogs within the collar's fit range. Splash resistant, but not for swimming. Gait affects estimates; use for routine logs and seek professional assessment for unusual behavior.</p><p>Wipe electronics with a dry cloth and keep out of water. Wash removable bowls and mats separately. Remove replaceable batteries for storage. Keep recording conditions consistent; readings are not diagnostic.</p>"
+      },
+      "weight": "0.09",
+      "subtitle": {
+        "zh-CN": "一周活动趋势，方便调整散步节奏",
+        "en": "Weekly activity trends help shape a walking routine"
+      },
+      "code": "activity-tag-plus",
+      "brand": "qevlumi",
+      "sales": 62,
+      "price": "269.00",
+      "prices": {
+        "USD": "41.99"
+      },
+      "unit": "件"
+    },
+    {
+      "brand": "nuvrilo",
+      "description": {
+        "zh-CN": "<p>55×32cm、厚 2mm，适配 20kg 宠物体重平台秤，含一张纹理防滑垫。</p><p>铺好后先空秤归零，卷边时重新展开。不能增加秤的承重范围，保持垫面干燥后再称量。</p><p>电子主体用干软布擦拭，不浸水；可拆钢碗与防滑垫分别清洗晾干。长期不用时取出可拆电池，记录条件尽量一致，数值不作为诊断依据。</p>",
+        "en": "<p>One textured mat measuring 55 × 32cm and 2mm thick, sized for the 20kg pet platform scale.</p><p>Zero the empty scale after fitting and flatten curled edges. The mat does not increase capacity. Dry it before weighing.</p><p>Wipe electronics with a dry cloth and keep out of water. Wash removable bowls and mats separately. Remove replaceable batteries for storage. Keep recording conditions consistent; readings are not diagnostic.</p>"
+      },
+      "title": {
+        "zh-CN": "暖芙里洛 平台秤防滑替换垫",
+        "en": "Nuvrilo Replacement Grip Mat for Platform Scale"
+      },
+      "category": "health-parts",
+      "subtitle": {
+        "zh-CN": "站得更稳，称量少点打滑",
+        "en": "A steadier surface for weigh-ins"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "0.15",
+          "values": [
+            "cream"
+          ],
+          "stock": 57,
+          "price": "29.00",
+          "market_price": "49.00",
+          "prices": {
+            "USD": "4.99"
+          }
+        },
+        {
+          "weight": "0.15",
+          "values": [
+            "slate"
+          ],
+          "stock": 140,
+          "price": "29.00",
+          "market_price": "49.00",
+          "prices": {
+            "USD": "4.99"
+          }
+        }
+      ],
+      "sales": 1410,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "cream",
+              "name": {
+                "zh-CN": "奶油白",
+                "en": "Cream"
+              }
+            },
+            {
+              "key": "slate",
+              "name": {
+                "zh-CN": "岩灰",
+                "en": "Slate"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          }
+        }
+      ],
+      "code": "scale-grip-mat",
+      "images": 5
+    },
+    {
+      "market_price": "49.00",
+      "stock": 407,
+      "images": 3,
+      "category": "health-parts",
+      "title": {
+        "zh-CN": "泽柯珞拉 活动挂件替换固定带",
+        "en": "Zelqora Replacement Straps for Activity Logger"
+      },
+      "description": {
+        "zh-CN": "<p>含 2 条硅胶固定带，适配轻量活动记录挂件，穿带宽度 10–20mm，不含记录器。</p><p>用于固定挂件而非独立牵引。留出适当间隙，每周检查卡扣和接触处，发现磨损及时替换。</p><p>电子主体用干软布擦拭，不浸水；可拆钢碗与防滑垫分别清洗晾干。长期不用时取出可拆电池，记录条件尽量一致，数值不作为诊断依据。</p>",
+        "en": "<p>Two silicone straps for the lightweight activity logger, fitting collar widths of 10–20mm. Logger not included.</p><p>Secures the logger and is not a leash attachment. Leave comfortable clearance and check clasps and contact areas weekly. Replace worn straps.</p><p>Wipe electronics with a dry cloth and keep out of water. Wash removable bowls and mats separately. Remove replaceable batteries for storage. Keep recording conditions consistent; readings are not diagnostic.</p>"
+      },
+      "weight": "0.05",
+      "subtitle": {
+        "zh-CN": "柔软固定带，日常佩戴好打理",
+        "en": "Soft straps that are easy to keep clean"
+      },
+      "code": "activity-strap-kit",
+      "brand": "zelqora",
+      "sales": 4880,
+      "price": "39.00",
+      "prices": {
+        "USD": "6.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "374.00",
+      "stock": 468,
+      "images": 4,
+      "category": "heated-bed",
+      "title": {
+        "zh-CN": "米芙奇洛 低压恒温圆形宠物窝",
+        "en": "Mivqelo Low-Voltage Heated Round Bed"
+      },
+      "description": {
+        "zh-CN": "<p>外径 50cm，24V 加热，表面目标温度可选 30、35、38°C；配 2 小时和 6 小时定时，额定 20W。</p><p>适合能自行离窝的成年猫或小型犬。温度受室温和覆盖物影响，不叠厚毯，不用于行动受限宠物的无人看护场景。</p><p>清洁前拔电，布套与电子部件分开处理，完全干燥再通电。每次检查线材、接口和垫面，观察宠物是否愿意使用，破损或异常发热时停用。</p>",
+        "en": "<p>A 50cm bed uses 24V, 20W heating with surface targets of 30, 35 or 38°C and two- or six-hour timers.</p><p>For adult cats and small dogs that can leave on their own. Room temperature and coverings affect warmth. Avoid thick blankets and unattended use with pets of limited mobility.</p><p>Unplug before cleaning and separate fabric from electronics. Reconnect only when dry. Inspect cables, connections and surfaces each time; check comfort and stop for damage or unusual heat.</p>"
+      },
+      "weight": "1.40",
+      "subtitle": {
+        "zh-CN": "冬日窝里，给它一处温暖落脚点",
+        "en": "A warm resting spot for chilly days"
+      },
+      "code": "heated-bed-round",
+      "brand": "mivqelo",
+      "sales": 370,
+      "price": "299.00",
+      "prices": {
+        "USD": "45.99"
+      },
+      "unit": "件"
+    },
+    {
+      "brand": "orvexuli",
+      "description": {
+        "zh-CN": "<p>尺寸可选 45×35cm 或 60×45cm；24V 供电，三档目标温度 30–38°C，提供 4 小时定时。</p><p>放在通风休息区，旁边保留不加热区域供宠物选择。电线套保护管，若持续啃咬则停用。</p><p>清洁前拔电，布套与电子部件分开处理，完全干燥再通电。每次检查线材、接口和垫面，观察宠物是否愿意使用，破损或异常发热时停用。</p>",
+        "en": "<p>Choose 45 × 35cm or 60 × 45cm. Runs on 24V with three targets from 30–38°C and a four-hour timer.</p><p>Use in a ventilated resting area and leave an unheated space nearby for choice. A cable sleeve adds protection; stop use if chewing persists.</p><p>Unplug before cleaning and separate fabric from electronics. Reconnect only when dry. Inspect cables, connections and surfaces each time; check comfort and stop for damage or unusual heat.</p>"
+      },
+      "title": {
+        "zh-CN": "欧芙旭里 可调温平铺宠物垫",
+        "en": "Orvexuli Adjustable Heated Pet Mat"
+      },
+      "category": "heated-bed",
+      "subtitle": {
+        "zh-CN": "平铺好收纳，冷天休息更舒适",
+        "en": "Easy-to-store warmth for colder days"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "0.85",
+          "values": [
+            "small"
+          ],
+          "stock": 198,
+          "price": "189.00",
+          "market_price": "231.00",
+          "prices": {
+            "USD": "29.99"
+          }
+        },
+        {
+          "weight": "0.85",
+          "values": [
+            "large"
+          ],
+          "stock": 60,
+          "price": "249.00",
+          "market_price": "304.00",
+          "prices": {
+            "USD": "38.99"
+          }
+        }
+      ],
+      "sales": 250,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "small",
+              "name": {
+                "zh-CN": "45×35cm",
+                "en": "45 × 35cm"
+              }
+            },
+            {
+              "key": "large",
+              "name": {
+                "zh-CN": "60×45cm",
+                "en": "60 × 45cm"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "尺寸",
+            "en": "Size"
+          }
+        }
+      ],
+      "code": "heated-mat-flat",
+      "images": 5
+    },
+    {
+      "market_price": "286.00",
+      "stock": 109,
+      "images": 3,
+      "category": "cooling-mat",
+      "title": {
+        "zh-CN": "塔柯维诺 循环风冷宠物休息垫",
+        "en": "Talquveno Fan-Circulated Rest Mat"
+      },
+      "description": {
+        "zh-CN": "<p>尺寸 60×45cm，双风扇 5V 供电，额定 6W，两档风速；网面与底座可拆分。</p><p>适合阴凉室内，风冷只改善流通，不能低于室温。高温时配合室内降温，水碗远离接口。</p><p>清洁前拔电，布套与电子部件分开处理，完全干燥再通电。每次检查线材、接口和垫面，观察宠物是否愿意使用，破损或异常发热时停用。</p>",
+        "en": "<p>A 60 × 45cm mat uses two 5V fans rated at 6W total, with two speeds. The mesh lifts off the base.</p><p>For shaded indoor areas. Airflow cannot cool below room temperature; use room cooling in hot conditions and keep bowls away from connections.</p><p>Unplug before cleaning and separate fabric from electronics. Reconnect only when dry. Inspect cables, connections and surfaces each time; check comfort and stop for damage or unusual heat.</p>"
+      },
+      "weight": "1.10",
+      "subtitle": {
+        "zh-CN": "网面透气，夏日休息少些闷热",
+        "en": "A breathable mesh surface for warm-weather rest"
+      },
+      "code": "cooling-mat-air",
+      "brand": "talquveno",
+      "sales": 98,
+      "price": "229.00",
+      "prices": {
+        "USD": "35.99"
+      },
+      "unit": "件"
+    },
+    {
+      "brand": "velqimora",
+      "description": {
+        "zh-CN": "<p>温度显示 0–50°C，湿度 20–95%RH；每 60 秒更新，蓝牙同步，使用两节七号电池，需另购。</p><p>放在窝附近 0.5–1m 高处，避开直吹、阳光和水汽。提醒阈值可调，不会自动控制空调或提供健康判断。</p><p>清洁前拔电，布套与电子部件分开处理，完全干燥再通电。每次检查线材、接口和垫面，观察宠物是否愿意使用，破损或异常发热时停用。</p>",
+        "en": "<p>Displays 0–50°C and 20–95% RH, updating every 60 seconds. Syncs via Bluetooth and uses two AAA batteries, sold separately.</p><p>Place 0.5–1m above the floor near the bed, away from direct airflow, sunlight and steam. Adjustable alerts do not control cooling equipment or assess health.</p><p>Unplug before cleaning and separate fabric from electronics. Reconnect only when dry. Inspect cables, connections and surfaces each time; check comfort and stop for damage or unusual heat.</p>"
+      },
+      "title": {
+        "zh-CN": "维奇茉拉 宠物房温湿度提醒器",
+        "en": "Velqimora Pet Room Temperature and Humidity Sensor"
+      },
+      "category": "cooling-mat",
+      "subtitle": {
+        "zh-CN": "查看房间变化，照顾窝边的环境",
+        "en": "Keep an eye on conditions around the resting area"
+      },
+      "unit": "件",
+      "skus": [
+        {
+          "weight": "0.12",
+          "values": [
+            "cream"
+          ],
+          "stock": 71,
+          "price": "99.00",
+          "market_price": "121.00",
+          "prices": {
+            "USD": "15.99"
+          }
+        },
+        {
+          "weight": "0.12",
+          "values": [
+            "slate"
+          ],
+          "stock": 154,
+          "price": "99.00",
+          "market_price": "121.00",
+          "prices": {
+            "USD": "15.99"
+          }
+        }
+      ],
+      "sales": 710,
+      "specs": [
+        {
+          "values": [
+            {
+              "key": "cream",
+              "name": {
+                "zh-CN": "奶油白",
+                "en": "Cream"
+              }
+            },
+            {
+              "key": "slate",
+              "name": {
+                "zh-CN": "岩灰",
+                "en": "Slate"
+              }
+            }
+          ],
+          "name": {
+            "zh-CN": "颜色",
+            "en": "Color"
+          }
+        }
+      ],
+      "code": "room-sensor-pet",
+      "images": 4
+    },
+    {
+      "market_price": "74.00",
+      "stock": 231,
+      "images": 5,
+      "category": "bed-parts",
+      "title": {
+        "zh-CN": "绮芙洛米 恒温圆窝替换布套",
+        "en": "Qevlumi Replacement Cover for Heated Round Bed"
+      },
+      "description": {
+        "zh-CN": "<p>适配外径 50cm 低压恒温圆形宠物窝，含一件拉链聚酯纤维布套，不含加热部件。</p><p>换套前断电取出加热部件，30°C 以下轻柔清洗。完全晾干再装回，不包裹其他型号加热垫。</p><p>清洁前拔电，布套与电子部件分开处理，完全干燥再通电。每次检查线材、接口和垫面，观察宠物是否愿意使用，破损或异常发热时停用。</p>",
+        "en": "<p>One zippered polyester cover for the 50cm low-voltage heated round bed. Heating parts not included.</p><p>Unplug and remove heating parts before changing. Wash gently below 30°C and dry fully before refitting. Do not use around other heating-pad models.</p><p>Unplug before cleaning and separate fabric from electronics. Reconnect only when dry. Inspect cables, connections and surfaces each time; check comfort and stop for damage or unusual heat.</p>"
+      },
+      "weight": "0.30",
+      "subtitle": {
+        "zh-CN": "备用布套，换洗时窝也不闲着",
+        "en": "A spare cover keeps the resting spot ready"
+      },
+      "code": "bed-cover-round",
+      "brand": "qevlumi",
+      "sales": 41,
+      "price": "59.00",
+      "prices": {
+        "USD": "9.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "45.00",
+      "stock": 292,
+      "images": 3,
+      "category": "bed-parts",
+      "title": {
+        "zh-CN": "暖芙里洛 窝垫电线柔性保护套",
+        "en": "Nuvrilo Flexible Cable Sleeve for Pet Beds"
+      },
+      "description": {
+        "zh-CN": "<p>套长 1.5m，内径 8mm，开口式柔性套管；适配本系列直径 6mm 以下供电线。</p><p>减少线材裸露但不保证防咬。留出插头散热空间，每次检查线皮，破损时停止设备使用。</p><p>清洁前拔电，布套与电子部件分开处理，完全干燥再通电。每次检查线材、接口和垫面，观察宠物是否愿意使用，破损或异常发热时停用。</p>",
+        "en": "<p>An openable flexible sleeve, 1.5m long with an 8mm inner diameter, for leads up to 6mm in this bed range.</p><p>Reduces exposed cable length but is not chew-proof. Leave ventilation around plugs and inspect insulation before use. Stop using damaged devices.</p><p>Unplug before cleaning and separate fabric from electronics. Reconnect only when dry. Inspect cables, connections and surfaces each time; check comfort and stop for damage or unusual heat.</p>"
+      },
+      "weight": "0.10",
+      "subtitle": {
+        "zh-CN": "整理窝边线材，减少裸露线段",
+        "en": "Keep bed cables neatly covered"
+      },
+      "code": "bed-cable-sleeve",
+      "brand": "nuvrilo",
+      "sales": 1920,
+      "price": "35.00",
+      "prices": {
+        "USD": "5.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "211.00",
+      "stock": 353,
+      "images": 4,
+      "category": "feeder",
+      "title": {
+        "zh-CN": "泽柯珞拉 双格定时湿粮餐盘",
+        "en": "Zelqora Two-Compartment Timed Wet-Food Tray"
+      },
+      "description": {
+        "zh-CN": "<p>双格各 300mL，机械定时最长 24 小时，含两块冰袋；两节五号电池驱动开盖，电池需另购。</p><p>适合主人在家观察下的短时分餐，冰袋只能延缓升温，不能保证长时保鲜。依粮食包装和室温缩短放置时间，剩余湿粮及时丢弃。</p><p>每周拆洗粮碗或水盆并晾干；滤芯按型号和使用频率更换。电机、供电底座和插头不可浸水，重新装配后先检查，再交给宠物使用。</p>",
+        "en": "<p>Two 300mL compartments have timers up to 24 hours and include two ice packs. Lid motors use two AA batteries, sold separately.</p><p>For short meal intervals with supervision at home. Ice packs slow warming but do not guarantee extended freshness. Follow food storage guidance and room conditions, and discard leftovers promptly.</p><p>Wash removable bowls or reservoirs weekly and dry thoroughly. Replace filters for the model and usage level. Never immerse motors, powered bases or plugs; check reassembly before pet use.</p>"
+      },
+      "weight": "0.78",
+      "subtitle": {
+        "zh-CN": "按时打开餐盖，湿粮分餐更方便",
+        "en": "Timed lids make wet-food portions easier to serve"
+      },
+      "code": "feeder-wet-timer",
+      "brand": "zelqora",
+      "sales": 520,
+      "price": "169.00",
+      "prices": {
+        "USD": "26.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "56.00",
+      "stock": 414,
+      "images": 5,
+      "category": "cleaning-parts",
+      "title": {
+        "zh-CN": "米芙奇洛 猫砂盆维护铲刷套装",
+        "en": "Mivqelo Litter Box Scoop and Brush Set"
+      },
+      "description": {
+        "zh-CN": "<p>含一把 28cm 长砂铲和一把 18cm 长软毛刷，砂铲筛孔 5mm；不含猫砂和电子部件。</p><p>适合补充手动铲砂和清理可拆砂盘角落。设备先断电，刷子不伸入电机与传动部位，处理后用温和清洁剂洗净晾干。</p><p>处理污物前断电，戴手套清洁可拆部件并晾干；电子底座只擦拭。清理感应窗口积尘，耗材按兼容型号使用，换袋后检查固定状态。</p>",
+        "en": "<p>Includes a 28cm scoop with 5mm slots and an 18cm soft brush. Litter and electronics are not included.</p><p>For manual scooping and cleaning corners of removable trays. Unplug first and keep the brush out of motors and drives. Wash with mild detergent and dry after use.</p><p>Unplug before handling waste. Wear gloves to clean removable parts and dry fully; wipe powered bases only. Keep sensors clear, match supplies to compatible models and check liner fittings.</p>"
+      },
+      "weight": "0.22",
+      "subtitle": {
+        "zh-CN": "手动清理工具，角落也好打理",
+        "en": "Manual tools for everyday cleanup and awkward corners"
+      },
+      "code": "litter-scoop-set",
+      "brand": "mivqelo",
+      "sales": 74,
+      "price": "45.00",
+      "prices": {
+        "USD": "7.99"
+      },
+      "unit": "件"
+    },
+    {
+      "market_price": "186.00",
+      "stock": 475,
+      "images": 3,
+      "category": "pet-scale",
+      "title": {
+        "zh-CN": "欧芙旭里 5kg 小宠托盘电子秤",
+        "en": "Orvexuli 5kg Small-Pet Cradle Scale"
+      },
+      "description": {
+        "zh-CN": "<p>称量范围 50g–5kg，显示分度 1g，托盘 40×25cm，带读数保持与去皮功能；两节七号电池需另购。</p><p>适合小体型猫犬短时称量，主人全程在旁，托盘不是固定约束。铺薄巾后先去皮，宠物活动时多测几次，不将保持读数视为准确保证。</p><p>电子主体用干软布擦拭，不浸水；可拆钢碗与防滑垫分别清洗晾干。长期不用时取出可拆电池，记录条件尽量一致，数值不作为诊断依据。</p>",
+        "en": "<p>Measures 50g–5kg with 1g display increments on a 40 × 25cm tray. Includes hold and tare functions; two AAA batteries are sold separately.</p><p>For brief weigh-ins of smaller cats and dogs with constant supervision; the tray is not a restraint. Tare after adding a thin towel and repeat readings if the pet moves. Hold mode does not guarantee accuracy.</p><p>Wipe electronics with a dry cloth and keep out of water. Wash removable bowls and mats separately. Remove replaceable batteries for storage. Keep recording conditions consistent; readings are not diagnostic.</p>"
+      },
+      "weight": "0.95",
+      "subtitle": {
+        "zh-CN": "浅弧托盘，记录小体型宠物的体重",
+        "en": "A shallow cradle for weighing smaller pets"
+      },
+      "code": "pet-scale-cradle",
+      "brand": "orvexuli",
+      "sales": 3200,
+      "price": "149.00",
+      "prices": {
+        "USD": "23.99"
+      },
+      "unit": "件"
     }
   ],
   "article_categories": [
-    { "code": "guides", "type": "article", "name": { "zh-CN": "养宠指南", "en": "Pet Care Guides" } },
-    { "code": "device-help", "type": "help", "name": { "zh-CN": "设备使用", "en": "Using Your Device" } }
+    {
+      "type": "article",
+      "name": {
+        "zh-CN": "选购指南",
+        "en": "Buying Guides"
+      },
+      "code": "buying"
+    },
+    {
+      "type": "article",
+      "name": {
+        "zh-CN": "日常养宠",
+        "en": "Everyday Pet Care"
+      },
+      "code": "care-guide"
+    },
+    {
+      "type": "help",
+      "name": {
+        "zh-CN": "连接与使用",
+        "en": "Setup and Use"
+      },
+      "code": "device-help"
+    },
+    {
+      "type": "help",
+      "name": {
+        "zh-CN": "清洁与保养",
+        "en": "Cleaning and Maintenance"
+      },
+      "code": "maintenance"
+    },
+    {
+      "type": "help",
+      "name": {
+        "zh-CN": "订单与售后",
+        "en": "Orders and Support"
+      },
+      "code": "service"
+    }
   ],
   "articles": [
     {
-      "code": "choose-feeder",
-      "type": "article",
-      "category": "guides",
-      "title": { "zh-CN": "自动喂食器怎么选？看这四点就够了", "en": "How to Choose an Automatic Feeder: Four Things That Matter" },
-      "summary": { "zh-CN": "粮桶容量、出粮精度、防卡粮和断电保护。", "en": "Hopper size, portion accuracy, anti-jam design and power backup." },
-      "content": {
-        "zh-CN": "<p>挑喂食器先看家里几只宠物、每次出门多久。</p><h3>一、粮桶容量</h3><p>单猫家庭 3–5L 足够。</p><h3>二、出粮精度</h3><p>每份克数越小越好控制体重。</p>",
-        "en": "<p>Start with how many pets you have and how long you are usually away.</p><h3>1. Hopper size</h3><p>3–5L is plenty for a single cat.</p><h3>2. Portion accuracy</h3><p>Smaller portions make weight control easier.</p>"
+      "title": {
+        "zh-CN": "自动喂食器怎么选：先看粮粒，再看餐次",
+        "en": "Choosing a Feeder: Kibble First, Schedule Second"
       },
-      "author": "PawLink",
-      "is_top": true
+      "is_top": true,
+      "content": {
+        "zh-CN": "<p>量常用干粮直径，核对设备支持范围。湿粮、黏性零食和过长粮粒不放入干粮喂食器。</p><p>容量影响补粮频率，不代表可以长期不照看宠物。用食物秤称连续 10 份出粮，按实际平均克数计算每餐份数。</p><p>远程款检查 2.4GHz 网络，备用电池核对型号。上班前在家试运行一整天，观察出粮和宠物适应情况。</p>",
+        "en": "<p>Measure your usual kibble and check compatibility. Wet food, sticky treats and oversized pieces do not belong in a dry-food feeder.</p><p>Capacity changes refill frequency, not how long pets can be left alone. Weigh ten servings and use their average to set meal portions.</p><p>Check 2.4GHz coverage for connected models and the correct backup batteries. Run a full-day trial at home before relying on workday schedules.</p>"
+      },
+      "category": "buying",
+      "type": "article",
+      "summary": {
+        "zh-CN": "核对粮型、份量与备用供电，再决定容量。",
+        "en": "Check kibble, portions and backup power before capacity."
+      },
+      "code": "choose-feeder",
+      "author": "商城编辑组"
     },
     {
-      "code": "holiday-shipping",
+      "title": {
+        "zh-CN": "智能猫砂盆选购：入口和砂型同样重要",
+        "en": "Choosing a Litter Box: Size and Litter Matter"
+      },
+      "content": {
+        "zh-CN": "<p>核对入口直径、内舱空间与体重范围，确保宠物能自然转身。幼猫和范围外的猫不启用自动清理。</p><p>旋转筛砂和平耙结构的适用砂型不同。按刻度加砂，过量或不兼容猫砂可能阻碍机构运动。</p><p>保留旧盆过渡，新设备先用手动模式。主人观察数次进出，适应后再启用离盆延时清理。</p>",
+        "en": "<p>Check entry size, internal room and weight range for comfortable turning. Disable automatic cycles for kittens and cats outside the stated range.</p><p>Drum and rake systems accept different litter. Fill to the mark; excess or incompatible litter can obstruct movement.</p><p>Keep the old box during transition and begin in manual mode. Watch several visits before enabling delayed automatic cleaning.</p>"
+      },
+      "category": "buying",
+      "type": "article",
+      "summary": {
+        "zh-CN": "量好体型，核对猫砂，再看清理结构。",
+        "en": "Measure your cat and check litter before comparing mechanisms."
+      },
+      "code": "choose-litter",
+      "author": "商城编辑组"
+    },
+    {
+      "title": {
+        "zh-CN": "定位挂件怎么选：近距寻找还是户外记录",
+        "en": "Choosing a Tracker: Nearby Finding or Outdoor History"
+      },
+      "content": {
+        "zh-CN": "<p>蓝牙挂件适合室内找项圈，超出范围无法持续定位。卫星定位挂件需要卫星接收和移动网络回传。</p><p>核对重量、项圈宽度和最低适用体重。佩戴后留两指间隙，观察是否碰碗或引起抓挠。</p><p>比较后续流量费用与充电频率，出门前检查电量。建筑密集处误差可能增大，定位器不保证找回，牵引与看护仍是基础。</p>",
+        "en": "<p>Bluetooth tags find collars nearby but stop updating out of range. Satellite trackers need satellite reception and a mobile network.</p><p>Check weight, collar width and minimum pet size. Leave a two-finger gap and watch for bowl contact or scratching.</p><p>Compare data costs and charging needs. Check charge before leaving. Buildings can reduce accuracy; recovery is not guaranteed, so leashes and supervision remain essential.</p>"
+      },
+      "category": "buying",
+      "type": "article",
+      "summary": {
+        "zh-CN": "连接范围、后续费用与佩戴重量都要考虑。",
+        "en": "Consider range, ongoing costs and wearable weight."
+      },
+      "code": "choose-tracker",
+      "author": "商城编辑组"
+    },
+    {
+      "title": {
+        "zh-CN": "饮水机用了，换水和刷洗也别省",
+        "en": "A Fountain Still Needs Fresh Water and Cleaning"
+      },
+      "content": {
+        "zh-CN": "<p>每天检查水量、毛发和食物碎屑，换入新鲜饮水。多宠家庭增加独立水碗，不让全部宠物依赖同一个设备。</p><p>每周断电拆洗水盆、出水口和可拆泵盖，用软刷清理沉积。带电底座与插头不可浸水。</p><p>滤芯先冲洗浸泡，按水质与使用频率更换。流量变小先查水位、毛发和泵内沉积，装回前确认部件干燥。</p>",
+        "en": "<p>Check level, hair and food debris daily and refresh with drinking water. Add separate bowls in multi-pet homes so one device is not the only source.</p><p>Unplug weekly and wash the reservoir, outlet and removable pump cover. Brush away deposits and keep powered bases and plugs out of water.</p><p>Rinse and soak new filters and replace according to water quality and use. Check level, hair and pump deposits for reduced flow; dry parts before reassembly.</p>"
+      },
+      "category": "care-guide",
+      "type": "article",
+      "summary": {
+        "zh-CN": "循环水也需要固定的清洁安排。",
+        "en": "Moving water needs a regular cleaning routine too."
+      },
+      "code": "fountain-care",
+      "author": "商城编辑组"
+    },
+    {
+      "title": {
+        "zh-CN": "室内互动玩具：短一点，陪着玩",
+        "en": "Indoor Toys: Short, Supervised Sessions"
+      },
+      "content": {
+        "zh-CN": "<p>首次使用先关闭电源，让宠物闻一闻，再开慢速。收好电线、小物件和易倒摆件，避开楼梯。</p><p>每轮玩 5–10 分钟，观察是否主动追逐。躲藏或紧张时停止，留出离开游戏区的路线。</p><p>结束后收起羽毛、绳线与小配件，检查外壳咬痕。自动玩具只是互动的一部分，仍需要主人陪玩和稳定休息。</p>",
+        "en": "<p>Introduce with power off, then start slowly. Clear cables, small objects and unstable decorations, and avoid stairs.</p><p>Try five- to ten-minute sessions and watch for willing engagement. Stop for hiding or distress and leave a clear way out.</p><p>Put away feathers, cords and small parts afterwards and check bite damage. Powered toys are one part of enrichment; pets still need people and predictable rest.</p>"
+      },
+      "category": "care-guide",
+      "type": "article",
+      "summary": {
+        "zh-CN": "把自动玩具加入陪玩，跟着宠物自己的节奏。",
+        "en": "Include powered toys in playtime and follow your pet's pace."
+      },
+      "code": "indoor-play",
+      "author": "商城编辑组"
+    },
+    {
+      "title": {
+        "zh-CN": "恒温窝垫怎么摆：给宠物留出选择",
+        "en": "Setting Up Heated Beds: Leave Room to Choose"
+      },
+      "content": {
+        "zh-CN": "<p>核对电压、尺寸与定时功能，放在干燥通风处。沿墙整理线材，不压在家具脚下，避免啃咬。</p><p>从低档开始，旁边留不加热区域。不叠厚毯，实际温度受室温与覆盖物影响，使用时定期查看。</p><p>无法自行离窝的宠物需特别看护，不安排无人值守加热。洗布套前拔电并取出加热部件，彻底晾干再装回。</p>",
+        "en": "<p>Check voltage, size and timer settings. Place in a dry, ventilated area and route cables away from furniture legs and chewing.</p><p>Start low and leave an unheated space nearby. Avoid thick blankets; ambient conditions and coverings affect temperature, so check regularly.</p><p>Pets unable to leave need close supervision and no unattended heating. Unplug and remove heating parts before washing covers; dry fully before refitting.</p>"
+      },
+      "category": "care-guide",
+      "type": "article",
+      "summary": {
+        "zh-CN": "温暖区域旁也留一处普通休息位。",
+        "en": "Keep an unheated resting spot beside the warm one."
+      },
+      "code": "warm-bed-guide",
+      "author": "商城编辑组"
+    },
+    {
       "type": "notice",
-      "title": { "zh-CN": "节假日发货安排", "en": "Holiday Shipping Schedule" },
+      "code": "holiday-shipping",
+      "title": {
+        "zh-CN": "演示商城发货安排说明",
+        "en": "Demo Store Dispatch Information"
+      },
       "content": {
-        "zh-CN": "<p>节假日期间订单照常接收，节后按付款顺序发出。</p>",
-        "en": "<p>We keep taking orders during the holidays and ship them in payment order afterwards.</p>"
+        "zh-CN": "<p>本演示商城库存、销量和商品图用于展示购物流程。占位图不是实物照片，参数为演示设定。</p><p>订单页展示的时间供演示使用，不构成实际物流承诺。选择规格时请核对对应价格和库存。</p><p>维护和节假日安排调整会在公告区展示，这些演示安排不代表真实销售服务。</p>",
+        "en": "<p>Stock, sales and images illustrate the shopping flow. Placeholder images are not photographs; specifications are demo settings.</p><p>Times on order pages are illustrative, not delivery commitments. Check the selected variant's price and stock.</p><p>Maintenance and holiday changes appear in notices. These demo arrangements do not describe a real sales service.</p>"
+      },
+      "summary": {
+        "zh-CN": "订单状态与配送进度以商城页面展示为准。",
+        "en": "Refer to order pages for dispatch and delivery status."
       }
     },
     {
-      "code": "connect-wifi",
-      "type": "help",
-      "category": "device-help",
-      "title": { "zh-CN": "设备连不上 Wi-Fi 怎么办？", "en": "My device will not connect to Wi-Fi" },
+      "type": "notice",
+      "code": "new-collection",
+      "title": {
+        "zh-CN": "智能用品演示专区已更新",
+        "en": "Smart Pet Collection Demo Updated"
+      },
       "content": {
-        "zh-CN": "<p>设备只支持 2.4GHz 网络。请确认路由器开启了 2.4GHz，并让手机先连上它再配网。</p>",
-        "en": "<p>The device only works on 2.4GHz networks. Make sure your router has 2.4GHz enabled and connect your phone to it before pairing.</p>"
+        "zh-CN": "<p>本次专区包含六组商品分类，并补充常用耗材。分类页可查看用途，配件页注明兼容范围。</p><p>多规格商品选择颜色、容量或尺寸后查看价格。人民币和美元单独定价，切换币种以页面展示为准。</p><p>选购前可阅读指南，配网、保养与订单问题可查帮助中心。所有内容用于演示商城功能。</p>",
+        "en": "<p>The collection includes six product groups and everyday supplies. Browse uses by category and compatibility on accessory pages.</p><p>Select color, capacity or size to view variant pricing. CNY and USD have separate prices; check the display after switching currency.</p><p>Read guides before choosing and visit Help for setup, maintenance and orders. All content illustrates demo store features.</p>"
+      },
+      "summary": {
+        "zh-CN": "喂养、清洁、陪伴、出行、记录与窝垫一次看齐。",
+        "en": "Explore feeding, cleaning, play, travel, tracking and comfort."
       }
+    },
+    {
+      "title": {
+        "zh-CN": "设备连不上无线网络怎么办？",
+        "en": "Troubleshooting Wireless Setup"
+      },
+      "content": {
+        "zh-CN": "<p>联网喂食器与摄像头使用 2.4GHz 网络。手机先连接同一频段，确认网络可用，把设备放在路由器附近测试。</p><p>按设备说明进入配网模式，看到状态灯再操作。检查密码和本地网络权限，失败后退出配网重试。</p><p>合并频段可临时区分网络名称再配对。重置可能清除计划，操作前记下餐次与份量。</p>",
+        "en": "<p>Connected feeders and cameras use 2.4GHz. Connect your phone to that band, check internet access and test near the router.</p><p>Enter pairing mode as instructed and wait for the status light. Check password and local-network permissions, then restart pairing if needed.</p><p>Temporarily separate band names if necessary. Resetting may erase schedules; note meal times and portions first.</p>"
+      },
+      "category": "device-help",
+      "type": "help",
+      "summary": {
+        "zh-CN": "先核对频段，再检查配网状态。",
+        "en": "Check the band and pairing mode first."
+      },
+      "code": "connect-wifi"
+    },
+    {
+      "title": {
+        "zh-CN": "活动挂件和传感器如何同步？",
+        "en": "Syncing Activity Tags and Room Sensors"
+      },
+      "content": {
+        "zh-CN": "<p>确认设备有电，手机蓝牙开启，允许附近设备权限。首次绑定放在手机 1m 内。</p><p>选择对应型号绑定，进入记录页刷新。轻量挂件保存近 7 天记录，建议每天同步避免覆盖旧记录。</p><p>离开蓝牙范围不会持续上传。异常先检查电量和绑定，不反复重置，以免丢失未同步记录。</p>",
+        "en": "<p>Check power, enable Bluetooth and allow nearby-device access. Keep within 1m for first pairing.</p><p>Select the matching model and refresh records after pairing. The lightweight logger stores seven days; sync daily to avoid overwriting older entries.</p><p>No continuous upload occurs outside Bluetooth range. Check charge and pairing before resetting, as unsynced records may be lost.</p>"
+      },
+      "category": "device-help",
+      "type": "help",
+      "summary": {
+        "zh-CN": "近距离打开蓝牙，查看更新时间。",
+        "en": "Enable Bluetooth nearby and check the update time."
+      },
+      "code": "bluetooth-sync"
+    },
+    {
+      "title": {
+        "zh-CN": "首次使用怎么校准出粮份量？",
+        "en": "Calibrating Feeder Portions"
+      },
+      "content": {
+        "zh-CN": "<p>核对粮粒尺寸，清洗晾干粮桶和食碗。装少量干粮，手动出粮数次让通道填满。</p><p>称连续 10 份，计算平均克数，按包装建议和实际进食情况设置。更换粮型后重新校准。</p><p>先在家试运行，确认时间、出粮和备用供电。卡粮时断电清理，不触碰运行中的机构。</p>",
+        "en": "<p>Check kibble size and clean and dry the hopper and bowl. Add a little kibble and dispense several times to fill the chute.</p><p>Weigh ten portions and calculate the average. Set meals using the label and feeding routine. Recalibrate after changing kibble.</p><p>Test at home, including timing, portions and backup power. Unplug before clearing jams and never touch a moving mechanism.</p>"
+      },
+      "category": "device-help",
+      "type": "help",
+      "summary": {
+        "zh-CN": "用同一款粮称量，再设置餐次。",
+        "en": "Weigh your usual kibble before scheduling."
+      },
+      "code": "feeding-calibration"
+    },
+    {
+      "title": {
+        "zh-CN": "饮水机多久清洗，滤芯多久更换？",
+        "en": "Fountain Cleaning and Filter Changes"
+      },
+      "content": {
+        "zh-CN": "<p>每日检查水位并换水，及时清毛发。每周断电拆下水盆、出水组件和可拆泵盖，用软刷清洁。</p><p>滤芯通常每 2–4 周更换，多宠或水质较硬时提前。新滤芯冲洗并浸泡 5 分钟。</p><p>检查密封圈、水泵安装后加水通电。底座不浸水，不同型号尺寸不同，购买前核对兼容说明。</p>",
+        "en": "<p>Refresh daily and remove hair. Unplug weekly and brush the basin, outlet and removable pump cover.</p><p>Change filters every two to four weeks, sooner with multiple pets or hard water. Rinse and soak new filters for five minutes.</p><p>Check seals and pump seating before refilling and powering on. Keep bases dry and verify filter compatibility before buying.</p>"
+      },
+      "category": "maintenance",
+      "type": "help",
+      "summary": {
+        "zh-CN": "每天换水，每周拆洗，按使用情况换芯。",
+        "en": "Refresh daily, wash weekly and replace filters for your usage."
+      },
+      "code": "fountain-cleaning"
+    },
+    {
+      "title": {
+        "zh-CN": "猫砂盆清洁与集便袋更换步骤",
+        "en": "Cleaning a Litter Box and Changing Liners"
+      },
+      "content": {
+        "zh-CN": "<p>确认猫离开，暂停自动清理并断电。戴手套取袋扎紧，按当地生活垃圾要求处理。</p><p>按说明拆洗砂盘，用温和清洁剂洗净晾干。电子底座只擦拭，清理入口和感应窗口积尘。</p><p>固定新袋边，不遮传感区域，沿刻度加兼容猫砂。远离宠物手动运行一次，确认正常再开计划。</p>",
+        "en": "<p>Ensure the cat is away, pause cycles and unplug. Wear gloves, tie the removed liner and follow local waste rules.</p><p>Wash the removable tray with mild detergent and dry. Wipe the powered base only; clear dust from entry and sensors.</p><p>Secure new liner edges without covering sensors and fill compatible litter to the line. Test a manual cycle with pets clear before restoring schedules.</p>"
+      },
+      "category": "maintenance",
+      "type": "help",
+      "summary": {
+        "zh-CN": "先暂停断电，再拆洗换袋。",
+        "en": "Pause and unplug before cleaning."
+      },
+      "code": "litter-maintenance"
+    },
+    {
+      "title": {
+        "zh-CN": "加热窝垫清洗与收纳注意事项",
+        "en": "Cleaning and Storing Heated Beds"
+      },
+      "content": {
+        "zh-CN": "<p>断电降温后拆下布套和加热部件。只洗标明可洗的布套，加热片和适配器不入水。</p><p>30°C 以下轻柔清洗，避免漂白和高温烘干。拉链与接缝彻底晾干后安装。</p><p>平放或沿原折线轻折，勿压重物。再次使用检查线材，破损、焦味或异常发热时停用。</p>",
+        "en": "<p>Unplug, cool and separate cover from heating parts. Wash only marked washable covers; keep panels and adapters out of water.</p><p>Wash gently below 30°C without bleach or high-heat drying. Dry zips and seams fully before assembly.</p><p>Store flat or gently along existing folds without heavy loads. Check cables before reuse and stop for damage, burning smells or unusual heat.</p>"
+      },
+      "category": "maintenance",
+      "type": "help",
+      "summary": {
+        "zh-CN": "布套可拆洗，电子部件保持干燥。",
+        "en": "Wash removable covers and keep electronics dry."
+      },
+      "code": "bed-cleaning"
+    },
+    {
+      "title": {
+        "zh-CN": "演示商城退换与保修政策说明",
+        "en": "Demo Returns and Warranty Policy"
+      },
+      "content": {
+        "zh-CN": "<p>演示政策设定设备主体保修 12 个月，正常使用功能故障进入评估。耗材消耗、外观磨损与人为损坏不属此示例范围。</p><p>演示退货流程为签收后 7 天内申请并核对条件。拆封、使用与卫生状态影响范围，不统一承诺所有用品无条件退货。</p><p>在订单售后入口填写型号、现象和使用情况，保留包装配件。正式销售以订单条款和适用规则为准，本页不构成实际服务承诺。</p>",
+        "en": "<p>The sample policy covers device bodies for 12 months with assessment of normal-use faults. Consumable use, wear and accidental damage are outside this example.</p><p>The sample flow accepts requests within seven days of receipt for eligibility review. Opening, use and hygiene affect eligibility; not every item has unconditional returns.</p><p>Use order support to record the model, symptoms and usage; retain packaging and parts. Actual sales follow displayed terms and applicable rules. This page is not a real service promise.</p>"
+      },
+      "category": "service",
+      "type": "help",
+      "summary": {
+        "zh-CN": "本页为流程示例，正式规则以销售页面为准。",
+        "en": "This is a sample flow; final terms belong on sales pages."
+      },
+      "code": "after-sales"
+    },
+    {
+      "title": {
+        "zh-CN": "发货、配送和签收如何查看？",
+        "en": "Checking Dispatch and Delivery"
+      },
+      "content": {
+        "zh-CN": "<p>演示流程设定普通订单付款后 48 小时内安排出库，预售以商品页为准。此时效为示例，不代表实际承诺。</p><p>订单详情查看发货与配送状态。拆分包裹逐件查看，物流更新可能晚于仓库交接。</p><p>签收核对型号、规格和配件，破损先记录再提交问题。保留外箱供评估，电子设备确认干燥完整后通电。</p>",
+        "en": "<p>The demo schedules standard dispatch within 48 hours; preorders follow product pages. This timing is illustrative, not a delivery commitment.</p><p>Check dispatch and delivery in order details. Review split shipments separately; tracking may update after warehouse handover.</p><p>Check model, variant and parts. Document damage before reporting it, keep packaging for review, and power electronics only after checking they are dry and intact.</p>"
+      },
+      "category": "service",
+      "type": "help",
+      "summary": {
+        "zh-CN": "在订单页看进度，签收时核对配件。",
+        "en": "Check order progress and inspect accessories on arrival."
+      },
+      "code": "shipping-help"
     }
   ],
   "banners": [
     {
+      "title": {
+        "zh-CN": "按时开饭，也能看见它",
+        "en": "Mealtimes on Schedule, Check-Ins on Demand"
+      },
       "position": "home_banner",
-      "title": { "zh-CN": "新品上市 全自动智能猫砂盆 Pro", "en": "New: Self-Cleaning Litter Box Pro" },
-      "link": { "type": "goods", "value": "litter-box-pro" }
+      "link": {
+        "type": "goods",
+        "value": "feeder-5l-cam"
+      }
     },
     {
+      "title": {
+        "zh-CN": "自动清理，让铲砂轻松一点",
+        "en": "Make Daily Litter Care Easier"
+      },
       "position": "home_banner",
-      "title": { "zh-CN": "智能喂养专区 出门也安心", "en": "Smart Feeding: Peace of Mind When You Are Away" },
-      "link": { "type": "category", "value": "feeding" }
+      "link": {
+        "type": "goods",
+        "value": "litter-box-pro"
+      }
+    },
+    {
+      "title": {
+        "zh-CN": "短时互动，陪它玩一会儿",
+        "en": "Make Time for a Little Play"
+      },
+      "position": "home_banner",
+      "link": {
+        "type": "category",
+        "value": "companion"
+      }
+    },
+    {
+      "title": {
+        "zh-CN": "换芯换袋，常用耗材备齐",
+        "en": "Keep Everyday Refills Ready"
+      },
+      "position": "home_middle",
+      "link": {
+        "type": "category",
+        "value": "cleaning-parts"
+      }
+    },
+    {
+      "title": {
+        "zh-CN": "窝边的温度，也值得用心照顾",
+        "en": "Comfort Starts with a Well-Set Resting Spot"
+      },
+      "position": "category_top",
+      "link": {
+        "type": "category",
+        "value": "comfort"
+      }
     }
   ]
 }

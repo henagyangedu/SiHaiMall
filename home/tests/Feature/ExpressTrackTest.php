@@ -62,7 +62,7 @@ class ExpressTrackTest extends FeatureTestCase
             }
         };
         $manager = Mockery::mock(DriverManager::class)->makePartial();
-        $manager->shouldReceive('express')->andReturn($fake);
+        $manager->shouldReceive('expressList')->andReturn([$fake]);
         $this->app->instance(DriverManager::class, $manager);
 
         [$m, $this->token] = $this->makeMember();

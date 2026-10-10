@@ -22,6 +22,10 @@ $row = DriverConfig::query()->where('type', 'express')->where('driver', 'kuaidi1
 if ($row && !$row->is_enabled && (($row->config ?? [])['customer'] ?? '') === 'E2E-CUSTOMER') {
     $express = (int) $row->delete();
 }
+$row = DriverConfig::query()->where('type', 'express')->where('driver', 'track17')->first();
+if ($row && !$row->is_enabled && (($row->config ?? [])['api_key'] ?? '') === 'E2E-17TRACK-KEY') {
+    $express += (int) $row->delete();
+}
 
 // 测试建的优惠券（名字以“点击测试券”开头）和它发出去的券
 $couponIds = DB::table('coupon')->where('name', 'like', '点击测试券%')->pluck('id');

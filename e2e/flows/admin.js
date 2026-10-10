@@ -116,6 +116,28 @@ module.exports = async function adminFlow(browser, data) {
     if (shown.includes('E2E-SECRET-KEY')) throw new Error('密钥被原样回显了');
     await d.getByRole('button', { name: '取消' }).click();
   });
+  await step('物流查询：列表里有 17TRACK（境外包裹），没填密钥不能启用，能保存配置，密钥不回显', async () => {
+    await go('/setting/api/express');
+    const r = el.row(page, '17TRACK');
+    await r.waitFor();
+    if (await r.getByText('已配置').count()) throw new Skip('17TRACK 已有配置，不覆盖');
+    await r.getByRole('button', { name: '配置' }).click();
+    let d = el.dialog(page);
+    await d.getByText('能按单号自动识别承运商').waitFor();
+    await d.locator('.el-form-item', { hasText: '启用' }).last().locator('.el-switch').click();
+    await d.getByRole('button', { name: '保存' }).click();
+    await el.message(page, '请填写「API 密钥」');
+    await d.locator('.el-form-item', { hasText: '启用' }).last().locator('.el-switch').click();
+    await d.locator('.el-form-item', { hasText: 'API 密钥' }).locator('input').fill('E2E-17TRACK-KEY');
+    await d.getByRole('button', { name: '保存' }).click();
+    await el.message(page, '保存成功');
+    await el.row(page, '17TRACK').getByText('已配置').waitFor();
+    await el.row(page, '17TRACK').getByRole('button', { name: '配置' }).click();
+    d = el.dialog(page);
+    const shown = await d.locator('.el-form-item', { hasText: 'API 密钥' }).locator('input').inputValue();
+    if (shown.includes('E2E-17TRACK-KEY')) throw new Error('密钥被原样回显了');
+    await d.getByRole('button', { name: '取消' }).click();
+  });
 
   await step('应用 → 小程序：侧边菜单能进入，能保存配置，AppSecret 不回显', async () => {
     await go('/dashboard');

@@ -50,6 +50,7 @@ final class ApiMessageTranslator
         '物流查询服务暂时不可用，请稍后再试' => 'Tracking is temporarily unavailable. Please try again later.',
         '物流查询还没有配置完整' => 'Tracking is temporarily unavailable. Please try again later.',
         '暂时还没有物流信息，请稍后再看' => 'No tracking updates yet. Please check back later.',
+        '正在获取物流信息，一般几分钟后可以看到' => 'Fetching tracking updates. They usually appear within a few minutes.',
         // 上传
         '不支持的图片格式' => 'Unsupported image format',
         '图片文件无效' => 'This file is not a valid image',

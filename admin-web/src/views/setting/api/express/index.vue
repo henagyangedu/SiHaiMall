@@ -58,7 +58,9 @@ async function onTest(r) {
   testing.value = r.driver
   try {
     await testDriver(TYPE, r.driver)
-    await ElMessageBox.alert('连接成功：账号和授权 key 可用。\n\n测试用的是一个不存在的单号，可能会计一次查询；真实效果请在一张已发货的订单里点“查看物流”确认。', '测试通过', { type: 'success' })
+    await ElMessageBox.alert(r.driver === 'track17'
+      ? '连接成功：API 密钥可用。\n\n测试只查了一次剩余额度，不消耗额度；真实效果请在一张已发货的订单里点“查看物流”确认。'
+      : '连接成功：账号和授权 key 可用。\n\n测试用的是一个不存在的单号，可能会计一次查询；真实效果请在一张已发货的订单里点“查看物流”确认。', '测试通过', { type: 'success' })
   } finally {
     testing.value = ''
   }
@@ -71,7 +73,7 @@ onMounted(load)
   <div class="page">
     <el-card shadow="never">
       <el-alert type="info" :closable="false" show-icon style="margin-bottom: 12px"
-        title="启用后，买家和管理员可以在订单详情里查看物流轨迹。查询按次计费：商城会把结果缓存 30 分钟，已签收的包裹不再查询；快递公司选“其它”的包裹查不了。" />
+        title="启用后，买家和管理员可以在订单详情里查看物流轨迹。查询要收费，所以商城会把结果缓存 30 分钟，已签收的包裹不再查询。两个可以同时启用：快递100 查得了的快递公司归快递100，其余的（跨境小包、“其它”）归 17TRACK；只启用快递100 时，这些包裹查不了。" />
       <el-table v-loading="loading" :data="list" border stripe>
         <el-table-column prop="name" label="物流查询服务" min-width="200" />
         <el-table-column label="配置" width="90"><template #default="{ row: r }"><el-tag :type="r.configured ? 'success' : 'info'">{{ r.configured ? '已配置' : '未配置' }}</el-tag></template></el-table-column>

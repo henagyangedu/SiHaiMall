@@ -10,6 +10,7 @@ use App\Drivers\Contracts\StorageDriver;
 use App\Drivers\Contracts\TranslateDriver;
 use App\Drivers\Contracts\WaybillDriver;
 use App\Drivers\Express\Kuaidi100Driver;
+use App\Drivers\Express\Track17Driver;
 use App\Drivers\Sms\GmSmsDriver;
 use App\Drivers\Storage\FlysystemStorageDriver;
 use App\Drivers\Translate\ClaudeDriver;
@@ -128,6 +129,20 @@ class DriverManager
         return $this->expressFromConfig($row->driver, $row->config ?? []);
     }
 
+    /**
+     * 所有启用的物流查询驱动，按 DriverRegistry 里登记的先后排（快递100 在前、什么都接的 17TRACK 垫底）。
+     * 可以同时启用几个，Common\ExpressTrackService 按快递公司挑第一个能查的：快递100 查得了的归它，其余归 17TRACK。
+     * @return ExpressDriver[]
+     */
+    public function expressList(): array
+    {
+        $order = array_flip(array_keys(DriverRegistry::types()['express']['drivers']));
+
+        return DriverConfig::query()->where('type', 'express')->where('is_enabled', 1)->get()
+            ->filter(fn (DriverConfig $row) => isset($order[$row->driver]))->sortBy(fn (DriverConfig $row) => $order[$row->driver])->values()
+            ->map(fn (DriverConfig $row) => $this->expressFromConfig($row->driver, $row->config ?? []))->all();
+    }
+
     /** 按指定配置创建物流查询驱动（后台“测试连接”用） */
     public function expressFromConfig(string $driver, array $config): ExpressDriver
     {
@@ -136,7 +151,10 @@ class DriverManager
             $config[$key] ??= $f['default'];
         }
 
-        return new Kuaidi100Driver($config);
+        return match ($driver) {
+            'track17' => new Track17Driver($config),
+            default => new Kuaidi100Driver($config),
+        };
     }
 
     /** 已启用的微信小程序配置；没启用时返回 null */

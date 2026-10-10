@@ -108,6 +108,15 @@ class DriverRegistry
                             'proxy'    => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。服务器在境外、直连快递100 不通时填写，如 http://127.0.0.1:7890'],
                         ],
                     ],
+                    'track17' => [
+                        'name'   => '17TRACK（境外包裹）',
+                        'desc'   => '17TRACK 的查询接口，支持两千多家承运商（DHL、UPS、FedEx、USPS、各国邮政、云途、燕文、递四方、菜鸟等），能按单号自动识别承运商，所以“其它”快递也能查。按登记的单号数计费：买家或后台第一次查看某个包裹的物流时登记，一般几分钟后才有轨迹。可以和快递100 同时启用：快递100 查得了的快递公司（国内快递和 DHL、FedEx、UPS、USPS）归快递100，其余的归 17TRACK；只启用 17TRACK 就全部由它查。',
+                        'fields' => [
+                            'api_key'  => ['label' => 'API 密钥', 'type' => 'secret', 'required' => true, 'default' => '', 'hint' => '17TRACK 开发者后台 → Settings → Security 里的 Access Key。加密保存，页面不再显示；不修改请保持原样'],
+                            'base_url' => ['label' => '接口地址', 'type' => 'text', 'required' => false, 'default' => 'https://api.17track.net', 'hint' => '一般不用改'],
+                            'timeout'  => ['label' => '超时（秒）', 'type' => 'text', 'required' => false, 'default' => '10', 'hint' => ''],
+                        ],
+                    ],
                 ],
             ],
             'pay' => [

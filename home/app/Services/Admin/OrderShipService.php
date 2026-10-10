@@ -19,7 +19,10 @@ class OrderShipService
     /** 常用快递公司（发货设置模块完成后改为读库）。code 用于后续物流查询接口 */
     public const EXPRESS = [
         'SF' => '顺丰速运', 'ZTO' => '中通快递', 'YTO' => '圆通速递', 'STO' => '申通快递', 'YUNDA' => '韵达快递',
-        'JTEXPRESS' => '极兔速递', 'EMS' => '中国邮政 EMS', 'DHL' => 'DHL', 'FEDEX' => 'FedEx', 'UPS' => 'UPS', 'USPS' => 'USPS', 'OTHER' => '其它',
+        'JTEXPRESS' => '极兔速递', 'EMS' => '中国邮政 EMS', 'DHL' => 'DHL', 'FEDEX' => 'FedEx', 'UPS' => 'UPS', 'USPS' => 'USPS', 'TNT' => 'TNT',
+        // 跨境小包常用的几家（国内的物流查询服务商查不了，要启用 17TRACK）
+        'CHINAPOST' => '中国邮政（国际小包）', 'YUNEXPRESS' => '云途物流', 'YANWEN' => '燕文物流', '4PX' => '递四方', 'CAINIAO' => '菜鸟国际',
+        'OTHER' => '其它',
     ];
 
     public function __construct(private OrderStatusService $status, private NotifyService $notify, private ExpressTrackService $tracks, private WaybillService $waybills) {}

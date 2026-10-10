@@ -74,6 +74,17 @@ class CurrencyService
         $this->locale->flush();
     }
 
+    /** 汇率更新方式：1 手动、2 自动（由 mall:rate-sync 按行情更新，见 ExchangeRateService） */
+    public function setRateMode(int $id, int $mode): void
+    {
+        $cur = $this->find($id);
+        if ((int) $cur->is_base === 1) {
+            throw new BusinessException('基准币种的汇率固定为 1，不能设为自动更新');
+        }
+
+        $cur->update(['rate_mode' => $mode === 2 ? 2 : 1]);
+    }
+
     /** 更换基准币种：只允许在还没有商品、订单数据时操作；其它币种汇率按新基准重新换算 */
     public function setBase(int $id): void
     {
@@ -96,7 +107,7 @@ class CurrencyService
                 }
                 $c->update(['is_base' => 0, 'rate' => $this->div((string) $c->rate, $newBaseRate)]);
             }
-            $cur->update(['is_base' => 1, 'rate' => '1']);
+            $cur->update(['is_base' => 1, 'rate' => '1', 'rate_mode' => 1]);
         });
         $this->locale->flush();
     }

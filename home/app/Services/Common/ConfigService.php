@@ -66,6 +66,13 @@ class ConfigService
             'show_remark'   => ['label' => '打印买家留言', 'type' => 'bool', 'default' => 1],
             'show_admin_remark' => ['label' => '打印商家备注', 'type' => 'bool', 'default' => 0],
         ],
+        // 汇率自动更新（见 ExchangeRateService）。rate_sync_state 是最近一次更新的结果，程序自己写，不在后台表单里
+        'currency' => [
+            'rate_source'     => ['label' => '汇率行情源', 'type' => 'enum', 'options' => ['frankfurter', 'erapi'], 'default' => 'frankfurter'],
+            'rate_markup'     => ['label' => '汇率加价百分比', 'type' => 'decimal', 'min' => 0, 'max' => 20, 'default' => '0'],
+            'rate_max_change' => ['label' => '汇率单次最大变动（%）', 'type' => 'int', 'min' => 1, 'max' => 50, 'default' => 10],
+            'rate_sync_state' => ['label' => '最近一次汇率更新结果', 'type' => 'text', 'max' => 60000],
+        ],
         'distribution' => [
             'enabled'      => ['label' => '开启分销', 'type' => 'bool', 'default' => 0],
             'level'        => ['label' => '分销层级', 'type' => 'int', 'min' => 1, 'max' => 2, 'default' => 1],

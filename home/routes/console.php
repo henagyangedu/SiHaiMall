@@ -16,5 +16,6 @@ Schedule::command('mall:restock-notify')->everyFiveMinutes()->withoutOverlapping
 Schedule::command('mall:refund-compensate')->everyTenMinutes()->withoutOverlapping();
 Schedule::command('mall:auto-receive')->hourly()->withoutOverlapping();
 Schedule::command('mall:distribution-settle')->hourly()->withoutOverlapping();
+Schedule::command('mall:rate-sync')->everySixHours()->withoutOverlapping();
 Schedule::command('mall:message-cleanup')->dailyAt('04:10')->withoutOverlapping();
 Schedule::command('mall:member-level-refresh')->dailyAt('03:30')->withoutOverlapping();

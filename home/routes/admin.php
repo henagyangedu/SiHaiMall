@@ -97,7 +97,12 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::prefix('currency')->group(function () {
         Route::get('list', [CurrencyController::class, 'index'])->middleware('perm:setting:currency:view');
         Route::post('/', [CurrencyController::class, 'store'])->middleware('perm:setting:currency:add');
-        Route::put('{id}', [CurrencyController::class, 'update'])->middleware('perm:setting:currency:edit');
+        // 汇率自动更新：设置、立即更新、单个币种的更新方式
+        Route::get('rate-config', [CurrencyController::class, 'rateConfig'])->middleware('perm:setting:currency:view');
+        Route::put('rate-config', [CurrencyController::class, 'saveRateConfig'])->middleware('perm:setting:currency:rate');
+        Route::post('rate-sync', [CurrencyController::class, 'rateSync'])->middleware('perm:setting:currency:rate');
+        Route::put('{id}/rate-mode', [CurrencyController::class, 'rateMode'])->whereNumber('id')->middleware('perm:setting:currency:rate');
+        Route::put('{id}', [CurrencyController::class, 'update'])->whereNumber('id')->middleware('perm:setting:currency:edit');
         Route::put('{id}/rate', [CurrencyController::class, 'rate'])->middleware('perm:setting:currency:rate');
         Route::post('{id}/base', [CurrencyController::class, 'setBase'])->middleware('perm:super'); // 影响全部价格口径，仅超管
         Route::delete('{id}', [CurrencyController::class, 'destroy'])->middleware('perm:setting:currency:del');

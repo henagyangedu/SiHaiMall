@@ -28,6 +28,7 @@
 ## 关键业务规则（不要破坏）
 - **金额**：只用 bcmath 字符串，经 `App\Support\Money`（round 半入、fromBase、toBase、mul），禁止 float。
 - **多币种**：订单固化币种、汇率、单价和标题快照。单价只经 `PriceService::unitPrices`（目录、购物车、结算预览、下单共用），取价顺序：销售区域价 → `gm_goods_price` 该币种单独定价 → 基准价 × 汇率，按币种小数位四舍五入。
+- **汇率自动更新**：只经 `Common\ExchangeRateService`，不改表——币种表原有的 `rate_mode`（1 手动、2 自动）决定哪些币种跟行情走，后台“设置 → 币种与汇率”的“更新方式”一列里选（基准币种不能选自动）。定时任务 `mall:rate-sync`（每 6 小时）和页面上的“立即更新”做同一件事；**没有币种设为自动时不请求行情**。行情源是两个免费、不用密钥的公开接口（`SOURCES`：Frankfurter = 欧洲央行参考汇率，约 30 种货币、工作日更新；ExchangeRate-API 的公开接口，160 多种、每天更新），地址写在服务里。写进币种表的汇率 = 行情 ×（1 + 加价百分比），保留 6 位小数；加价（0–20%，默认 0）是为了盖住收款渠道的换汇手续费。**保护**：和现在的汇率相差超过“单次最大变动”（默认 10%）的不更新，在列表里标出原因，管理员手工改一次汇率后自动更新再接着走；行情源连不上或返回不对时所有汇率不动、只记下错误。设置和最近一次更新的结果存在 `gm_config` 的 `currency` 分组（`rate_sync_state` 是程序自己写的）。接口 `GET / PUT /admin-api/currency/rate-config`、`POST currency/rate-sync`、`PUT currency/{id}/rate-mode`，写操作沿用权限点 `setting:currency:rate`。汇率一变，买家看到的外币价格、优惠券和套餐的外币金额马上跟着变；已下的订单固化了下单时的汇率，不受影响；`gm_goods_price` 里单独定的外币价也不受影响。测试里行情源是模拟的（`RateSyncTest`）。没有做：按币种分别设加价、汇率变动通知、汇率历史记录。
 - **区域定价**：销售区域（`gm_sale_region` + `gm_sale_region_area`）国内按省/市、境外按国家划分，一个地区只属于一个区域；SKU 区域价存 `gm_goods_region_price`，按区域的定价币种填写，其他币种结算时用 `Money::convert` 换算。匹配只经 `SaleRegionService::match`（带缓存，后台改动后须 `flush()`）：国内 省+市 > 整省，境外按国家码；市级和整省区域同时命中时返回市级区域并带 `fallback`（整省区域），`unitPrices` 逐级回退：市级区域价 → 整省区域价 → 标准价。订单上记录的是最具体的那个区域。**最终价以收货地址为准**：下单和结算预览按所选地址取区域并记到订单 `price_region_id/name`；浏览、购物车按会员默认收货地址展示，未登录或无地址显示标准价。
 - **国内省市名称**以 `config/cn_divisions.php` 的标准名单为准：销售区域配置和国内收货地址（`AddressService::save`）都校验，C 端地址表单用 `GET /api/config/cn-divisions` 取名单。
 - **多语言**：主表 + `_lang` 表，用 `TranslationService`（fetch/sync/assertDefaultFilled/resolve）；语言/币种用 `LocaleService`（带缓存，后台改动后须 `flush()`）；`SetLocale` 读取 `X-Lang`、`X-Currency`。
@@ -177,7 +178,7 @@
 命令：
 - `composer install --no-dev`、`php artisan migrate --force`、首次部署 `php artisan db:seed --force`（创建超级管理员，密码只显示一次）、之后每次有新菜单或权限点时 `php artisan db:seed --class=MenuSeeder --force`。
 - `php artisan config:cache`、`route:cache`（改了 `.env` 要重新执行）。
-- 服务器加一条每分钟执行的定时任务：`* * * * * php /站点路径/home/artisan schedule:run`。不加的话未支付订单不会自动关闭、不会自动确认收货、支付和退款的补偿查询、佣金结算、到货提醒、群发消息都不会跑。
+- 服务器加一条每分钟执行的定时任务：`* * * * * php /站点路径/home/artisan schedule:run`。不加的话未支付订单不会自动关闭、不会自动确认收货、支付和退款的补偿查询、佣金结算、到货提醒、群发消息、汇率自动更新都不会跑。
 
 Web 服务器：
 - 站点根目录指向 `home/public`；`public/uploads` 要可写，且要纳入备份（本地存储的图片都在这里）。
@@ -195,7 +196,7 @@ Web 服务器：
   - 改了页面的文字、类名或交互后，对应步骤可能要跟着改（`e2e/flows/*.js`）。没覆盖的：真实支付、滚轮选择器、注册 / 找回密码的提交、AI 翻译的实际调用、小程序。
 - 测试：在 `home/` 下 `php artisan test`（单个文件：`php artisan test tests/Feature/RefundFlowTest.php`）。功能测试连独立的 MySQL 库 `gmmall_test`（`phpunit.xml` 里配置，新环境先 `CREATE DATABASE gmmall_test`），首次运行自动建表，每个测试在事务里跑完回滚；基类会拒绝在库名不以 `_test` 结尾的库上运行。新的功能测试继承 `Tests\FeatureTestCase`，用它的 `makeMember/makeAddress/makeSku/placeOrder/pay/api/adminApi`。
 - 迁移：`php artisan migrate`；若旧表是手工导入 `gm_mall_step1.sql`，只跑新增迁移用 `--path=`。
-- 定时任务：`mall:close-expired-orders`、`mall:auto-receive`、`mall:pay-compensate`、`mall:refund-compensate`、`mall:distribution-settle`、`mall:member-level-refresh`、`mall:restock-notify`、`mall:message-cleanup`、`mall:message-broadcast`，调度已写在 `routes/console.php`；服务器上要加一条每分钟执行 `php artisan schedule:run` 的 cron 才会生效。
+- 定时任务：`mall:close-expired-orders`、`mall:auto-receive`、`mall:pay-compensate`、`mall:refund-compensate`、`mall:distribution-settle`、`mall:member-level-refresh`、`mall:restock-notify`、`mall:message-cleanup`、`mall:message-broadcast`、`mall:rate-sync`，调度已写在 `routes/console.php`；服务器上要加一条每分钟执行 `php artisan schedule:run` 的 cron 才会生效。
 - 演示数据：`php artisan mall:demo-import`（`--check` 只检查、`--clear` 只清除；生产环境要 `--force`）。数据写在一个 JSON 文件里，默认 `home/database/demo/pet-smart/data.json`（宠物智能用品，仓库里是一份小的示例，计划由 Codex 按 `docs/演示数据格式.md` 扩充）。导入不直接写表，走 `Admin\DemoImportService`：用后台表单的校验规则检查，再调后台的分类 / 品牌 / 商品 / 文章 / 广告服务创建；数据里用 code 互相引用（商品的配套商品 `related` 也是写 code）；图片是自动生成的 SVG 占位图：商品和品牌是柔和底色 + 名称；轮播图、横幅、分类、文章封面是不带字的装饰图（这些位置页面会自己显示标题）。测试用的是固定的小示例 `tests/Fixtures/demo/data.json`，不依赖正式的 `data.json`。导入了什么记在 `storage/app/demo-import.json`，再次导入先按它清掉上一批，只动清单里的数据。演示商品的货号以 `DEMO-` 开头。**后台“新增商品”等表单的字段或校验变了，导入会跟着变（它复用同一套规则），但 `docs/演示数据格式.md` 要手工同步。**
 - 联调命令：`mall:dev-order {member_id} {sku_id} {qty}`（造测试订单，`--paid` 模拟已付）、`mall:dev-pay {order_no} {stripe|paypal}`（发起支付，`--confirm` 确认入账）。
    ## 附件目录

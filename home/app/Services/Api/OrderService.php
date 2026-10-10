@@ -225,10 +225,13 @@ class OrderService
         // 评价：订单完成后，每个商品行可以评价一次（全部退款的不行）
         $canReview = GoodsReviewService::orderCanReview($o);
         $reviewed = $canReview ? app(GoodsReviewService::class)->reviewedItemIds((int) $o->id) : [];
+        $appendable = $reviewed ? app(GoodsReviewService::class)->appendableItemIds((int) $o->id) : [];
         $brief = $this->brief($o, $items);
         foreach ($brief['items'] as &$it) {
             $it['reviewed'] = in_array($it['item_id'], $reviewed, true);
             $it['can_review'] = $canReview && !$it['reviewed'] && $it['refund_qty'] < $it['qty'];
+            // 评价过、还没追评过的可以追评一次
+            $it['can_append'] = in_array($it['item_id'], $appendable, true);
         }
         unset($it);
 

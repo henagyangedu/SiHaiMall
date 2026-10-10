@@ -2,11 +2,12 @@
 import { ref, reactive } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
-import { getOrder, createReview, uploadImage } from '@/api'
-import { usePageTitle, toast } from '@/utils/page'
+import { getOrder, createReview, appendReview, uploadImage } from '@/api'
+import { toast } from '@/utils/page'
 
+// 写评价；地址带 append=1 时是追评（只有文字和图片，文字必填）
 const { t } = useI18n()
-usePageTitle('review.write')
+const append = ref(false)
 
 const MAX_IMAGES = 6
 const orderNo = ref('')
@@ -44,12 +45,17 @@ function preview(i) {
 
 async function submit() {
   if (submitting.value || uploading.value) return
+  if (append.value && !form.content.trim()) return toast(t('review.needContent'))
   submitting.value = true
   try {
-    await createReview(orderNo.value, {
-      order_item_id: item.value.item_id, rating: form.rating, content: form.content.trim(), images: images.value, is_anonymous: form.is_anonymous,
-    })
-    toast(t('review.done'))
+    if (append.value) {
+      await appendReview(orderNo.value, { order_item_id: item.value.item_id, content: form.content.trim(), images: images.value })
+    } else {
+      await createReview(orderNo.value, {
+        order_item_id: item.value.item_id, rating: form.rating, content: form.content.trim(), images: images.value, is_anonymous: form.is_anonymous,
+      })
+    }
+    toast(t(append.value ? 'review.appendDone' : 'review.done'))
     setTimeout(() => uni.navigateBack(), 600)
   } finally {
     submitting.value = false
@@ -58,6 +64,8 @@ async function submit() {
 
 onLoad(async (q) => {
   orderNo.value = q.order_no || ''
+  append.value = q.append === '1'
+  uni.setNavigationBarTitle({ title: t(append.value ? 'review.appendTitle' : 'review.write') })
   const order = await getOrder(orderNo.value)
   item.value = order.items.find((i) => i.item_id === Number(q.item_id)) || null
 })
@@ -73,15 +81,15 @@ onLoad(async (q) => {
       </view>
     </view>
 
-    <view v-if="item.can_review" class="card">
-      <view class="row">
+    <view v-if="append ? item.can_append : item.can_review" class="card">
+      <view v-if="!append" class="row">
         <text>{{ t('review.rating') }}</text>
         <view class="stars">
           <text v-for="n in 5" :key="n" class="star" :class="{ on: n <= form.rating }" @click="form.rating = n">★</text>
         </view>
         <text class="sub">{{ t(`review.star.${form.rating}`) }}</text>
       </view>
-      <textarea v-model="form.content" class="textarea" maxlength="1000" :placeholder="t('review.contentPh')" />
+      <textarea v-model="form.content" class="textarea" :maxlength="append ? 500 : 1000" :placeholder="t(append ? 'review.appendPh' : 'review.contentPh')" />
       <view class="pics">
         <view v-for="(u, i) in images" :key="u" class="pic">
           <image :src="u" mode="aspectFill" class="pic-img" @click="preview(i)" />
@@ -89,15 +97,16 @@ onLoad(async (q) => {
         </view>
         <view v-if="images.length < MAX_IMAGES" class="pic pic-add" @click="addImages">＋</view>
       </view>
-      <view class="row anon" @click="form.is_anonymous = !form.is_anonymous">
+      <view v-if="append" class="sub append-tip">{{ t('review.appendTip') }}</view>
+      <view v-else class="row anon" @click="form.is_anonymous = !form.is_anonymous">
         <view class="check" :class="{ on: form.is_anonymous }" />
         <text>{{ t('review.anonymous') }}</text>
         <text class="sub">　{{ t('review.anonymousTip') }}</text>
       </view>
     </view>
-    <view v-else class="empty">{{ t(item.reviewed ? 'review.already' : 'review.notYet') }}</view>
+    <view v-else class="empty">{{ t(append ? 'review.appended' : item.reviewed ? 'review.already' : 'review.notYet') }}</view>
 
-    <view v-if="item.can_review" class="btn submit" :class="{ disabled: submitting || uploading }" @click="submit">{{ t('review.submit') }}</view>
+    <view v-if="append ? item.can_append : item.can_review" class="btn submit" :class="{ disabled: submitting || uploading }" @click="submit">{{ t(append ? 'review.appendSubmit' : 'review.submit') }}</view>
   </view>
 </template>
 
@@ -106,6 +115,7 @@ onLoad(async (q) => {
 .thumb { width: 120rpx; height: 120rpx; border-radius: 12rpx; flex: none; background: #f3ede2; }
 .body { min-width: 0; flex: 1; }
 .row { display: flex; align-items: center; }
+.append-tip { margin-top: 20rpx; line-height: 1.6; }
 .stars { margin: 0 20rpx; }
 .star { font-size: 52rpx; color: #ded6c8; padding: 0 6rpx; }
 .star.on { color: #f7ba2a; }

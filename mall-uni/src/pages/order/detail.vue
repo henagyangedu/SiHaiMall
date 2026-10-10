@@ -184,6 +184,7 @@ onShow(async () => {
         <view class="right">
           <view>{{ money(i.price, order.currency) }}</view><view class="sub">× {{ i.qty }}</view>
           <view v-if="i.can_review" class="rv-btn" @click="nav(`/pages/review/create?order_no=${order.order_no}&item_id=${i.item_id}`)">{{ t('review.toReview') }}</view>
+          <view v-else-if="i.can_append" class="rv-btn gray" @click="nav(`/pages/review/create?order_no=${order.order_no}&item_id=${i.item_id}&append=1`)">{{ t('review.appendBtn') }}</view>
           <view v-else-if="i.reviewed" class="sub rv-done">{{ t('review.reviewed') }}</view>
         </view>
       </view>
@@ -235,6 +236,7 @@ onShow(async () => {
 .body { flex: 1; min-width: 0; margin: 0 20rpx; }
 .right { text-align: right; flex: none; }
 .rv-btn { display: inline-block; margin-top: 10rpx; padding: 4rpx 24rpx; border-radius: 28rpx; border: 2rpx solid var(--theme); color: var(--theme); font-size: 24rpx; }
+.rv-btn.gray { border-color: #ded6c8; color: var(--text); }
 .rv-done { margin-top: 10rpx; }
 .kv { display: flex; justify-content: space-between; padding: 8rpx 0; }
 .invoice { display: flex; justify-content: space-between; align-items: center; }

@@ -14,6 +14,11 @@ class ReviewService
         return $this->reviews->create($this->orders->own($memberId, $orderNo), $d);
     }
 
+    public function append(int $memberId, string $orderNo, array $d): void
+    {
+        $this->reviews->append($this->orders->own($memberId, $orderNo), $d);
+    }
+
     public function byGoods(int $goodsId, string $level, int $page, int $size): array
     {
         return ['summary' => $this->reviews->summary($goodsId)] + $this->reviews->byGoods($goodsId, $level, $page, $size);

@@ -15,6 +15,6 @@ class GoodsReview extends BaseModel
 
     protected function casts(): array
     {
-        return ['images' => 'array', 'replied_at' => 'datetime'];
+        return ['images' => 'array', 'replied_at' => 'datetime', 'append_images' => 'array', 'append_at' => 'datetime', 'append_replied_at' => 'datetime'];
     }
 }

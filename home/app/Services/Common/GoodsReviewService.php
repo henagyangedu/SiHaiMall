@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
  *
  * - 订单“已完成”后才能评价；每个商品行评价一次，提交后不能修改；已经全部退款的商品行不能评价。
  * - 提交后直接显示，后台事后可以隐藏。
+ * - 追评：评价过的商品行可以再追加一次文字和图片（没有期限），提交后不能改；星级不变，不影响好评率。追评和原评价存在同一行。
  * - 评价内容显示原文，不翻译。匿名评价不显示头像，昵称只留第一个字。
  * - 评价数、好评率从评价表统计，按商品缓存 10 分钟；评价新增、隐藏 / 恢复时清掉。
  */
@@ -29,6 +30,12 @@ class GoodsReviewService
     public function reviewedItemIds(int $orderId): array
     {
         return GoodsReview::query()->where('order_id', $orderId)->pluck('order_item_id')->map(fn ($v) => (int) $v)->all();
+    }
+
+    /** 订单里哪些商品行还能追评（评价过、还没追过）。@return int[] 商品行 ID */
+    public function appendableItemIds(int $orderId): array
+    {
+        return GoodsReview::query()->where('order_id', $orderId)->whereNull('append_at')->pluck('order_item_id')->map(fn ($v) => (int) $v)->all();
     }
 
     public static function orderCanReview(Order $order): bool
@@ -71,6 +78,34 @@ class GoodsReviewService
     }
 
     /**
+     * 追评：给自己评价过的商品行再追加一次。
+     * @param array{order_item_id:int,content:string,images?:?array} $d
+     */
+    public function append(Order $order, array $d): void
+    {
+        $review = GoodsReview::query()->where('order_id', $order->id)->where('order_item_id', (int) $d['order_item_id'])->first()
+            ?? throw new BusinessException('这件商品还没有评价，不能追评');
+        $content = trim((string) $d['content']);
+        if ($content === '') {
+            throw new BusinessException('请填写追评内容');
+        }
+        $images = array_values(array_unique(array_filter(array_map('strval', (array) ($d['images'] ?? [])))));
+        if (count($images) > self::MAX_IMAGES) {
+            throw new BusinessException('评价图片最多 ' . self::MAX_IMAGES . ' 张');
+        }
+        $this->uploads->assertMemberImages((int) $order->member_id, $images);
+
+        // 带条件更新：同时点了两次，只有一次生效
+        $n = GoodsReview::query()->where('id', $review->id)->whereNull('append_at')
+            ->update(['append_content' => $content, 'append_images' => json_encode($images, JSON_UNESCAPED_SLASHES), 'append_at' => now(), 'updated_at' => now()]);
+        if ($n === 0) {
+            throw new BusinessException('这件商品已经追评过了');
+        }
+        // “有图”的条数可能变了
+        $this->forgetSummary((int) $review->goods_id);
+    }
+
+    /**
      * 商品页的评价列表（只含显示中的），新的在前。
      * @param string $level all 全部 / good 好评 / mid 中评 / bad 差评 / image 有图
      */
@@ -81,9 +116,12 @@ class GoodsReviewService
             ->when($level === 'good', fn ($q) => $q->where('r.rating', '>=', GoodsReview::GOOD_FROM))
             ->when($level === 'mid', fn ($q) => $q->where('r.rating', 3))
             ->when($level === 'bad', fn ($q) => $q->where('r.rating', '<=', 2))
-            ->when($level === 'image', fn ($q) => $q->whereNotNull('r.images')->where('r.images', '!=', '[]'))
+            // 有图：原评价或追评带图都算
+            ->when($level === 'image', fn ($q) => $q->where(fn ($w) => $w->where(fn ($a) => $a->whereNotNull('r.images')->where('r.images', '!=', '[]'))
+                ->orWhere(fn ($a) => $a->whereNotNull('r.append_images')->where('r.append_images', '!=', '[]'))))
             ->orderByDesc('r.id')
-            ->select('r.id', 'r.rating', 'r.content', 'r.images', 'r.spec_text', 'r.is_anonymous', 'r.reply', 'r.replied_at', 'r.created_at', 'm.nickname', 'm.avatar')
+            ->select('r.id', 'r.rating', 'r.content', 'r.images', 'r.spec_text', 'r.is_anonymous', 'r.reply', 'r.replied_at', 'r.created_at', 'm.nickname', 'm.avatar',
+                'r.append_content', 'r.append_images', 'r.append_at', 'r.append_reply', 'r.append_replied_at')
             ->paginate(min(max($size, 1), 50), ['*'], 'page', max($page, 1));
 
         $p->through(fn ($r) => [
@@ -93,6 +131,7 @@ class GoodsReviewService
             'avatar' => (int) $r->is_anonymous === 1 ? '' : (string) $r->avatar,
             'reply' => (string) $r->reply, 'replied_at' => $r->replied_at ? date('Y-m-d H:i:s', strtotime((string) $r->replied_at)) : null,
             'created_at' => $r->created_at ? date('Y-m-d H:i:s', strtotime((string) $r->created_at)) : null,
+            'append' => self::appendOf($r),
         ]);
 
         return Paginate::format($p);
@@ -107,7 +146,7 @@ class GoodsReviewService
         return Cache::remember(self::summaryKey($goodsId), 600, function () use ($goodsId) {
             $r = DB::table('goods_review')->where('goods_id', $goodsId)->where('status', GoodsReview::SHOWN)->selectRaw(
                 'COUNT(*) as c, COALESCE(SUM(rating), 0) as total, COALESCE(SUM(rating >= ?), 0) as good, COALESCE(SUM(rating = 3), 0) as mid, COALESCE(SUM(rating <= 2), 0) as bad, '
-                . "COALESCE(SUM(images IS NOT NULL AND images != '[]'), 0) as img", [GoodsReview::GOOD_FROM]
+                . "COALESCE(SUM((images IS NOT NULL AND images != '[]') OR (append_images IS NOT NULL AND append_images != '[]')), 0) as img", [GoodsReview::GOOD_FROM]
             )->first();
             $count = (int) $r->c;
 
@@ -127,6 +166,25 @@ class GoodsReviewService
     private static function summaryKey(int $goodsId): string
     {
         return 'goods_review_summary:' . $goodsId;
+    }
+
+    /**
+     * 一行评价里的追评部分；没有追评返回 null。days 是追评距离首次评价过了几天（当天是 0）。
+     * @param object $r 评价表的一行（查询构造器的结果）
+     */
+    public static function appendOf(object $r): ?array
+    {
+        if (empty($r->append_at)) {
+            return null;
+        }
+        $at = strtotime((string) $r->append_at);
+        $days = $r->created_at ? intdiv(max(0, strtotime(date('Y-m-d', $at)) - strtotime(date('Y-m-d', strtotime((string) $r->created_at)))), 86400) : 0;
+
+        return [
+            'content' => (string) $r->append_content, 'images' => json_decode((string) ($r->append_images ?: '[]'), true) ?: [],
+            'created_at' => date('Y-m-d H:i:s', $at), 'days' => $days,
+            'reply' => (string) $r->append_reply, 'replied_at' => $r->append_replied_at ? date('Y-m-d H:i:s', strtotime((string) $r->append_replied_at)) : null,
+        ];
     }
 
     /** 匿名评价的昵称：只留第一个字 */

@@ -17,6 +17,12 @@ const orderNo = String(route.params.orderNo)
 const order = ref(null)
 // 正在评价的商品行；null 表示评价弹窗关着
 const reviewing = ref(null)
+// 弹窗是写评价还是追评
+const appending = ref(false)
+function openReview(item, append) {
+  appending.value = append
+  reviewing.value = item
+}
 async function onReviewed() {
   reviewing.value = null
   order.value = await getOrder(orderNo)
@@ -200,7 +206,8 @@ onMounted(async () => {
         <div class="cell">{{ money(i.price, order.currency) }}</div>
         <div class="cell sub">× {{ i.qty }}</div>
         <div class="cell rv">
-          <el-button v-if="i.can_review" size="small" type="primary" plain @click="reviewing = i">{{ t('review.toReview') }}</el-button>
+          <el-button v-if="i.can_review" size="small" type="primary" plain @click="openReview(i, false)">{{ t('review.toReview') }}</el-button>
+          <el-button v-else-if="i.can_append" size="small" plain class="append-btn" @click="openReview(i, true)">{{ t('review.appendBtn') }}</el-button>
           <span v-else-if="i.reviewed" class="sub">{{ t('review.reviewed') }}</span>
         </div>
       </div>
@@ -236,7 +243,7 @@ onMounted(async () => {
       </div>
     </el-dialog>
   </template>
-  <ReviewDialog :order-no="orderNo" :item="reviewing" @close="reviewing = null" @done="onReviewed" />
+  <ReviewDialog :order-no="orderNo" :item="reviewing" :append="appending" @close="reviewing = null" @done="onReviewed" />
 </template>
 
 <style scoped>

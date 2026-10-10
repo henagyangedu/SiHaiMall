@@ -18,6 +18,8 @@ export const getGoodsList = (params) => get('/goods', params, { auth: false })
 export const getGoods = (id) => get(`/goods/${id}`, {}, { auth: false, silent: true })
 export const getGoodsReviews = (id, params) => get(`/goods/${id}/reviews`, params, { auth: false })
 export const createReview = (orderNo, data) => post(`/orders/${orderNo}/reviews`, data)
+// 追评：评价过的商品再追加一次
+export const appendReview = (orderNo, data) => post(`/orders/${orderNo}/reviews/append`, data)
 
 // ---- 登录注册
 export const login = (data) => post('/auth/login', data, { auth: false })

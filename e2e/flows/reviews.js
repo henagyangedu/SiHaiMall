@@ -7,7 +7,8 @@ const { Flow, el, desktop, mobile, pcLogin, uniGo, uniLogin } = require('../lib/
 
 /**
  * 商品评价，跨 PC 端、手机端、后台：
- * PC 端评价一张已完成的订单（带图、匿名）→ 手机端评价另一张 → 两端商品页都能看到 → 后台回复 → 后台隐藏。
+ * PC 端评价一张已完成的订单（带图、匿名）→ 手机端评价另一张 → 两端商品页都能看到 → 后台回复
+ * → PC 端追评（带图）、手机端追评 → 商品页在原评价下面显示追评 → 后台单独回复追评 → 后台隐藏。
  * 每跑一遍造两张已完成订单（占 2 件库存），留下的两条评价在最后都被隐藏，不会堆在商品页上。
  */
 module.exports = async function reviewsFlow(browser) {
@@ -18,6 +19,9 @@ module.exports = async function reviewsFlow(browser) {
   const textA = `点击测试评价 PC ${stamp}`;
   const textB = `点击测试评价 手机 ${stamp}`;
   const replyText = `感谢支持 ${stamp}`;
+  const appendA = `点击测试追评 PC ${stamp}`;
+  const appendB = `点击测试追评 手机 ${stamp}`;
+  const appendReply = `谢谢回来分享 ${stamp}`;
   // 匿名评价只显示昵称的第一个字
   const masked = made.nickname.slice(0, 1) + '***';
 
@@ -37,8 +41,8 @@ module.exports = async function reviewsFlow(browser) {
   const adminRow = async (orderNo) => {
     await admin.goto(config.admin + '/goods/review');
     await admin.waitForLoadState('networkidle').catch(() => {});
-    await admin.getByPlaceholder('评价内容 / 商品名称 / 订单号').fill(orderNo);
-    await admin.getByPlaceholder('评价内容 / 商品名称 / 订单号').press('Enter');
+    await admin.getByPlaceholder('评价或追评内容 / 商品名称 / 订单号').fill(orderNo);
+    await admin.getByPlaceholder('评价或追评内容 / 商品名称 / 订单号').press('Enter');
     const row = el.row(admin, orderNo);
     await row.waitFor();
     return row;
@@ -63,8 +67,8 @@ module.exports = async function reviewsFlow(browser) {
       await d.locator('.el-checkbox', { hasText: '匿名评价' }).click();
       await d.getByRole('button', { name: '提交评价' }).click();
       await el.message(pc, '评价成功');
-      // 评过之后按钮变成“已评价”，不能再评
-      await pc.locator('.item .rv', { hasText: '已评价' }).waitFor();
+      // 评过之后按钮变成“追评”，不能再评
+      await pc.locator('.item').getByRole('button', { name: '追评' }).waitFor();
       if (await pc.locator('.item').getByRole('button', { name: '评价' }).count()) throw new Error('评价后还显示评价按钮');
     });
     await flow.step('PC：商品页的评价区显示这条评价，昵称打码、有图、4 星', pc, async () => {
@@ -93,7 +97,7 @@ module.exports = async function reviewsFlow(browser) {
       await m.locator('uni-textarea textarea').fill(textB);
       await m.locator('.btn.submit').click();
       await m.locator('uni-toast', { hasText: '评价成功' }).waitFor();
-      await m.locator('.rv-done', { hasText: '已评价' }).waitFor();
+      await m.locator('.rv-btn', { hasText: '追评' }).waitFor();
     });
     await flow.step('手机端：商品页带出最新评价和好评率，评价列表页能按差评筛出刚才那条', m, async () => {
       await uniGo(m, `/pages/goods/detail?id=${made.goods_id}`);
@@ -120,6 +124,59 @@ module.exports = async function reviewsFlow(browser) {
     await flow.step('PC：商品页上这条评价下面出现商家回复', pc, async () => {
       await pcGoods();
       await pcReview(textA).locator('.reply', { hasText: replyText }).waitFor();
+    });
+    await flow.step('PC：订单详情点“追评”，不填内容被拦住；带图提交后按钮变成“已评价”，商品页在原评价下面显示追评', pc, async () => {
+      await pc.goto(`${config.pc}/#/orders/${orderA}`);
+      await pc.locator('.item').getByRole('button', { name: '追评' }).click();
+      const d = el.dialog(pc);
+      await d.getByText('追评只能提交一次').waitFor();
+      if (await d.locator('.el-rate').count()) throw new Error('追评不应该能改星级');
+      await d.getByRole('button', { name: '提交追评' }).click();
+      await el.message(pc, '请填写追评内容');
+      await d.locator('textarea').fill(appendA);
+      await d.locator('input[type=file]').setInputFiles(image);
+      await d.locator('.pic-img').waitFor();
+      await d.getByRole('button', { name: '提交追评' }).click();
+      await el.message(pc, '追评成功');
+      await pc.locator('.item .rv', { hasText: '已评价' }).waitFor();
+      if (await pc.locator('.item').getByRole('button', { name: '追评' }).count()) throw new Error('追评后还显示追评按钮');
+      await pcGoods();
+      const block = pcReview(textA).locator('.append');
+      await block.getByText(appendA).waitFor();
+      await block.getByText('当天追评').waitFor();
+      await block.locator('.pic').first().waitFor();
+      // 星级还是原来的 4 星
+      if ((await pcReview(textA).locator('.el-rate__item .is-active, .el-rate__icon.is-active').count()) < 4) throw new Error('追评后星级变了');
+    });
+    await flow.step('手机端：另一张订单点“追评”提交，评价列表里原评价下面出现“用户追评”', m, async () => {
+      await uniGo(m, `/pages/order/detail?order_no=${orderB}`);
+      await m.locator('.rv-btn', { hasText: '追评' }).click();
+      await m.getByText('追评只能提交一次').waitFor();
+      if (await m.locator('.star').count()) throw new Error('追评页不应该有星级');
+      await m.locator('uni-textarea textarea').fill(appendB);
+      await m.locator('.btn.submit').click();
+      await m.locator('uni-toast', { hasText: '追评成功' }).waitFor();
+      await m.locator('.rv-done', { hasText: '已评价' }).waitFor();
+      await uniGo(m, `/pages/goods/detail?id=${made.goods_id}`);
+      await m.locator('.reviews .rv-head').click();
+      const block = m.locator('.rv', { hasText: textB }).locator('.append');
+      await block.getByText(appendB).waitFor();
+      await block.getByText('用户追评').waitFor();
+    });
+    await flow.step('后台：评价列表里能看到追评，单独回复追评；PC 商品页上两条回复各在各的下面', admin, async () => {
+      const row = await adminRow(orderA);
+      await row.locator('.append').getByText(appendA).waitFor();
+      await row.getByRole('button', { name: '回复追评' }).click();
+      const d = el.dialog(admin);
+      await d.getByText(appendA).waitFor();
+      await d.locator('textarea').fill(appendReply);
+      await d.getByRole('button', { name: '保存' }).click();
+      await el.message(admin, '已回复');
+      await el.row(admin, orderA).locator('.append').getByText(appendReply).waitFor();
+      await pcGoods();
+      await pcReview(textA).locator('.append .reply', { hasText: appendReply }).waitFor();
+      // 原评价的回复还在，没有被追评的回复盖掉
+      await pcReview(textA).locator('.reply', { hasText: replyText }).first().waitFor();
     });
     await flow.step('后台：隐藏两条评价后，商品页不再显示它们', admin, async () => {
       for (const orderNo of [orderA, orderB]) {

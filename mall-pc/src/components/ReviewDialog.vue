@@ -2,10 +2,10 @@
 import { ref, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
-import { createReview, uploadImage } from '@/api'
+import { createReview, appendReview, uploadImage } from '@/api'
 
-// 评价订单里的一件商品。item 传入要评价的商品行，传 null 表示关闭
-const props = defineProps({ orderNo: { type: String, required: true }, item: { type: Object, default: null } })
+// 评价订单里的一件商品。item 传入要评价的商品行，传 null 表示关闭；append 为 true 时是追评（只有文字和图片，文字必填）
+const props = defineProps({ orderNo: { type: String, required: true }, item: { type: Object, default: null }, append: { type: Boolean, default: false } })
 const emit = defineEmits(['close', 'done'])
 const { t } = useI18n()
 
@@ -38,13 +38,17 @@ async function onFiles(e) {
 
 async function submit() {
   if (submitting.value || uploading.value) return
-  if (!form.rating) return ElMessage.warning(t('review.needRating'))
+  if (props.append ? !form.content.trim() : !form.rating) return ElMessage.warning(t(props.append ? 'review.needContent' : 'review.needRating'))
   submitting.value = true
   try {
-    await createReview(props.orderNo, {
-      order_item_id: props.item.item_id, rating: form.rating, content: form.content.trim(), images: images.value, is_anonymous: form.is_anonymous,
-    })
-    ElMessage.success(t('review.done'))
+    if (props.append) {
+      await appendReview(props.orderNo, { order_item_id: props.item.item_id, content: form.content.trim(), images: images.value })
+    } else {
+      await createReview(props.orderNo, {
+        order_item_id: props.item.item_id, rating: form.rating, content: form.content.trim(), images: images.value, is_anonymous: form.is_anonymous,
+      })
+    }
+    ElMessage.success(t(props.append ? 'review.appendDone' : 'review.done'))
     emit('done')
   } finally {
     submitting.value = false
@@ -53,19 +57,19 @@ async function submit() {
 </script>
 
 <template>
-  <el-dialog :model-value="!!item" :title="t('review.write')" width="600px" destroy-on-close @close="emit('close')">
+  <el-dialog :model-value="!!item" :title="t(append ? 'review.appendTitle' : 'review.write')" width="600px" destroy-on-close @close="emit('close')">
     <template v-if="item">
       <div class="goods">
         <img :src="item.image" alt="" class="thumb" />
         <div class="body"><div class="ellipsis-2">{{ item.title }}</div><div class="sub">{{ item.spec_text }}</div></div>
       </div>
       <el-form label-width="90px">
-        <el-form-item :label="t('review.rating')">
+        <el-form-item v-if="!append" :label="t('review.rating')">
           <el-rate v-model="form.rating" :clearable="false" />
           <span class="sub star-text">{{ form.rating ? t(`review.star.${form.rating}`) : '' }}</span>
         </el-form-item>
-        <el-form-item :label="t('review.content')">
-          <el-input v-model="form.content" type="textarea" :rows="4" maxlength="1000" show-word-limit :placeholder="t('review.contentPh')" />
+        <el-form-item :label="t(append ? 'review.appendBtn' : 'review.content')">
+          <el-input v-model="form.content" type="textarea" :rows="4" :maxlength="append ? 500 : 1000" show-word-limit :placeholder="t(append ? 'review.appendPh' : 'review.contentPh')" />
         </el-form-item>
         <el-form-item :label="t('pc.chooseImage')">
           <div class="pics">
@@ -77,7 +81,8 @@ async function submit() {
             <input ref="picker" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden @change="onFiles" />
           </div>
         </el-form-item>
-        <el-form-item>
+        <el-form-item v-if="append"><span class="sub">{{ t('review.appendTip') }}</span></el-form-item>
+        <el-form-item v-else>
           <el-checkbox v-model="form.is_anonymous">{{ t('review.anonymous') }}</el-checkbox>
           <span class="sub anon-tip">{{ t('review.anonymousTip') }}</span>
         </el-form-item>
@@ -85,7 +90,7 @@ async function submit() {
     </template>
     <template #footer>
       <el-button @click="emit('close')">{{ t('common.cancel') }}</el-button>
-      <el-button type="primary" :loading="submitting" :disabled="uploading" @click="submit">{{ t('review.submit') }}</el-button>
+      <el-button type="primary" :loading="submitting" :disabled="uploading" @click="submit">{{ t(append ? 'review.appendSubmit' : 'review.submit') }}</el-button>
     </template>
   </el-dialog>
 </template>

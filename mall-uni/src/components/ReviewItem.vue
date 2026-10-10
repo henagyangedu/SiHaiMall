@@ -5,8 +5,8 @@ import { useI18n } from 'vue-i18n'
 const props = defineProps({ review: { type: Object, required: true } })
 const { t } = useI18n()
 
-function preview(i) {
-  uni.previewImage({ urls: props.review.images, current: i })
+function preview(i, urls = props.review.images) {
+  uni.previewImage({ urls, current: i })
 }
 </script>
 
@@ -24,6 +24,15 @@ function preview(i) {
     </view>
     <view class="sub meta">{{ review.created_at }}<text v-if="review.spec_text">　{{ review.spec_text }}</text></view>
     <view v-if="review.reply" class="reply"><text class="reply-by">{{ t('review.reply') }}</text>{{ review.reply }}</view>
+    <!-- 追评：跟在原评价下面 -->
+    <view v-if="review.append" class="append">
+      <view class="append-tag">{{ t('review.appendTag') }}<text class="sub">　{{ review.append.days > 0 ? t('review.appendDays', { n: review.append.days }) : t('review.appendSameDay') }}</text></view>
+      <view class="content">{{ review.append.content }}</view>
+      <view v-if="review.append.images.length" class="pics">
+        <image v-for="(u, i) in review.append.images" :key="i" :src="u" mode="aspectFill" class="pic" @click="preview(i, review.append.images)" />
+      </view>
+      <view v-if="review.append.reply" class="reply"><text class="reply-by">{{ t('review.reply') }}</text>{{ review.append.reply }}</view>
+    </view>
   </view>
 </template>
 
@@ -42,4 +51,7 @@ function preview(i) {
 .meta { margin-top: 12rpx; }
 .reply { margin-top: 16rpx; padding: 16rpx 20rpx; background: #f3ede2; border-radius: 12rpx; font-size: 26rpx; line-height: 1.6; }
 .reply-by { color: var(--theme); margin-right: 12rpx; }
+.append { margin-top: 20rpx; padding-top: 16rpx; border-top: 2rpx dashed var(--line); }
+.append-tag { color: var(--theme); font-size: 24rpx; }
+.append .content { margin-top: 8rpx; }
 </style>

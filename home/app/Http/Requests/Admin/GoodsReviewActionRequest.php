@@ -17,11 +17,13 @@ class GoodsReviewActionRequest extends FormRequest
         return [
             'status' => ['sometimes', 'required', 'integer', 'in:0,1'],
             'reply'  => ['sometimes', 'nullable', 'string', 'max:500'],
+            // 回复的是追评时传 1
+            'append' => ['sometimes', 'boolean'],
         ];
     }
 
     public function attributes(): array
     {
-        return ['status' => '显示状态', 'reply' => '回复内容'];
+        return ['status' => '显示状态', 'reply' => '回复内容', 'append' => '回复对象'];
     }
 }

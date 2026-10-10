@@ -76,6 +76,8 @@ export default {
     rating: 'Rating', content: 'Review', contentPh: 'How was it? Share your experience (optional)', anonymous: 'Post anonymously', anonymousTip: 'Hides your photo and shows only the first letter of your name',
     submit: 'Submit review', done: 'Thanks for your review', needRating: 'Please choose a rating', toReview: 'Review', reviewed: 'Reviewed',
     already: 'You have already reviewed this item', notYet: 'You can review after the order is completed',
+    appendBtn: 'Add follow-up', appendTitle: 'Follow-up review', appendPh: 'How is it holding up after some use?', appendSubmit: 'Submit follow-up', appendDone: 'Follow-up review submitted', needContent: 'Please write your follow-up review',
+    appendTag: 'Follow-up', appendDays: 'Added {n} days later', appendSameDay: 'Added the same day', appended: 'You have already added a follow-up review for this item', appendTip: 'You can add one follow-up. It cannot be edited afterwards, and your rating stays the same.',
   },
   refund: {
     apply: 'Request refund', list: 'My refunds', detail: 'Refund details', whole: 'Refund entire order', wholeTip: 'This order has not shipped yet, so you can refund all of it (shipping included)',

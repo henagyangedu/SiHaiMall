@@ -31,7 +31,7 @@ class GoodsReviewController extends BaseAdminController
     /** 商家回复 */
     public function reply(GoodsReviewActionRequest $request)
     {
-        $this->service->reply((int) $request->route('id'), (string) ($request->validated('reply') ?? ''));
+        $this->service->reply((int) $request->route('id'), (string) ($request->validated('reply') ?? ''), (bool) $request->validated('append'));
 
         return ApiResponse::ok();
     }

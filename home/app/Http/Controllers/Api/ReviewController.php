@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\Api\ReviewAppendRequest;
 use App\Http\Requests\Api\ReviewCreateRequest;
 use App\Services\Api\ReviewService;
 use App\Support\ApiResponse;
@@ -26,5 +27,13 @@ class ReviewController extends ApiController
     public function store(ReviewCreateRequest $request)
     {
         return ApiResponse::ok($this->service->create($this->memberId($request), (string) $request->route('orderNo'), $request->validated()), '评价成功');
+    }
+
+    /** 追评：给评价过的商品再追加一次 */
+    public function append(ReviewAppendRequest $request)
+    {
+        $this->service->append($this->memberId($request), (string) $request->route('orderNo'), $request->validated());
+
+        return ApiResponse::ok(null, '追评成功');
     }
 }

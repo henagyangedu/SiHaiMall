@@ -237,4 +237,63 @@ class GoodsReviewTest extends FeatureTestCase
         // 评价内容本身后台改不了
         $this->assertSame('包装破了', GoodsReview::query()->find($id)->content);
     }
+
+    public function test_buyer_can_append_once_and_merchant_replies_to_it_separately(): void
+    {
+        [$order, $itemId] = $this->finishedOrder();
+        $uri = "/orders/{$order->order_no}/reviews/append";
+        $item = fn () => $this->api('GET', "/orders/{$order->order_no}", [], $this->token)->json('data.items.0');
+
+        // 没评价过不能追评
+        $this->assertFalse($item()['can_append']);
+        $this->api('POST', $uri, ['order_item_id' => $itemId, 'content' => '先追评'], $this->token)->assertJsonPath('msg', '这件商品还没有评价，不能追评');
+
+        $this->review($order, $itemId, ['rating' => 4, 'content' => '刚收到，看着不错'])->assertJsonPath('code', 0);
+        $id = (int) GoodsReview::query()->value('id');
+        DB::table('goods_review')->where('id', $id)->update(['created_at' => now()->subDays(12)]);
+        $this->assertTrue($item()['can_append']);
+        $this->assertNull($this->api('GET', "/goods/{$this->goodsId}/reviews")->json('data.list.0.append'));
+        $this->assertSame(0, $this->api('GET', "/goods/{$this->goodsId}/reviews?level=image")->json('data.total'));
+
+        // 内容必填；图片必须是自己上传的
+        $this->api('POST', $uri, ['order_item_id' => $itemId, 'content' => ''], $this->token)->assertJsonPath('code', 422);
+        $this->api('POST', $uri, ['order_item_id' => $itemId, 'content' => '用了两周', 'images' => ['https://evil.example.com/x.png']], $this->token)->assertJsonPath('msg', '图片无效，请重新上传');
+        $this->assertTrue($item()['can_append']);
+
+        $img = $this->uploaded($this->memberId, 'after.png');
+        $this->api('POST', $uri, ['order_item_id' => $itemId, 'content' => ' 用了两周，猫很喜欢 ', 'images' => [$img]], $this->token)->assertJsonPath('code', 0)->assertJsonPath('msg', '追评成功');
+
+        // 商品页：追评跟在原评价下面，带天数；星级和好评率不变；“有图”把追评的图也算上
+        $data = $this->api('GET', "/goods/{$this->goodsId}/reviews")->json('data');
+        $append = $data['list'][0]['append'];
+        $this->assertSame(['用了两周，猫很喜欢', [$img], 12, ''], [$append['content'], $append['images'], $append['days'], $append['reply']]);
+        $this->assertSame([4, '刚收到，看着不错'], [$data['list'][0]['rating'], $data['list'][0]['content']]);
+        $this->assertSame([1, 100, 1], [$data['summary']['count'], $data['summary']['good_rate'], $data['summary']['with_images']]);
+        $this->assertSame(1, $this->api('GET', "/goods/{$this->goodsId}/reviews?level=image")->json('data.total'));
+
+        // 只能追一次
+        $this->assertFalse($item()['can_append']);
+        $this->api('POST', $uri, ['order_item_id' => $itemId, 'content' => '再追一次'], $this->token)->assertJsonPath('msg', '这件商品已经追评过了');
+        $this->assertSame('用了两周，猫很喜欢', GoodsReview::query()->find($id)->append_content);
+
+        // 后台：能搜到追评的内容；对追评的回复和对原评价的回复分开
+        $row = $this->adminApi('GET', '/goods/review/list?keyword=猫很喜欢')->json('data.list.0');
+        $this->assertSame([$id, '用了两周，猫很喜欢'], [$row['id'], $row['append']['content']]);
+        $this->adminApi('POST', "/goods/review/{$id}/reply", ['reply' => '感谢支持'])->assertJsonPath('code', 0);
+        $this->adminApi('POST', "/goods/review/{$id}/reply", ['reply' => '谢谢回来分享', 'append' => 1])->assertJsonPath('code', 0);
+        $shown = $this->api('GET', "/goods/{$this->goodsId}/reviews")->json('data.list.0');
+        $this->assertSame(['感谢支持', '谢谢回来分享'], [$shown['reply'], $shown['append']['reply']]);
+        $this->assertNotNull($shown['append']['replied_at']);
+
+        // 没有追评的评价不能回复追评；别人不能替他追评
+        [$other, $otherItem] = $this->finishedOrder();
+        $this->review($other, $otherItem)->assertJsonPath('code', 0);
+        $otherId = (int) GoodsReview::query()->where('order_id', $other->id)->value('id');
+        $this->adminApi('POST', "/goods/review/{$otherId}/reply", ['reply' => 'x', 'append' => 1])->assertJsonPath('msg', '这条评价没有追评');
+        [$b, $bToken] = $this->makeMember();
+        $this->api('POST', "/orders/{$other->order_no}/reviews/append", ['order_item_id' => $otherItem, 'content' => '乙来追评'], $bToken)->assertJsonPath('msg', '订单不存在');
+        [$bOrder] = $this->finishedOrder($bToken, (int) $this->makeAddress($b->id)->id);
+        $this->api('POST', "/orders/{$bOrder->order_no}/reviews/append", ['order_item_id' => $otherItem, 'content' => '串单追评'], $bToken)->assertJsonPath('msg', '这件商品还没有评价，不能追评');
+        $this->assertNull(GoodsReview::query()->find($otherId)->append_at);
+    }
 }

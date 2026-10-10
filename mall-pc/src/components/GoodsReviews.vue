@@ -61,6 +61,15 @@ onMounted(load)
           </div>
           <div class="sub meta">{{ r.created_at }}<template v-if="r.spec_text">　{{ r.spec_text }}</template></div>
           <div v-if="r.reply" class="reply"><span class="reply-by">{{ t('review.reply') }}</span>{{ r.reply }}</div>
+          <!-- 追评：跟在原评价下面 -->
+          <div v-if="r.append" class="append">
+            <div class="append-tag">{{ t('review.appendTag') }}<span class="sub">　{{ r.append.days > 0 ? t('review.appendDays', { n: r.append.days }) : t('review.appendSameDay') }}</span></div>
+            <div class="content">{{ r.append.content }}</div>
+            <div v-if="r.append.images.length" class="pics">
+              <el-image v-for="(u, i) in r.append.images" :key="i" :src="u" :preview-src-list="r.append.images" :initial-index="i" fit="cover" preview-teleported class="pic" />
+            </div>
+            <div v-if="r.append.reply" class="reply"><span class="reply-by">{{ t('review.reply') }}</span>{{ r.append.reply }}</div>
+          </div>
         </div>
       </div>
       <div v-if="!list.length && !page.loading" class="empty">{{ t('review.empty') }}</div>
@@ -92,6 +101,9 @@ onMounted(load)
 .meta { margin-top: 8px; }
 .reply { margin-top: 10px; padding: 10px 14px; background: #f5f6f8; border-radius: 6px; line-height: 1.6; }
 .reply-by { color: var(--theme); margin-right: 8px; }
+.append { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.append-tag { color: var(--theme); font-size: 13px; }
+.append .content { margin-top: 6px; }
 .empty { text-align: center; color: var(--sub); padding: 40px 0; }
 .pager { display: flex; justify-content: center; padding-top: 16px; }
 </style>

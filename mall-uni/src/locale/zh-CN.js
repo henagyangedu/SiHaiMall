@@ -76,6 +76,8 @@ export default {
     rating: '评分', content: '评价', contentPh: '商品怎么样？说说你的使用感受（选填）', anonymous: '匿名评价', anonymousTip: '不显示头像，昵称只显示第一个字',
     submit: '提交评价', done: '评价成功', needRating: '请选择评分', toReview: '评价', reviewed: '已评价',
     already: '这件商品已经评价过了', notYet: '订单完成后才能评价',
+    appendBtn: '追评', appendTitle: '追加评价', appendPh: '用了一段时间后感觉怎么样？', appendSubmit: '提交追评', appendDone: '追评成功', needContent: '请填写追评内容',
+    appendTag: '用户追评', appendDays: '{n} 天后追评', appendSameDay: '当天追评', appended: '这件商品已经追评过了', appendTip: '追评只能提交一次，提交后不能修改；评分不变',
   },
   refund: {
     apply: '申请售后', list: '我的售后', detail: '售后详情', whole: '整单退款', wholeTip: '订单还没发货，可以整单退款（含运费）',

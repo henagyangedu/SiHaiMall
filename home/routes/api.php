@@ -125,6 +125,8 @@ Route::middleware('api.token')->group(function () {
     Route::delete('orders/{orderNo}/invoice', [InvoiceController::class, 'destroy'])->where('orderNo', '[A-Za-z0-9]+');
     // 评价订单里的一件商品（订单完成后）
     Route::post('orders/{orderNo}/reviews', [ReviewController::class, 'store'])->where('orderNo', '[A-Za-z0-9]+')->middleware('throttle:20,1');
+    // 追评（评价过的商品再追加一次）
+    Route::post('orders/{orderNo}/reviews/append', [ReviewController::class, 'append'])->where('orderNo', '[A-Za-z0-9]+')->middleware('throttle:20,1');
     Route::get('refunds', [RefundController::class, 'index']);
     Route::get('refunds/{refundNo}', [RefundController::class, 'show'])->where('refundNo', '[A-Za-z0-9]+');
     Route::post('refunds/{refundNo}/cancel', [RefundController::class, 'cancel'])->where('refundNo', '[A-Za-z0-9]+');

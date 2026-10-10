@@ -17,13 +17,40 @@ use Illuminate\Support\Facades\DB;
  * - 适用范围：全部商品 / 指定分类（含下级）/ 指定商品。门槛和折扣都只按适用范围内的商品金额算。
  * - 有效期在领到手的那一刻固化到 gm_member_coupon，之后后台再改券的设置，不影响已经领到的。
  * - 发行量：received 在发一张的同一条 UPDATE 里加一并校验没有超发（靠行锁，不会超发）。
- * - 用券：一单一张；只能用在基准币种（人民币）的订单上，因为券面金额是按基准币种定的。
+ * - 用券：一单一张。券面金额（门槛、面额、封顶）是按基准币种（人民币）定的；其他币种的订单按下单币种的汇率换算后再比、再减
+ *   （local()，和商品价格用的是同一个汇率、同样按币种的小数位舍入）。给买家看的券也按他的币种换算好（localize()）。
  *   门槛按“适用范围内的商品金额”（原价）判断；能减的钱 = 满减券的面额，或折扣券对“适用商品扣掉会员折扣后的金额”打折（可封顶）；
  *   再怎么减也不会把商品部分减到 0（至少留 0.01，支付渠道不收 0 元单）。计算顺序：会员折扣 → 优惠券 → 积分抵扣，运费不参与。
  * - 退回：订单取消或超时未付款关闭时退回（release）；已付款订单的退款不退券。
  */
 class CouponService
 {
+    public function __construct(private PriceService $price) {}
+
+    /** 把一个按基准币种定的金额换成指定币种的；本来就是基准币种时原样返回 */
+    private function local(string $baseAmount, string $currency): string
+    {
+        $cur = $this->price->currency($currency);
+
+        return bccomp((string) $cur['rate'], '1', 8) === 0 ? bcadd($baseAmount, '0', 2) : Money::fromBase($baseAmount, (string) $cur['rate'], (int) $cur['decimals']);
+    }
+
+    /**
+     * 把给买家看的一张券（couponRow / memberRow 的结果）里的金额换成他的币种，并标上 currency。不传币种就是基准币种。
+     * @param array<string,mixed> $row
+     */
+    private function localize(array $row, ?string $currency): array
+    {
+        $code = $this->price->currency((string) $currency)['code'];
+        foreach (['threshold', 'amount', 'max_amount', 'face_amount'] as $k) {
+            if (isset($row[$k])) {
+                $row[$k] = $this->local((string) $row[$k], $code);
+            }
+        }
+
+        return $row + ['currency' => $code];
+    }
+
     /**
      * 给一个会员发一张券。$bySelf=true 是买家自己领（要求券公开可领、在领取时间内、没超过每人限领）；
      * false 是后台发放（只受发行总量限制）。必须在事务里调用。
@@ -87,9 +114,9 @@ class CouponService
     public function quote(Coupon $coupon, array $lines, callable $net, string $currency, string $baseCurrency): array
     {
         $no = fn (string $reason) => ['usable' => false, 'amount' => '0.00', 'reason' => $reason];
-        if (strtoupper($currency) !== strtoupper($baseCurrency)) {
-            return $no('优惠券只能用于' . strtoupper($baseCurrency) . '订单');
-        }
+        // 券面金额是基准币种的：换成下单币种再用
+        $threshold = $this->local((string) $coupon->threshold, $currency);
+        $maxAmount = $this->local((string) $coupon->max_amount, $currency);
 
         $applicable = '0.00';
         $total = '0.00';
@@ -108,17 +135,19 @@ class CouponService
         if (bccomp($applicable, '0', 2) <= 0) {
             return $no('订单里没有这张券适用的商品');
         }
-        if (bccomp($applicable, (string) $coupon->threshold, 2) < 0) {
-            return $no('适用商品还差 ' . self::trim(bcsub((string) $coupon->threshold, $applicable, 2)) . ' 元可用');
+        if (bccomp($applicable, $threshold, 2) < 0) {
+            $short = self::trim(bcsub($threshold, $applicable, 2));
+
+            return $no(strtoupper($currency) === strtoupper($baseCurrency) ? "适用商品还差 {$short} 元可用" : "适用商品还差 {$short} " . strtoupper($currency) . ' 可用');
         }
 
         $applicableNet = $net($applicable);
         if ((int) $coupon->type === Coupon::TYPE_REDUCE) {
-            $amount = (string) $coupon->amount;
+            $amount = $this->local((string) $coupon->amount, $currency);
         } else {
             $amount = Money::round(bcdiv(bcmul($applicableNet, bcsub('100', (string) $coupon->discount, 2), 6), '100', 6), 2);
-            if (bccomp((string) $coupon->max_amount, '0', 2) > 0 && bccomp($amount, (string) $coupon->max_amount, 2) > 0) {
-                $amount = (string) $coupon->max_amount;
+            if (bccomp($maxAmount, '0', 2) > 0 && bccomp($amount, $maxAmount, 2) > 0) {
+                $amount = $maxAmount;
             }
         }
         // 不能减得比适用商品实际要付的还多，也不能把整单的商品部分减到 0
@@ -152,7 +181,7 @@ class CouponService
                 continue;
             }
             // 用 array_merge 而不是 +：quote() 的 amount（这一单能减多少）要盖掉券本身的 amount（面额），面额另有 face_amount
-            $out[] = array_merge(self::memberRow($r, $c), $this->quote($c, $lines, $net, $currency, $baseCurrency));
+            $out[] = array_merge($this->localize(self::memberRow($r, $c), $currency), $this->quote($c, $lines, $net, $currency, $baseCurrency));
         }
         usort($out, fn ($a, $b) => [$b['usable'], (float) $b['amount']] <=> [$a['usable'], (float) $a['amount']]);
 
@@ -219,7 +248,7 @@ class CouponService
      * 传 $goodsId 时只返回这个商品能用的券（商品详情页用）。
      * @return array<int,array<string,mixed>>
      */
-    public function receivable(?int $memberId, ?int $goodsId = null): array
+    public function receivable(?int $memberId, ?int $goodsId = null, ?string $currency = null): array
     {
         $now = now();
         $coupons = Coupon::query()->where('status', 1)->where('is_public', 1)
@@ -241,11 +270,11 @@ class CouponService
             ? MemberCoupon::query()->where('member_id', $memberId)->whereIn('coupon_id', $coupons->pluck('id'))->groupBy('coupon_id')->selectRaw('coupon_id, COUNT(*) as c')->pluck('c', 'coupon_id')
             : collect();
 
-        return $coupons->map(function (Coupon $c) use ($mine, $now) {
+        return $coupons->map(function (Coupon $c) use ($mine, $now, $currency) {
             [, $end] = self::validPeriod($c, $now);
             $got = (int) ($mine[$c->id] ?? 0);
 
-            return self::couponRow($c) + [
+            return $this->localize(self::couponRow($c), $currency) + [
                 'valid_type' => (int) $c->valid_type, 'valid_days' => (int) $c->valid_days, 'valid_end' => $end->format('Y-m-d H:i:s'),
                 'received' => $got, 'can_receive' => $got < (int) $c->per_member,
             ];
@@ -256,7 +285,7 @@ class CouponService
      * 我的优惠券。$status：unused 未使用（含还没到开始时间的）/ used 已使用 / expired 已过期。
      * 过期状态不靠定时任务：未使用但过了有效期的，查的时候就算作已过期。
      */
-    public function mine(int $memberId, string $status, int $page, int $size): array
+    public function mine(int $memberId, string $status, int $page, int $size, ?string $currency = null): array
     {
         $now = now();
         $q = MemberCoupon::query()->where('member_id', $memberId);
@@ -267,7 +296,7 @@ class CouponService
         };
         $p = $q->paginate(min(max($size, 1), 50), ['*'], 'page', max($page, 1));
         $coupons = Coupon::withTrashed()->whereIn('id', collect($p->items())->pluck('coupon_id')->unique())->get()->keyBy('id');
-        $p->setCollection(collect($p->items())->filter(fn ($r) => $coupons->has($r->coupon_id))->map(fn ($r) => self::memberRow($r, $coupons[$r->coupon_id]))->values());
+        $p->setCollection(collect($p->items())->filter(fn ($r) => $coupons->has($r->coupon_id))->map(fn ($r) => $this->localize(self::memberRow($r, $coupons[$r->coupon_id]), $currency))->values());
 
         return \App\Support\Paginate::format($p);
     }

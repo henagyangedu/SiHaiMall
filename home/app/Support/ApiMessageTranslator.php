@@ -261,6 +261,7 @@ final class ApiMessageTranslator
             '/^库存不足：(.+)，剩余 (\d+)$/u' => fn ($m) => "Not enough stock for {$m[1]}. Only {$m[2]} left.",
             '/^不支持的币种：(.+)$/u' => fn ($m) => "Unsupported currency: {$m[1]}",
             '/^优惠券只能用于(.+)订单$/u' => fn ($m) => "Coupons can only be used on {$m[1]} orders",
+            '/^适用商品还差 (.+) ([A-Z]{3}) 可用$/u' => fn ($m) => "Add {$m[2]} {$m[1]} more of eligible items to use this coupon",
             '/^适用商品还差 (.+) 元可用$/u' => fn ($m) => "Add {$m[1]} more of eligible items to use this coupon",
             '/^这张优惠券不能用于本单：(.+)$/u' => fn ($m) => 'This coupon cannot be used for this order: ' . self::translate($m[1], 'en'),
             '/^商品价格异常，暂时无法下单：(.+)$/u' => fn ($m) => "This product cannot be ordered right now: {$m[1]}",

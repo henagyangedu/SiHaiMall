@@ -10,14 +10,22 @@ use Illuminate\Support\Facades\DB;
  * 搭配套餐的规则：订单里凑齐一套就立减一笔钱。结算预览和下单共用 quote()，不要在别处自己算。
  *
  * - 套餐绑定的是具体规格；订单里这些规格每样至少 1 件算凑齐一套，能凑几套减几次。
- * - 只用于基准币种（人民币）的订单；立减金额固定，不随区域价变。
+ * - 立减金额是按基准币种（人民币）定的，固定、不随区域价变；其他币种的订单按下单币种的汇率换算（localReduce）。
  * - 一个规格在多个套餐里时，先凑立减金额大的；一件商品只算进一个套餐。
  * - 减的钱按单价占比摊到这几件商品上（shares），后面的会员折扣、优惠券、积分都按摊完之后的金额算。
  * - 立减金额不会把一套商品减到 0：每件至少留 0.01。
  */
 class BundleService
 {
-    public function __construct(private LocaleService $locale) {}
+    public function __construct(private PriceService $price) {}
+
+    /** 套餐的立减金额换成指定币种的（和商品价格用同一个汇率、同样按币种的小数位舍入） */
+    public function localReduce(string $reduce, string $currency): string
+    {
+        $cur = $this->price->currency($currency);
+
+        return bccomp((string) $cur['rate'], '1', 8) === 0 ? bcadd($reduce, '0', 2) : Money::fromBase($reduce, (string) $cur['rate'], (int) $cur['decimals']);
+    }
 
     /**
      * 这一单能享受多少套餐优惠。
@@ -28,7 +36,7 @@ class BundleService
     public function quote(array $lines, string $currency): array
     {
         $out = ['amount' => '0.00', 'applied' => [], 'shares' => []];
-        if (count($lines) < Bundle::MIN_ITEMS || strtoupper($currency) !== strtoupper($this->locale->baseCurrency())) {
+        if (count($lines) < Bundle::MIN_ITEMS) {
             return $out;
         }
 
@@ -41,7 +49,7 @@ class BundleService
             }
             $units = array_map(fn ($id) => (string) $lines[$id]['unit'], $skuIds);
             $unitSum = array_reduce($units, fn ($c, $u) => bcadd($c, $u, 2), '0.00');
-            $per = self::perSet((string) $b['reduce_amount'], $units);
+            $per = self::perSet($this->localReduce((string) $b['reduce_amount'], $currency), $units);
             if (bccomp($per, '0', 2) <= 0) {
                 continue;
             }

@@ -130,10 +130,27 @@ class CouponUseTest extends FeatureTestCase
         $this->assertSame('0.00', $bad->json('data.coupon_amount'));
         $this->assertStringContainsString('优惠券', json_encode($bad->json('data.problems'), JSON_UNESCAPED_UNICODE));
 
-        // 只能用在人民币订单上
+        // 非人民币订单：券面金额按汇率换算（1 元 = 0.14 美元）。300 元的货是 42 美元，“满 300 减 30”变成“满 42 减 4.2”
         $usd = $this->preview(3, [], ['X-Currency' => 'USD']);
-        $this->assertSame([0, '0.00'], [$usd->json('data.member_coupon_id'), $usd->json('data.coupon_amount')]);
-        $this->assertFalse($usd->json('data.coupons.0.usable'));
+        $this->assertSame([$big, '42.00', '4.20', '37.80'], [$usd->json('data.member_coupon_id'), $usd->json('data.goods_amount'), $usd->json('data.coupon_amount'), $usd->json('data.pay_amount')]);
+        $rows = collect($usd->json('data.coupons'))->keyBy('id');
+        $this->assertSame(['USD', '42.00', '4.20', '4.20'], [$rows[$big]['currency'], $rows[$big]['threshold'], $rows[$big]['face_amount'], $rows[$big]['amount']]);
+        $this->assertSame(['3.50', '3.50'], [$rows[$tenOff]['amount'], $rows[$tenOff]['max_amount']], '折扣券的封顶 25 元也换算成 3.5 美元');
+        $this->assertSame('0.70', $rows[$small]['amount']);
+        // 买 1 件（14 美元）够不上门槛：提示里的差额也是美元
+        $one = collect($this->preview(1, [], ['X-Currency' => 'USD'])->json('data.coupons'))->keyBy('id');
+        $this->assertSame([false, '适用商品还差 28 USD 可用'], [$one[$big]['usable'], $one[$big]['reason']]);
+        $this->assertSame('Add USD 28 more of eligible items to use this coupon', collect($this->preview(1, [], ['X-Currency' => 'USD', 'X-Lang' => 'en'])->json('data.coupons'))->keyBy('id')[$big]['reason']);
+        // 人民币下看到的还是人民币的券面
+        $this->assertSame(['CNY', '300.00'], [collect($this->preview(3)->json('data.coupons'))->keyBy('id')[$big]['currency'], collect($this->preview(3)->json('data.coupons'))->keyBy('id')[$big]['threshold']]);
+
+        // 美元下单：订单上记的优惠券金额是美元；领券中心和“我的优惠券”也按美元显示
+        $order = $this->placeOrder($this->token, $this->sku, 3, $this->addressId, ['member_coupon_id' => $big], ['X-Currency' => 'USD']);
+        $this->assertSame(['USD', '42.00', '4.20', '37.80'], [$order->currency, (string) $order->goods_amount, (string) $order->coupon_amount, (string) $order->pay_amount]);
+        $mine = collect($this->api('GET', '/member/coupons', [], $this->token, ['X-Currency' => 'USD'])->json('data.list'))->keyBy('id');
+        $this->assertSame(['USD', '14.00', '0.70'], [$mine[$small]['currency'], $mine[$small]['threshold'], $mine[$small]['face_amount']]);
+        $this->assertSame('USD', $this->api('GET', '/coupons', [], null, ['X-Currency' => 'USD'])->json('data.0.currency'));
+        $this->assertSame('CNY', $this->api('GET', '/coupons')->json('data.0.currency'));
     }
 
     public function test_scope_member_discount_and_points_interact_in_the_documented_order(): void

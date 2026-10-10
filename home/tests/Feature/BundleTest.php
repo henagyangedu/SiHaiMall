@@ -85,14 +85,15 @@ class BundleTest extends FeatureTestCase
         $this->assertSame([$id, '150.00', '130.00', 'running', '', 2], [$row['id'], $row['total'], $row['bundle_price'], $row['period'], $row['problem'], count($row['items'])]);
         $this->assertContains($this->a, array_column($this->adminApi('GET', '/marketing/bundle/skus?keyword=测试商品')->json('data'), 'sku_id'));
 
-        // 商品页：甲、乙都能看到这个套餐，丙没有；非人民币不显示；名称不给买家
+        // 商品页：甲、乙都能看到这个套餐，丙没有；其他币种按汇率换算（1 元 = 0.14 美元）；名称不给买家
         $shown = $this->api('GET', '/goods/'.$this->goodsId($this->a))->json('data.bundles');
         $this->assertSame([[$id, '150.00', '20.00', '130.00']], array_map(fn ($b) => [$b['id'], $b['total'], $b['reduce'], $b['bundle_price']], $shown));
         $this->assertSame([$this->a, $this->b], array_column($shown[0]['items'], 'sku_id'));
         $this->assertArrayNotHasKey('name', $shown[0]);
         $this->assertCount(1, $this->api('GET', '/goods/'.$this->goodsId($this->b))->json('data.bundles'));
         $this->assertSame([], $this->api('GET', '/goods/'.$this->goodsId($this->c))->json('data.bundles'));
-        $this->assertSame([], $this->api('GET', '/goods/'.$this->goodsId($this->a), [], null, ['X-Currency' => 'USD'])->json('data.bundles'));
+        $usd = $this->api('GET', '/goods/'.$this->goodsId($this->a), [], null, ['X-Currency' => 'USD'])->json('data.bundles.0');
+        $this->assertSame(['21.00', '2.80', '18.20'], [$usd['total'], $usd['reduce'], $usd['bundle_price']]);
 
         // 套餐里有缺货的：商品页不显示，后台列表给出原因
         DB::table('goods_sku')->where('id', $this->b)->update(['stock' => 0]);
@@ -122,8 +123,13 @@ class BundleTest extends FeatureTestCase
         $this->assertSame([['id' => $id, 'name' => '测试套餐', 'sets' => 1, 'amount' => '20.00']], $p['bundles']);
         // 甲 2 乙 3：两套
         $this->assertSame('40.00', $this->preview([$this->a => 2, $this->b => 3])['bundle_amount']);
-        // 非人民币订单不参与
-        $this->assertSame('0.00', $this->preview([$this->a => 1, $this->b => 1], [], ['X-Currency' => 'USD'])['bundle_amount']);
+        // 非人民币订单：立减 20 元按汇率换成 2.8 美元；下单后订单上记的也是美元
+        $usd = $this->preview([$this->a => 1, $this->b => 1], [], ['X-Currency' => 'USD']);
+        $this->assertSame(['21.00', '2.80', '18.20'], [$usd['goods_amount'], $usd['bundle_amount'], $usd['pay_amount']]);
+        $usdOrder = $this->order([$this->a => 1, $this->b => 1], [], ['X-Currency' => 'USD']);
+        $this->assertSame(['USD', '2.80', '18.20'], [$usdOrder->currency, (string) $usdOrder->bundle_amount, (string) $usdOrder->pay_amount]);
+        // 分销计佣基数折回人民币：18.20 ÷ 0.14 = 130
+        $this->assertSame('130.00', DistributionService::commissionBase($usdOrder));
 
         // 下单：金额和预览一致，订单上记下优惠金额和快照；买家和后台的订单详情都带出来
         $order = $this->order([$this->a => 2, $this->b => 1, $this->c => 1]);

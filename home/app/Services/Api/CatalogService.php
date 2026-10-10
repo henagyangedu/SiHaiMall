@@ -151,7 +151,7 @@ class CatalogService
             'params' => $this->params($id, $lang),
             'related' => $this->relatedGoods(DB::table('goods_relation')->where('goods_id', $id)->orderBy('sort')->orderBy('id')->limit(12)->pluck('related_goods_id')->all(), $lang, $currency, $region),
             'fits' => $this->relatedGoods(DB::table('goods_relation')->where('related_goods_id', $id)->orderByDesc('id')->limit(12)->pluck('goods_id')->all(), $lang, $currency, $region),
-            // 包含这个商品的搭配套餐（只在基准币种下有；套餐里有下架或缺货的商品就不显示）
+            // 包含这个商品的搭配套餐（立减金额按当前币种换算；套餐里有下架或缺货的商品就不显示）
             'bundles' => $this->bundlesFor($id, $lang, $currency, $region),
             // 不返回成本价
             'skus' => $skus->map(fn ($s) => [
@@ -169,9 +169,6 @@ class CatalogService
      */
     private function bundlesFor(int $goodsId, string $lang, string $currency, ?array $region): array
     {
-        if (strtoupper($currency) !== strtoupper($this->locale->baseCurrency())) {
-            return [];
-        }
         $list = $this->bundles->forGoods($goodsId);
         $briefs = $this->skuBriefs(array_values(array_unique(array_merge([], ...array_column($list, 'sku_ids')))), $lang, $currency, $region);
 
@@ -186,7 +183,7 @@ class CatalogService
                 $items[] = ['sku_id' => $s['sku_id'], 'goods_id' => $s['goods_id'], 'title' => $s['title'], 'spec_text' => $s['spec_text'], 'image' => $s['image'], 'price' => $s['price']];
             }
             $total = array_reduce($items, fn ($c, $i) => bcadd($c, $i['price'], 2), '0.00');
-            $reduce = BundleService::perSet($b['reduce_amount'], array_column($items, 'price'));
+            $reduce = BundleService::perSet($this->bundles->localReduce($b['reduce_amount'], $currency), array_column($items, 'price'));
             if (bccomp($reduce, '0', 2) <= 0) {
                 continue;
             }

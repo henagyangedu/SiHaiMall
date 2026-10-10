@@ -66,12 +66,13 @@ export async function confirm(content) {
 export const addressLine = (a) => [a.province, a.city, a.district, a.address, a.address2].filter(Boolean).join(' ')
 
 /**
- * 把一张优惠券写成买家看的文字（按当前语言）。券面金额是基准币种的。
+ * 把一张优惠券写成买家看的文字（按当前语言）。券面金额接口已经换成了买家当前的币种（c.currency）。
  * valueOnly：只要面额（“减 ¥30”“9 折”）；condOnly：只要使用条件（“满 ¥300 可用，最多减 ¥50”）；都不传是完整的一句。
  * c 可以是领券中心的券，也可以是会员手里的券（那种的面额在 face_amount）。
  */
 export function couponText(c, valueOnly = false, condOnly = false) {
-  const sym = currencySymbol(state.config.base_currency)
+  // 接口已经把券面金额换成了买家当前的币种（c.currency）
+  const sym = currencySymbol(c.currency || state.config.base_currency)
   const n = (v) => sym + Number(v)
   const value = c.type === 1
     ? t('coupon.reduce', { n: n(c.face_amount ?? c.amount) })

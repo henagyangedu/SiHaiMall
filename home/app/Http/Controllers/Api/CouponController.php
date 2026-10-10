@@ -16,7 +16,7 @@ class CouponController extends ApiController
         $member = $request->attributes->get('member');
         $goodsId = (int) $request->query('goods_id', 0);
 
-        return ApiResponse::ok($this->service->receivable($member ? (int) $member->id : null, $goodsId > 0 ? $goodsId : null));
+        return ApiResponse::ok($this->service->receivable($member ? (int) $member->id : null, $goodsId > 0 ? $goodsId : null, $this->currency($request)));
     }
 
     /** 领一张 */
@@ -32,7 +32,7 @@ class CouponController extends ApiController
 
         return ApiResponse::ok($this->service->mine(
             $this->memberId($request), in_array($status, ['used', 'expired'], true) ? $status : 'unused',
-            (int) $request->query('page', 1), (int) $request->query('size', 10)
+            (int) $request->query('page', 1), (int) $request->query('size', 10), $this->currency($request)
         ));
     }
 }

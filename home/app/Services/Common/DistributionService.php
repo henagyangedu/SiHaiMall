@@ -215,7 +215,8 @@ class DistributionService
 
         $refunded = (string) OrderRefund::query()->where('order_id', $order->id)->where('status', OrderRefund::DONE)->sum('refund_amount');
         $allRefunded = !DB::table('order_item')->where('order_id', $order->id)->whereColumn('refund_qty', '<', 'qty')->exists();
-        $goodsPaid = bcsub((string) $order->pay_amount, (string) $order->shipping_fee, 2);
+        // 买家为商品付的钱（价外税时含商品的税，和退款金额是同一口径）
+        $goodsPaid = TaxService::goodsPaid($order);
 
         foreach ($rows as $c) {
             $target = $allRefunded ? '0.00' : self::afterRefund((string) $c->origin_amount, $goodsPaid, $refunded);

@@ -59,6 +59,7 @@ export default {
     amount: 'Invoice amount', amountTip: 'Based on the amount paid, excluding refunds', invoiceNo: 'Invoice number', submit: 'Submit', submitted: 'Invoice request submitted', cancelled: 'Invoice request cancelled',
     needName: 'Please enter the billing name', needTaxNo: 'Please enter the tax ID', needEmail: 'Please enter your email', openFailed: 'Could not open the invoice. Please try again later.',
   },
+  tax: { extra: '{name} ({rate}%)', included: 'Includes {name} ({rate}%): {amount}' },
   bundle: { title: 'Bundle & save', total: 'Separately', price: 'Bundle price', save: 'Save {n}', buy: 'Buy bundle', row: 'Bundle discount' },
   restock: { title: 'Back-in-stock alerts', notify: 'Notify me', subscribed: 'Alert set', cancel: 'Cancel alert', soldOutTip: 'This option is out of stock', subscribedTip: "We'll let you know once when it's back", waiting: 'Waiting', arrived: 'Back in stock', invalid: 'Unavailable', empty: 'No back-in-stock alerts yet', buy: 'Buy now' },
   search: { history: 'Recent searches', hot: 'Popular', clear: 'Clear', cancel: 'Cancel', result: 'Results for "{keyword}"', noResult: 'No products found for "{keyword}"', tryOther: 'Try another word, or take a look at these', recommend: 'You may like' },

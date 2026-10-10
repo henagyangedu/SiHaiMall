@@ -469,7 +469,7 @@ class OrderRefundService
     /** 某商品行退 $qty 件的可退上限：按商品金额占比分摊实付（不含运费），不超过订单剩余可退金额 */
     private function itemMax(Order $order, OrderItem $item, int $qty, string $remain): string
     {
-        return self::share((string) $item->price, $qty, (string) $order->goods_amount, (string) $order->pay_amount, (string) $order->shipping_fee, $remain);
+        return self::share((string) $item->price, $qty, (string) $order->goods_amount, (string) $order->pay_amount, TaxService::shippingPaid($order), $remain);
     }
 
     /** 纯计算：单价 × 数量 占商品总额的比例 × 商品部分的实付（实付 - 运费），四舍五入到分，封顶 $remain */

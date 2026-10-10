@@ -133,7 +133,7 @@ class MemberPrivacyService
         $json = fn (?string $v) => $v === null || $v === '' ? [] : (json_decode($v, true) ?: []);
 
         $orders = DB::table('order')->where('member_id', $id)->whereNull('deleted_at')->orderBy('id')->get([
-            'id', 'order_no', 'status', 'pay_status', 'currency', 'goods_amount', 'shipping_fee', 'bundle_amount', 'discount_amount', 'coupon_amount', 'points_amount',
+            'id', 'order_no', 'status', 'pay_status', 'currency', 'goods_amount', 'shipping_fee', 'tax_amount', 'tax_name', 'bundle_amount', 'discount_amount', 'coupon_amount', 'points_amount',
             'pay_amount', 'pay_channel', 'remark', 'created_at', 'paid_at', 'shipped_at', 'finished_at',
         ]);
         $orderIds = $orders->pluck('id')->all();

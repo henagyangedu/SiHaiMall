@@ -143,8 +143,10 @@ onMounted(async () => {
             <el-checkbox v-model="usePoints" @change="load">{{ t('checkout.usePoints', { n: data.points.usable_points, amount: money(data.points.deduct_amount, data.currency) }) }}</el-checkbox>
             <span v-if="usePoints" class="price">-{{ money(data.points_amount, data.currency) }}</span>
           </div>
+          <div v-if="Number(data.tax_amount) > 0 && !data.tax_included" class="kv tax-row"><span>{{ t('tax.extra', { name: data.tax_name, rate: data.tax_rate }) }}</span><span>{{ money(data.tax_amount, data.currency) }}</span></div>
           <div v-if="data.earn_points > 0" class="sub earn">{{ t('checkout.earnPoints', { n: data.earn_points }) }}</div>
           <div class="pay">{{ t('checkout.pay') }} <span class="price total">{{ money(data.pay_amount, data.currency) }}</span></div>
+          <div v-if="Number(data.tax_amount) > 0 && data.tax_included" class="sub tax-incl">{{ t('tax.included', { name: data.tax_name, rate: data.tax_rate, amount: money(data.tax_amount, data.currency) }) }}</div>
           <el-button type="primary" size="large" class="go" :loading="submitting" @click="submit">{{ t('checkout.submit') }}</el-button>
         </div>
       </div>
@@ -175,6 +177,7 @@ onMounted(async () => {
 .left { flex: 1; }
 .right { width: 360px; flex: none; }
 .earn { text-align: right; padding: 4px 0; }
+.tax-incl { text-align: right; font-size: 12px; margin: -6px 0 12px; }
 .pay { text-align: right; margin: 12px 0; }
 .total { font-size: 26px; }
 .go { width: 100%; }

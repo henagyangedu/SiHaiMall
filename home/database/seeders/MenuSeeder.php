@@ -126,6 +126,7 @@ class MenuSeeder extends Seeder
                     ['t' => '语言管理', 'path' => '/setting/language', 'perm' => 'setting:language', 'acts' => ['add', 'edit', 'del']],
                     ['t' => '币种与汇率', 'path' => '/setting/currency', 'perm' => 'setting:currency', 'acts' => ['add', 'edit', 'del', 'rate']],
                     ['t' => '交易设置', 'path' => '/setting/trade', 'perm' => 'setting:trade', 'acts' => ['edit']],
+                    ['t' => '税率设置', 'path' => '/setting/tax', 'perm' => 'setting:tax', 'acts' => ['add', 'edit', 'del']],
                 ]],
                 ['t' => '消息模板', 'path' => '/setting/message', 'perm' => 'setting:message', 'acts' => ['edit', 'test']],
                 ['t' => '协议管理', 'path' => '/setting/protocol', 'perm' => 'setting:protocol', 'acts' => ['edit']],

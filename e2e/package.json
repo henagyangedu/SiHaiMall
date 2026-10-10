@@ -20,7 +20,8 @@
     "broadcast": "node run.js broadcast",
     "invoice": "node run.js invoice",
     "bundle": "node run.js bundle",
-    "waybill": "node run.js waybill"
+    "waybill": "node run.js waybill",
+    "tax": "node run.js tax"
   },
   "devDependencies": {
     "playwright-core": "^1.48.0"

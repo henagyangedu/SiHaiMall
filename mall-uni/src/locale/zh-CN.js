@@ -59,6 +59,7 @@ export default {
     amount: '开票金额', amountTip: '按实付金额开具，已退款的部分不开', invoiceNo: '发票号码', submit: '提交申请', submitted: '发票申请已提交', cancelled: '已撤销发票申请',
     needName: '请填写发票抬头', needTaxNo: '请填写纳税人识别号', needEmail: '请填写收票邮箱', openFailed: '发票文件打不开，请稍后再试',
   },
+  tax: { extra: '税费（{name} {rate}%）', included: '已含{name}（{rate}%）{amount}' },
   bundle: { title: '搭配套餐', total: '原价合计', price: '套餐价', save: '立省 {n}', buy: '购买套餐', row: '套餐优惠' },
   restock: { title: '到货提醒', notify: '到货提醒我', subscribed: '已订阅到货提醒', cancel: '取消提醒', soldOutTip: '这个规格暂时缺货', subscribedTip: '到货后会通知你（只通知一次）', waiting: '等待到货', arrived: '已到货', invalid: '已下架', empty: '还没有订阅到货提醒', buy: '去购买' },
   search: { history: '搜索历史', hot: '热门搜索', clear: '清空', cancel: '取消', result: '“{keyword}”的搜索结果', noResult: '没有找到和“{keyword}”相关的商品', tryOther: '换个词试试，或者看看下面这些', recommend: '看看这些' },

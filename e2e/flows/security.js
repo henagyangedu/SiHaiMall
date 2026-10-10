@@ -158,13 +158,13 @@ module.exports = async function securityFlow(browser) {
       const m = flow.watch(await mctx.newPage(), '手机端访客');
       try {
         await guest.goto(config.pc + '/#/');
-        await guest.locator('.notice', { hasText: '本站只使用必要的本地存储' }).waitFor();
-        await guest.locator('.notice').getByRole('link', { name: '隐私政策' }).waitFor();
-        await guest.locator('.notice').getByRole('button', { name: '知道了' }).click();
-        await guest.locator('.notice').waitFor({ state: 'detached' });
+        await guest.locator('.storage-notice', { hasText: '本站只使用必要的本地存储' }).waitFor();
+        await guest.locator('.storage-notice').getByRole('link', { name: '隐私政策' }).waitFor();
+        await guest.locator('.storage-notice').getByRole('button', { name: '知道了' }).click();
+        await guest.locator('.storage-notice').waitFor({ state: 'detached' });
         await guest.reload();
         await guest.locator('.site-footer, footer').first().waitFor();
-        if (await guest.locator('.notice').count()) throw new Error('PC：点过“知道了”之后不应该再出现');
+        if (await guest.locator('.storage-notice').count()) throw new Error('PC：点过“知道了”之后不应该再出现');
 
         await m.goto(config.uni + '/#/');
         await m.locator('#gm-storage-notice', { hasText: '本站只使用必要的本地存储' }).waitFor();

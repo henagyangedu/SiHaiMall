@@ -34,6 +34,7 @@ use App\Http\Controllers\Admin\SaleRegionController;
 use App\Http\Controllers\Admin\ShippingTemplateController;
 use App\Http\Controllers\Admin\StatsController;
 use App\Http\Controllers\Admin\StockLogController;
+use App\Http\Controllers\Admin\TaxRateController;
 use App\Http\Controllers\Admin\TranslateController;
 use App\Http\Controllers\Admin\UploadController;
 use App\Http\Controllers\Admin\WaybillController;
@@ -106,6 +107,14 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::put('{id}/rate', [CurrencyController::class, 'rate'])->middleware('perm:setting:currency:rate');
         Route::post('{id}/base', [CurrencyController::class, 'setBase'])->middleware('perm:super'); // 影响全部价格口径，仅超管
         Route::delete('{id}', [CurrencyController::class, 'destroy'])->middleware('perm:setting:currency:del');
+    });
+
+    // 税率设置：按收货地区的税率规则
+    Route::prefix('tax-rate')->group(function () {
+        Route::get('list', [TaxRateController::class, 'index'])->middleware('perm:setting:tax:view');
+        Route::post('/', [TaxRateController::class, 'store'])->middleware('perm:setting:tax:add');
+        Route::put('{id}', [TaxRateController::class, 'update'])->whereNumber('id')->middleware('perm:setting:tax:edit');
+        Route::delete('{id}', [TaxRateController::class, 'destroy'])->whereNumber('id')->middleware('perm:setting:tax:del');
     });
 
     // 通用下拉选项（只读）：启用的币种
@@ -248,7 +257,7 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::prefix('sale-region')->group(function () {
         Route::get('list', [SaleRegionController::class, 'index'])->middleware('perm:goods:region:view');
         Route::get('options', [SaleRegionController::class, 'options'])->middleware('perm:goods:region:view,goods:list:view');
-        Route::get('cn-divisions', [SaleRegionController::class, 'cnDivisions'])->middleware('perm:goods:region:view');
+        Route::get('cn-divisions', [SaleRegionController::class, 'cnDivisions'])->middleware('perm:goods:region:view,setting:tax:view');
         Route::post('/', [SaleRegionController::class, 'store'])->middleware('perm:goods:region:add');
         Route::put('{id}', [SaleRegionController::class, 'update'])->middleware('perm:goods:region:edit');
         Route::post('{id}/status', [SaleRegionController::class, 'status'])->middleware('perm:goods:region:edit');

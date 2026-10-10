@@ -137,7 +137,8 @@ class OrderPointsService
         }
         $refunded = (string) OrderRefund::query()->where('order_id', $order->id)->where('status', OrderRefund::DONE)->sum('refund_amount');
         $left = bcsub(self::goodsPaid($order), $refunded, 2);
-        $points = bccomp($left, '0', 2) > 0 ? $this->earnQuote($left, (string) $order->rate) : 0;
+        // 另加的税不算消费，先从剩下的商品款里去掉
+        $points = bccomp($left, '0', 2) > 0 ? $this->earnQuote(TaxService::exTax($order, $left), (string) $order->rate) : 0;
         if ($points <= 0) {
             return;
         }
@@ -189,10 +190,10 @@ class OrderPointsService
         return min($kept, (int) bcdiv(bcmul((string) $kept, $leftAfter, 2), $leftBefore, 0));
     }
 
-    /** 商品实付 = 实付 - 运费（下单币种） */
+    /** 商品实付 = 实付 - 运费（下单币种）；有价外税时含商品的税、不含运费的税，和退款金额是同一口径 */
     private static function goodsPaid(Order $order): string
     {
-        return bcsub((string) $order->pay_amount, (string) $order->shipping_fee, 2);
+        return TaxService::goodsPaid($order);
     }
 
     private function change(Member $m, int $delta, string $orderNo, string $remark, int $type = self::TYPE_DEDUCT): void

@@ -194,7 +194,9 @@ onShow(async () => {
       <view v-if="Number(order.discount_amount) > 0" class="kv"><text class="sub">{{ t('checkout.discount') }}</text><text>-{{ money(order.discount_amount, order.currency) }}</text></view>
       <view v-if="Number(order.coupon_amount) > 0" class="kv"><text class="sub">{{ t('coupon.row') }}</text><text>-{{ money(order.coupon_amount, order.currency) }}</text></view>
       <view v-if="Number(order.points_amount) > 0" class="kv"><text class="sub">{{ t('checkout.points') }}</text><text>-{{ money(order.points_amount, order.currency) }}</text></view>
+      <view v-if="Number(order.tax_amount) > 0 && !order.tax_included" class="kv tax-row"><text class="sub">{{ t('tax.extra', { name: order.tax_name, rate: order.tax_rate }) }}</text><text>{{ money(order.tax_amount, order.currency) }}</text></view>
       <view class="kv total"><text>{{ t('order.payAmount') }}</text><text class="price">{{ money(order.pay_amount, order.currency) }}</text></view>
+      <view v-if="Number(order.tax_amount) > 0 && order.tax_included" class="kv tax-incl"><text class="sub">{{ t('tax.included', { name: order.tax_name, rate: order.tax_rate, amount: money(order.tax_amount, order.currency) }) }}</text></view>
     </view>
 
     <view class="card">

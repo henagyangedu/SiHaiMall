@@ -78,7 +78,7 @@ class RefundService
             'order' => [
                 'id' => (int) $o->id, 'order_no' => $o->order_no, 'status_text' => OrderStatus::TEXT[(int) $o->status] ?? '',
                 'pay_status_text' => OrderStatus::PAY_TEXT[(int) $o->pay_status] ?? '', 'pay_channel' => $o->pay_channel,
-                'goods_amount' => (string) $o->goods_amount, 'shipping_fee' => (string) $o->shipping_fee, 'pay_amount' => (string) $o->pay_amount,
+                'goods_amount' => (string) $o->goods_amount, 'shipping_fee' => (string) $o->shipping_fee, 'tax_amount' => (string) $o->tax_amount, 'tax_name' => (string) $o->tax_name, 'tax_included' => (int) $o->tax_included, 'pay_amount' => (string) $o->pay_amount,
                 'refunded_amount' => bcadd($refunded, '0', 2),
                 // 没有在线支付流水（线下收款）的订单只能登记线下退款
                 'online_paid' => $paid !== null, 'paid_at' => $o->paid_at?->format('Y-m-d H:i:s'),

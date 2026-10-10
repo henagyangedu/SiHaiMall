@@ -5,7 +5,9 @@ namespace App\Services\Admin;
 use App\Models\Admin;
 use App\Models\Order;
 use App\Services\Common\OrderCloseService;
+use App\Services\Api\OrderService as ApiOrderService;
 use App\Services\Common\OrderStatusService;
+use App\Services\Common\TaxService;
 use App\Support\Exceptions\BusinessException;
 use App\Support\Money;
 use App\Support\OrderStatus;
@@ -55,7 +57,7 @@ class OrderService
     }
 
     public const EXPORT_HEAD = [
-        '订单号', '下单时间', '订单状态', '支付状态', '支付方式', '会员', '币种', '商品金额', '运费', '套餐优惠', '优惠', '优惠券', '积分抵扣', '应付', '折合基准币种',
+        '订单号', '下单时间', '订单状态', '支付状态', '支付方式', '会员', '币种', '商品金额', '运费', '套餐优惠', '优惠', '优惠券', '积分抵扣', '税名', '税率', '税额', '计税方式', '应付', '折合基准币种',
         '定价区域', '商品明细', '收件人', '电话', '国家', '省', '市', '区', '详细地址', '买家留言', '商家备注', '支付时间', '发货时间', '完成时间',
     ];
 
@@ -96,7 +98,9 @@ class OrderService
             $rows[] = [
                 $o->order_no, $fmt($o->created_at), OrderStatus::TEXT[(int) $o->status] ?? '', OrderStatus::PAY_TEXT[(int) $o->pay_status] ?? '', $o->pay_channel,
                 $m ? ($m->nickname ?: $m->account ?: '#' . $m->id) : '#' . $o->member_id, $o->currency,
-                (string) $o->goods_amount, (string) $o->shipping_fee, (string) $o->bundle_amount, (string) $o->discount_amount, (string) $o->coupon_amount, (string) $o->points_amount, (string) $o->pay_amount, (string) $o->base_pay_amount,
+                (string) $o->goods_amount, (string) $o->shipping_fee, (string) $o->bundle_amount, (string) $o->discount_amount, (string) $o->coupon_amount, (string) $o->points_amount,
+                (string) $o->tax_name, (float) $o->tax_rate > 0 ? ApiOrderService::rateText((string) $o->tax_rate) . '%' : '', (string) $o->tax_amount, (float) $o->tax_rate > 0 ? ((int) $o->tax_included === 1 ? '价内' : '价外') : '',
+                (string) $o->pay_amount, (string) $o->base_pay_amount,
                 (string) $o->price_region_name, $goods,
                 $a->name ?? '', $a ? trim($a->phone_area . ' ' . $a->phone) : '', $a->country_code ?? '', $a->province ?? '', $a->city ?? '', $a->district ?? '',
                 $a ? trim($a->address . ' ' . $a->address2) : '', $o->remark, $o->admin_remark, $fmt($o->paid_at), $fmt($o->shipped_at), $fmt($o->finished_at),
@@ -154,6 +158,8 @@ class OrderService
             'goods_amount' => (string) $o->goods_amount, 'shipping_fee' => (string) $o->shipping_fee, 'discount_amount' => (string) $o->discount_amount,
             'coupon_amount' => (string) $o->coupon_amount, 'bundle_amount' => (string) $o->bundle_amount, 'bundles' => json_decode((string) ($o->bundle_info ?: '[]'), true) ?: [],
             'points_amount' => (string) $o->points_amount, 'pay_amount' => (string) $o->pay_amount, 'base_pay_amount' => (string) $o->base_pay_amount,
+            'tax_amount' => (string) $o->tax_amount, 'tax_shipping' => (string) $o->tax_shipping, 'tax_name' => (string) $o->tax_name,
+            'tax_rate' => ApiOrderService::rateText((string) $o->tax_rate), 'tax_included' => (int) $o->tax_included,
             'remark' => $o->remark, 'admin_remark' => $o->admin_remark, 'cancel_reason' => $o->cancel_reason,
             'expire_at' => $o->expire_at?->format('Y-m-d H:i:s'), 'paid_at' => $o->paid_at?->format('Y-m-d H:i:s'),
             'shipped_at' => $o->shipped_at?->format('Y-m-d H:i:s'), 'finished_at' => $o->finished_at?->format('Y-m-d H:i:s'),
@@ -171,7 +177,10 @@ class OrderService
         $this->status->note($o, OrderStatus::OP_ADMIN, (int) $op->id, '修改商家备注');
     }
 
-    /** 改价：只允许待支付订单；通过调整 discount_amount 保持「商品+运费-套餐优惠-优惠-优惠券-积分=应付」恒等式 */
+    /**
+     * 改价：只允许待支付订单；通过调整 discount_amount 保持「商品+运费-套餐优惠-优惠-优惠券-积分+价外税=应付」恒等式。
+     * 订单有税时税率不变、税额按改后的金额重算（TaxService::requote），这时改后金额至少要比运费多。
+     */
     public function changePrice(int $id, string $newPay, Admin $op): void
     {
         DB::transaction(function () use ($id, $newPay, $op) {
@@ -180,18 +189,31 @@ class OrderService
                 throw new BusinessException('只有待支付订单可以改价');
             }
             $gross = bcsub(bcsub(bcsub(bcadd((string) $o->goods_amount, (string) $o->shipping_fee, 2), (string) $o->bundle_amount, 2), (string) $o->coupon_amount, 2), (string) $o->points_amount, 2);
-            if (bccomp($newPay, '0.01', 2) < 0 || bccomp($newPay, $gross, 2) > 0) {
-                throw new BusinessException('改后金额须在 0.01 ~ ' . $gross . ' 之间');
+            $min = '0.01';
+            $taxed = bccomp((string) $o->tax_rate, '0', 3) > 0;
+            if ($taxed) {
+                // 不打折时的应付：商品净额 + 运费 + 另加的税
+                $net0 = bcsub($gross, (string) $o->shipping_fee, 2);
+                $gross = (int) $o->tax_included === 1 ? $gross
+                    : bcadd(bcadd($gross, TaxService::part($net0, (string) $o->tax_rate, false, 2), 2), (string) $o->tax_shipping, 2);
+                $min = bcadd(TaxService::shippingPaid($o), '0.01', 2);
+            }
+            if (bccomp($newPay, $min, 2) < 0 || bccomp($newPay, $gross, 2) > 0) {
+                throw new BusinessException('改后金额须在 ' . $min . ' ~ ' . $gross . ' 之间');
             }
             $old = (string) $o->pay_amount;
             if (bccomp($old, $newPay, 2) === 0) {
                 throw new BusinessException('金额没有变化');
             }
 
-            $o->update([
-                'pay_amount' => $newPay, 'discount_amount' => bcsub($gross, $newPay, 2),
-                'base_pay_amount' => Money::toBase($newPay, (string) $o->rate),
-            ]);
+            $changes = ['pay_amount' => $newPay, 'discount_amount' => bcsub($gross, $newPay, 2), 'base_pay_amount' => Money::toBase($newPay, (string) $o->rate)];
+            if ($taxed) {
+                $re = TaxService::requote($o, $newPay);
+                $before = bcsub(bcsub(bcsub((string) $o->goods_amount, (string) $o->bundle_amount, 2), (string) $o->coupon_amount, 2), (string) $o->points_amount, 2);
+                $changes['discount_amount'] = bcsub($before, $re['net'], 2);
+                $changes['tax_amount'] = $re['tax_amount'];
+            }
+            $o->update($changes);
             // 已生成的待支付流水金额已过期，作废后由支付模块在下次支付时按新金额重建
             DB::table('pay_trade')->where('order_id', $id)->where('trade_type', 1)->where('status', 0)->update(['status' => 3, 'updated_at' => now()]);
             $this->status->note($o, OrderStatus::OP_ADMIN, (int) $op->id, "改价：{$old} → {$newPay} {$o->currency}");

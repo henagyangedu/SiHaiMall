@@ -21,6 +21,7 @@ const form = reactive({
   points_earn_per_unit: 1,
   points_register: 0,
   points_signin: 0,
+  tax_enabled: 0,
   invoice_enabled: 0,
   invoice_notice: {},
 })
@@ -114,6 +115,10 @@ onMounted(() => {
         <el-form-item label="每日签到">
           <el-input-number v-model="form.points_signin" :min="0" :max="100000" />
           <span class="unit">个积分，会员每天可以在“我的积分”里签到一次；填 0 表示不开放签到</span>
+        </el-form-item>
+        <el-form-item label="按收货地区收税">
+          <el-switch v-model="form.tax_enabled" :active-value="1" :inactive-value="0" />
+          <span class="unit">开启后按“设置 → 税率设置”里的规则，根据收货地址给订单算税；没有规则的地区不收税</span>
         </el-form-item>
         <el-form-item label="允许申请发票">
           <el-switch v-model="form.invoice_enabled" :active-value="1" :inactive-value="0" />

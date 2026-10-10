@@ -62,7 +62,9 @@ const statusType = (s) => ({ 0: 'warning', 1: 'primary', 2: 'primary', 3: 'succe
     <div>优惠：-{{ d.discount_amount }}</div>
     <div v-if="Number(d.coupon_amount) > 0">优惠券：-{{ d.coupon_amount }}</div>
     <div v-if="Number(d.points_amount) > 0">积分抵扣：-{{ d.points_amount }}</div>
+    <div v-if="Number(d.tax_amount) > 0 && !d.tax_included">税费：+{{ d.tax_amount }}<span style="color: #909399; font-size: 12px">（{{ d.tax_name }} {{ d.tax_rate }}%，价外税<template v-if="Number(d.tax_shipping) > 0">，其中运费的税 {{ d.tax_shipping }}</template>）</span></div>
     <div class="total">应付：{{ d.pay_amount }} {{ d.currency }} <span style="color: #909399; font-size: 12px">（折合基准币种 {{ d.base_pay_amount }}）</span></div>
+    <div v-if="Number(d.tax_amount) > 0 && d.tax_included" style="color: #909399; font-size: 12px">其中已含税 {{ d.tax_amount }}（{{ d.tax_name }} {{ d.tax_rate }}%，价内税）</div>
   </div>
 
   <template v-if="d.address">

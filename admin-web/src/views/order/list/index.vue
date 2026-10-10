@@ -71,7 +71,7 @@ async function onRemark(id, current) {
 }
 // 改价
 async function onPrice(row) {
-  const { value } = await ElMessageBox.prompt(`当前应付 ${row.pay_amount} ${row.currency}。输入改后的应付金额（含运费，最多两位小数）`, '修改价格', {
+  const { value } = await ElMessageBox.prompt(`当前应付 ${row.pay_amount} ${row.currency}。输入改后的应付金额（含运费，最多两位小数；订单有税时税额按改后的金额重算）`, '修改价格', {
     inputValue: row.pay_amount, inputPattern: /^\d{1,9}(\.\d{1,2})?$/, inputErrorMessage: '金额格式不正确',
   })
   await changeOrderPrice(row.id, value)

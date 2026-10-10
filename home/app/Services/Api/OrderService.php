@@ -14,6 +14,7 @@ use App\Services\Common\OrderStatusService;
 use App\Services\Common\PriceService;
 use App\Services\Common\SaleRegionService;
 use App\Services\Common\ShippingFeeService;
+use App\Services\Common\TaxService;
 use App\Support\ApiMessageTranslator;
 use App\Support\Exceptions\BusinessException;
 use App\Support\Money;
@@ -46,6 +47,7 @@ class OrderService
         private OrderPointsService $points,
         private CouponService $coupons,
         private BundleService $bundles,
+        private TaxService $tax,
         private LocaleService $locale,
         private ExpressTrackService $expressTracks,
     ) {}
@@ -141,13 +143,16 @@ class OrderService
         $points = $this->points->quote($m->fresh() ?? $m, bcsub(bcsub($afterBundle, $discount, 2), $couponAmount, 2), $cur['rate'], $cur['decimals']);
         $pointsAmount = !empty($d['use_points']) ? $points['amount'] : '0.00';
         $goodsPaid = bcsub(bcsub(bcsub($afterBundle, $discount, 2), $couponAmount, 2), $pointsAmount, 2);
+        // 税：按收货地址的税率（与 OrderCreateService 一致）。价内税不计入应付，只是告诉买家其中含多少税
+        $tax = $this->tax->quote($address?->only(['country_code', 'province']), $goodsPaid, $shipping, $cur['decimals']);
 
         return [
             'items' => $items, 'currency' => $currency, 'goods_amount' => $goods, 'shipping_fee' => $shipping,
             'discount_amount' => $discount, 'coupon_amount' => $couponAmount, 'points_amount' => $pointsAmount,
             // 套餐优惠：bundle_amount 是总共减的，bundles 是用了哪些套餐、各几套
             'bundle_amount' => $bundle['amount'], 'bundles' => $bundle['applied'],
-            'pay_amount' => bcsub(bcsub(bcsub(bcadd($afterBundle, $shipping, 2), $discount, 2), $couponAmount, 2), $pointsAmount, 2),
+            'tax_amount' => $tax['amount'], 'tax_name' => $tax['name'], 'tax_rate' => self::rateText($tax['rate']), 'tax_included' => $tax['included'],
+            'pay_amount' => bcadd(bcadd($goodsPaid, $shipping, 2), $tax['extra'], 2),
             // member_coupon_id：这次预览用的是哪张券（0 表示没用），下单时原样传回；coupons：手里所有有效的券，usable=false 的带 reason
             'member_coupon_id' => (int) ($picked['id'] ?? 0), 'coupons' => $coupons,
             'points' => ['enabled' => $points['enabled'], 'available' => $points['available'], 'usable_points' => $points['points'], 'deduct_amount' => $points['amount']],
@@ -286,6 +291,12 @@ class OrderService
     }
 
     /** 购物车结算（cart_ids）或立即购买（items）二选一 */
+    /** 税率去掉末尾多余的 0：7.250 → 7.25，20.000 → 20 */
+    public static function rateText(string $rate): string
+    {
+        return str_contains($rate, '.') ? rtrim(rtrim($rate, '0'), '.') : $rate;
+    }
+
     private function resolveLines(int $memberId, array $d): array
     {
         if (!empty($d['cart_ids'])) {
@@ -304,6 +315,7 @@ class OrderService
             'pay_status' => (int) $o->pay_status, 'currency' => $o->currency,
             'goods_amount' => (string) $o->goods_amount, 'shipping_fee' => (string) $o->shipping_fee,
             'discount_amount' => (string) $o->discount_amount, 'coupon_amount' => (string) $o->coupon_amount, 'bundle_amount' => (string) $o->bundle_amount, 'points_amount' => (string) $o->points_amount, 'pay_amount' => (string) $o->pay_amount,
+            'tax_amount' => (string) $o->tax_amount, 'tax_name' => (string) $o->tax_name, 'tax_rate' => self::rateText((string) $o->tax_rate), 'tax_included' => (int) $o->tax_included,
             'created_at' => $o->created_at?->format('Y-m-d H:i:s'), 'expire_at' => $o->expire_at?->format('Y-m-d H:i:s'),
             'items' => collect($items)->map(fn ($i) => [
                 'goods_id' => (int) $i->goods_id, 'sku_id' => (int) $i->sku_id, 'title' => $i->title, 'spec_text' => $i->spec_text,

@@ -218,7 +218,9 @@ onMounted(async () => {
         <div v-if="Number(order.discount_amount) > 0" class="kv"><span class="sub">{{ t('checkout.discount') }}</span><span>-{{ money(order.discount_amount, order.currency) }}</span></div>
         <div v-if="Number(order.coupon_amount) > 0" class="kv"><span class="sub">{{ t('coupon.row') }}</span><span>-{{ money(order.coupon_amount, order.currency) }}</span></div>
         <div v-if="Number(order.points_amount) > 0" class="kv"><span class="sub">{{ t('checkout.points') }}</span><span>-{{ money(order.points_amount, order.currency) }}</span></div>
+        <div v-if="Number(order.tax_amount) > 0 && !order.tax_included" class="kv tax-row"><span class="sub">{{ t('tax.extra', { name: order.tax_name, rate: order.tax_rate }) }}</span><span>{{ money(order.tax_amount, order.currency) }}</span></div>
         <div class="kv"><span>{{ t('order.payAmount') }}</span><span class="price total">{{ money(order.pay_amount, order.currency) }}</span></div>
+        <div v-if="Number(order.tax_amount) > 0 && order.tax_included" class="sub tax-incl">{{ t('tax.included', { name: order.tax_name, rate: order.tax_rate, amount: money(order.tax_amount, order.currency) }) }}</div>
       </div>
     </div>
 
@@ -263,6 +265,7 @@ onMounted(async () => {
 .name:hover { color: var(--theme); }
 .cell { width: 120px; text-align: right; flex: none; }
 .sum { width: 320px; margin: 14px 0 0 auto; }
+.tax-incl { text-align: right; font-size: 12px; }
 .total { font-size: 22px; }
 .channel { display: block; width: 100%; margin: 0 0 12px !important; }
 .tip { text-align: center; }

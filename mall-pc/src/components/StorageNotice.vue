@@ -18,7 +18,7 @@ function close() {
 </script>
 
 <template>
-  <div v-if="show" class="notice" role="region" :aria-label="t('privacy.noticeOk')">
+  <div v-if="show" class="storage-notice" role="region" :aria-label="t('privacy.noticeOk')">
     <div class="container inner">
       <span class="text">{{ t('privacy.noticeText') }}
         <router-link :to="{ name: 'protocols', params: { key: 'privacy_policy' } }" class="link">{{ t('privacy.noticeLink') }}</router-link>
@@ -29,7 +29,7 @@ function close() {
 </template>
 
 <style scoped>
-.notice { position: fixed; left: 0; right: 0; bottom: 0; z-index: 2000; background: #fff; border-top: 1px solid var(--line); box-shadow: 0 -4px 16px rgba(41, 43, 39, 0.06); }
+.storage-notice { position: fixed; left: 0; right: 0; bottom: 0; z-index: 2000; background: #fff; border-top: 1px solid var(--line); box-shadow: 0 -4px 16px rgba(41, 43, 39, 0.06); }
 .inner { display: flex; align-items: center; gap: 20px; padding: 14px 0; }
 .text { flex: 1; font-size: 13px; line-height: 1.6; color: var(--text); }
 .link { color: var(--theme); margin-left: 6px; }

@@ -39,7 +39,9 @@ export function receiptHtml(order, cfg = {}) {
     ${Number(order.discount_amount) > 0 ? sum('优惠', order.discount_amount, true) : ''}
     ${Number(order.coupon_amount) > 0 ? sum('优惠券', order.coupon_amount, true) : ''}
     ${Number(order.points_amount) > 0 ? sum('积分抵扣', order.points_amount, true) : ''}
-    <div class="row total"><span>实付</span><span>${esc(order.pay_amount)}<small> ${esc(order.currency)}</small></span></div>` : ''
+    ${Number(order.tax_amount) > 0 && !order.tax_included ? sum(`${esc(order.tax_name)} ${esc(order.tax_rate)}%`, order.tax_amount) : ''}
+    <div class="row total"><span>实付</span><span>${esc(order.pay_amount)}<small> ${esc(order.currency)}</small></span></div>
+    ${Number(order.tax_amount) > 0 && order.tax_included ? sum(`其中含 ${esc(order.tax_name)} ${esc(order.tax_rate)}%`, order.tax_amount) : ''}` : ''
 
   // 国内地址不印国家码；境外的印在最前面
   const region = a ? [String(a.country_code || '').toUpperCase() === 'CN' ? '' : a.country_code, a.province, a.city, a.district].filter(Boolean).join(' ') : ''

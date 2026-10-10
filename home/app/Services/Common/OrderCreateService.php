@@ -31,6 +31,7 @@ class OrderCreateService
         private OrderPointsService $points,
         private CouponService $coupons,
         private BundleService $bundles,
+        private TaxService $tax,
     ) {}
 
     /**
@@ -101,11 +102,14 @@ class OrderCreateService
                 $locked = Member::query()->lockForUpdate()->find($member->id);
                 $points = $this->points->quote($locked, bcsub(bcsub($afterBundle, $discount, 2), $coupon['amount'], 2), $cur['rate'], $cur['decimals']);
             }
-            // 恒等式：商品 + 运费 - 套餐优惠 - 会员折扣 - 优惠券 - 积分 = 应付
-            $pay = bcsub(bcsub(bcsub(bcadd($afterBundle, $shipping, 2), $discount, 2), $coupon['amount'], 2), $points['amount'], 2);
+            // 税：按收货地址的税率，基数是商品扣掉上面所有优惠之后的金额（见 TaxService）。价内税不另加
+            $net = bcsub(bcsub(bcsub($afterBundle, $discount, 2), $coupon['amount'], 2), $points['amount'], 2);
+            $tax = $this->tax->quote($needShip ? $address : null, $net, $shipping, $cur['decimals']);
+            // 恒等式：商品 + 运费 - 套餐优惠 - 会员折扣 - 优惠券 - 积分 + 价外税 = 应付
+            $pay = bcadd(bcadd($net, $shipping, 2), $tax['extra'], 2);
             if (bccomp($pay, '0.01', 2) < 0) {
                 $pay = '0.01'; // 支付渠道不接受 0 元单
-                $discount = bcsub(bcsub(bcsub(bcadd($afterBundle, $shipping, 2), $coupon['amount'], 2), $points['amount'], 2), $pay, 2);
+                $discount = bcsub(bcsub(bcsub(bcadd(bcadd($afterBundle, $shipping, 2), $tax['extra'], 2), $coupon['amount'], 2), $points['amount'], 2), $pay, 2);
             }
 
             $orderNo = $this->makeOrderNo();
@@ -116,6 +120,7 @@ class OrderCreateService
                 'goods_amount' => $goodsAmount, 'shipping_fee' => $shipping, 'discount_amount' => $discount,
                 'points_amount' => $points['amount'], 'coupon_amount' => $coupon['amount'], 'member_coupon_id' => $coupon['id'],
                 'bundle_amount' => $bundle['amount'], 'bundle_info' => $bundle['applied'] ? json_encode($bundle['applied'], JSON_UNESCAPED_UNICODE) : null,
+                'tax_amount' => $tax['amount'], 'tax_shipping' => $tax['shipping'], 'tax_rate' => $tax['rate'], 'tax_name' => $tax['name'], 'tax_included' => $tax['included'],
                 'pay_amount' => $pay, 'base_pay_amount' => Money::toBase($pay, $cur['rate']),
                 'status' => OrderStatus::PENDING, 'pay_status' => OrderStatus::PAY_UNPAID,
                 'remark' => mb_substr((string) ($opts['remark'] ?? ''), 0, 500),

@@ -481,16 +481,15 @@ class DemoImportService
             default => ['#F1E7D9', '#E7D3BF', '#D9A88F', '#BFC9B6'],
         };
         $r = crc32($seed);
-        // 版式的重心放在右侧 60%～90% 之间，左边留给页面叠加的文字
-        $cx = $w * (0.66 + ($r % 17) / 100);
         $base = $h * 0.86;
-        $big = $h * (0.34 + (($r >> 4) % 10) / 100);
-        $arcW = $h * (0.26 + (($r >> 8) % 8) / 100);
-        $arcX = $cx + $big * (0.75 + (($r >> 12) % 20) / 100);
-        $small = $h * (0.10 + (($r >> 16) % 6) / 100);
-        if ($tone === 'tile') {
-            [$cx, $arcX] = [$w * 0.42, $w * 0.70];
-        }
+        $big = $h * (0.32 + (($r >> 4) % 8) / 100);
+        $arcW = $h * (0.24 + (($r >> 8) % 7) / 100);
+        $small = $h * (0.10 + (($r >> 16) % 5) / 100);
+        // 整组图形靠右、从右往左排：最右边留出安全边距（大图 12%、小图 6%），左边留给页面叠加的文字。
+        // 页面用“铺满并裁切”的方式显示这张图，窗口比图窄时两侧会被裁掉一些，有了边距就不会切到图形
+        $right = $w * ($tone === 'tile' ? 0.94 : 0.88);
+        $arcX = $right - $arcW;
+        $cx = $arcX - $big * (0.62 + (($r >> 12) % 14) / 100);
 
         return sprintf(
             '<svg xmlns="http://www.w3.org/2000/svg" width="%1$d" height="%2$d" viewBox="0 0 %1$d %2$d">'
@@ -506,7 +505,7 @@ class DemoImportService
             $cx, $base - $big, $big,
             $arcX, $arcW * 0.9, $arcW / 2, $arcW,
             $cx - $big * 0.95, $base - $small, $small,
-            $arcX + $arcW * 1.35, $h * 0.24, $small * 0.8
+$arcX + $arcW * 0.5, $h * 0.2, $small * 0.75
         );
     }
 

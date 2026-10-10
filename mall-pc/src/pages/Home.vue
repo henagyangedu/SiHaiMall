@@ -153,7 +153,8 @@ onMounted(() => {
 /* ---- 主视觉 */
 .hero { position: relative; }
 .slide { position: relative; height: 440px; background: var(--cream-deep); overflow: hidden; }
-.slide-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+/* 图片铺满并裁切，靠右对齐：主体在右侧，窗口窄的时候裁掉的是左边被文字盖住的那一段 */
+.slide-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right center; }
 /* 左侧压一层奶油色渐变，保证文字在任何图片上都看得清 */
 .slide-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(247, 243, 235, 0.94) 0%, rgba(247, 243, 235, 0.78) 34%, rgba(247, 243, 235, 0) 62%); }
 .empty-hero { background: linear-gradient(120deg, var(--cream-deep), #ead9c8); }
@@ -200,7 +201,7 @@ onMounted(() => {
 
 /* ---- 主题横幅 */
 .band { position: relative; margin-top: 40px; height: 220px; border-radius: var(--radius); overflow: hidden; background: var(--sage); cursor: pointer; }
-.band-img { position: absolute; right: 0; top: 0; width: 62%; height: 100%; object-fit: cover; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 38%); mask-image: linear-gradient(90deg, transparent 0, #000 38%); }
+.band-img { position: absolute; right: 0; top: 0; width: 62%; height: 100%; object-fit: cover; object-position: right center; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 38%); mask-image: linear-gradient(90deg, transparent 0, #000 38%); }
 .band-body { position: relative; height: 100%; padding: 0 56px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
 .band-title { margin: 0; font-size: 32px; font-weight: 700; letter-spacing: 0.06em; color: #fff; max-width: 560px; }
 .band-sub { margin: 10px 0 20px; font-size: 16px; color: rgba(255, 255, 255, 0.9); letter-spacing: 0.08em; }

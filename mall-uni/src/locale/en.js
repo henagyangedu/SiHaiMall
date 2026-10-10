@@ -50,6 +50,8 @@ export default {
   refundType: { 1: 'Refund only', 2: 'Return & refund' },
   commissionStatus: { 0: 'Pending', 1: 'Settled', 2: 'Void' },
   withdrawStatus: { 0: 'Under review', 1: 'Approved', 2: 'Paid', 3: 'Declined' },
+  fav: { title: 'My favourites', add: 'Save', added: 'Saved', empty: 'No saved items yet', invalid: 'Unavailable', invalidTip: 'No longer available', remove: 'Remove' },
+  service: { contact: 'Contact us', online: 'Live chat', phone: 'Phone', hours: 'Hours', call: 'Call', linkCopied: 'Chat link copied. Please open it in your browser.' },
   review: {
     title: 'Reviews', write: 'Write a review', goodRate: 'positive', empty: 'No reviews yet', viewAll: 'See all {n} reviews', reply: 'Seller reply',
     level: { all: 'All', good: 'Positive', mid: 'Neutral', bad: 'Negative', image: 'With photos' },

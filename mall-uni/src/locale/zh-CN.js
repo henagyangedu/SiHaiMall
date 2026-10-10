@@ -50,6 +50,8 @@ export default {
   refundType: { 1: '仅退款', 2: '退货退款' },
   commissionStatus: { 0: '待结算', 1: '已结算', 2: '已作废' },
   withdrawStatus: { 0: '待审核', 1: '待打款', 2: '已打款', 3: '已拒绝' },
+  fav: { title: '我的收藏', add: '收藏', added: '已收藏', empty: '还没有收藏商品', invalid: '已失效', invalidTip: '商品已下架', remove: '移除' },
+  service: { contact: '联系客服', online: '在线客服', phone: '客服电话', hours: '服务时间', call: '拨打电话', linkCopied: '客服链接已复制，请在浏览器里打开' },
   review: {
     title: '商品评价', write: '评价商品', goodRate: '好评率', empty: '还没有评价', viewAll: '查看全部 {n} 条评价', reply: '商家回复',
     level: { all: '全部', good: '好评', mid: '中评', bad: '差评', image: '有图' },

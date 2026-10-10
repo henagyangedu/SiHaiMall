@@ -55,6 +55,10 @@ class CatalogService
         if (!empty($f['category_id'])) {
             $q->whereIn('g.category_id', $this->categoryWithChildren((int) $f['category_id']));
         }
+        // 只取指定的商品（内部用，如“我的收藏”；控制器不接收这个参数）
+        if (isset($f['ids'])) {
+            $q->whereIn('g.id', array_map('intval', (array) $f['ids']));
+        }
         $kw = trim((string) ($f['keyword'] ?? ''));
         if ($kw !== '') {
             $like = '%' . addcslashes($kw, '%_\\') . '%';

@@ -26,6 +26,7 @@ const routes = [
       { path: 'orders/:orderNo/refund', name: 'refund-apply', component: () => import('@/pages/RefundApply.vue') },
       { path: 'refunds', name: 'refunds', component: () => import('@/pages/RefundList.vue') },
       { path: 'refunds/:refundNo', name: 'refund-detail', component: () => import('@/pages/RefundDetail.vue') },
+      { path: 'favorites', name: 'favorites', component: () => import('@/pages/Favorites.vue') },
       { path: 'points', name: 'points', component: () => import('@/pages/Points.vue') },
       { path: 'profile', name: 'profile', component: () => import('@/pages/Profile.vue') },
       { path: 'security', name: 'security', component: () => import('@/pages/Security.vue') },

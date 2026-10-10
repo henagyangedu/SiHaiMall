@@ -23,6 +23,8 @@ class ConfigService
             'company_name'  => ['label' => '公司名称', 'type' => 'string', 'max' => 100],
             'service_email' => ['label' => '客服邮箱', 'type' => 'string', 'max' => 100, 'email' => true],
             'service_phone' => ['label' => '客服电话', 'type' => 'string', 'max' => 30],
+            'service_url'   => ['label' => '在线客服链接', 'type' => 'string', 'max' => 500, 'url' => true],
+            'service_hours' => ['label' => '客服服务时间', 'type' => 'string', 'lang' => true, 'max' => 100],
             'copyright'     => ['label' => '版权信息', 'type' => 'string', 'lang' => true, 'max' => 255],
             'site_icp'      => ['label' => '备案号', 'type' => 'string', 'max' => 100],
             'site_closed'   => ['label' => '关闭站点', 'type' => 'bool', 'default' => 0],
@@ -76,7 +78,7 @@ class ConfigService
     /** 可公开给 C 端的配置项 */
     public const PUBLIC_KEYS = [
         'base' => ['site_name', 'site_logo', 'site_favicon', 'site_desc', 'site_keywords', 'company_name',
-                   'service_email', 'service_phone', 'copyright', 'site_icp', 'site_closed', 'close_notice'],
+                   'service_email', 'service_phone', 'service_url', 'service_hours', 'copyright', 'site_icp', 'site_closed', 'close_notice'],
     ];
 
     public function __construct(private LocaleService $locale) {}
@@ -179,7 +181,7 @@ class ConfigService
                 'int'     => ['sometimes', 'integer', 'min:' . ($def['min'] ?? 0), 'max:' . ($def['max'] ?? 2147483647)],
                 'decimal' => ['sometimes', 'numeric', 'min:' . ($def['min'] ?? 0), 'max:' . ($def['max'] ?? 9999999999)],
                 'enum'    => ['sometimes', 'in:' . implode(',', $def['options'])],
-                default   => array_filter(['sometimes', 'nullable', 'string', "max:{$max}", !empty($def['email']) ? 'email' : null]),
+                default   => array_filter(['sometimes', 'nullable', 'string', "max:{$max}", !empty($def['email']) ? 'email' : null, !empty($def['url']) ? 'regex:/^https:\/\/\S+$/i' : null]),
             };
         }
 

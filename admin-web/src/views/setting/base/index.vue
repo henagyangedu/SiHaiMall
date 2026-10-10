@@ -11,7 +11,7 @@ const loading = ref(false)
 const saving = ref(false)
 const form = reactive({
   site_name: {}, site_logo: '', site_favicon: '', site_desc: {}, site_keywords: {},
-  company_name: '', service_email: '', service_phone: '', copyright: {}, site_icp: '',
+  company_name: '', service_email: '', service_phone: '', service_url: '', service_hours: {}, copyright: {}, site_icp: '',
   site_closed: 0, close_notice: {}, email_verify_enabled: 0,
 })
 
@@ -58,6 +58,14 @@ onMounted(load)
         <el-form-item label="公司名称"><el-input v-model="form.company_name" maxlength="100" /></el-form-item>
         <el-form-item label="客服邮箱"><el-input v-model="form.service_email" maxlength="100" /></el-form-item>
         <el-form-item label="客服电话"><el-input v-model="form.service_phone" maxlength="30" /></el-form-item>
+        <el-form-item label="在线客服链接">
+          <el-input v-model="form.service_url" maxlength="500" placeholder="https://…" />
+          <div style="color: #909399; font-size: 12px; line-height: 1.6; width: 100%">
+            企业微信客服、美洽等第三方客服提供的网页地址，必须以 https:// 开头。填了之后，买家在商品详情和个人中心点“联系客服”会打开它；
+            不填则只显示客服电话和服务时间。
+          </div>
+        </el-form-item>
+        <el-form-item label="客服服务时间"><LangInput v-model="form.service_hours" :languages="languages" :maxlength="100" placeholder="如：周一至周五 9:00-18:00" /></el-form-item>
         <el-form-item label="备案号"><el-input v-model="form.site_icp" maxlength="100" placeholder="面向国内用户时填写 ICP 备案号" /></el-form-item>
 
         <el-divider content-position="left">站点状态</el-divider>

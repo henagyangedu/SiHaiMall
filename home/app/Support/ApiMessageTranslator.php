@@ -52,6 +52,8 @@ final class ApiMessageTranslator
         // 账号
         '账号或密码错误' => 'Incorrect account or password',
         '账号已被禁用，请联系客服' => 'This account has been disabled. Please contact support.',
+        '已收藏' => 'Saved to your favourites',
+        '已取消收藏' => 'Removed from your favourites',
         '评价成功' => 'Thanks for your review',
         '订单完成后才能评价' => 'You can review after the order is completed',
         '订单里没有这件商品' => 'This item is not in the order',

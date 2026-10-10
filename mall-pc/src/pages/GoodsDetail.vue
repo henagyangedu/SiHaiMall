@@ -3,7 +3,9 @@ import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
-import { getGoods, addCart } from '@/api'
+import { Star, StarFilled, Service } from '@element-plus/icons-vue'
+import { state } from '@/store'
+import { getGoods, addCart, addFavorite, removeFavorite } from '@/api'
 import { needLogin } from '@/utils/request'
 import { refreshCartCount } from '@/utils/app'
 import { safeHtml } from '@/utils/html'
@@ -18,6 +20,19 @@ const failed = ref(false)
 const picked = reactive({}) // 规格项 ID => 选中的规格值 ID
 const qty = ref(1)
 const current = ref('') // 当前显示的大图
+
+// 收藏 / 取消收藏：先改界面再发请求，失败了改回去
+function toggleFav() {
+  needLogin(async () => {
+    const g = goods.value
+    g.favorited = !g.favorited
+    try {
+      await (g.favorited ? addFavorite(g.id) : removeFavorite(g.id))
+    } catch (e) {
+      g.favorited = !g.favorited
+    }
+  })
+}
 
 // 选齐了规格才能确定是哪个 SKU；单规格直接取唯一的那个
 const sku = computed(() => {
@@ -115,6 +130,14 @@ onMounted(async () => {
           <el-button size="large" type="primary" plain @click="onAddCart">{{ t('goods.addCart') }}</el-button>
           <el-button size="large" type="primary" @click="onBuy">{{ t('goods.buyNow') }}</el-button>
         </div>
+        <div class="extras">
+          <a class="extra fav" :class="{ on: goods.favorited }" @click="toggleFav">
+            <el-icon><component :is="goods.favorited ? StarFilled : Star" /></el-icon>{{ t(goods.favorited ? 'fav.added' : 'fav.add') }}
+          </a>
+          <!-- 后台配了在线客服链接才是可以点的链接；只配了电话就直接显示电话 -->
+          <a v-if="state.config.site?.service_url" :href="state.config.site.service_url" target="_blank" rel="noopener" class="extra"><el-icon><Service /></el-icon>{{ t('service.contact') }}</a>
+          <span v-else-if="state.config.site?.service_phone" class="extra plain"><el-icon><Service /></el-icon>{{ t('service.phone') }} {{ state.config.site.service_phone }}</span>
+        </div>
       </div>
     </div>
 
@@ -150,4 +173,9 @@ onMounted(async () => {
 .actions { margin-top: 28px; }
 .desc { line-height: 1.8; overflow: hidden; }
 .desc :deep(img) { max-width: 100%; height: auto; }
+.extras { display: flex; gap: 28px; margin-top: 18px; }
+.extra { display: inline-flex; align-items: center; gap: 6px; color: #6a665e; font-size: 14px; cursor: pointer; }
+.extra:hover, .extra.on { color: var(--theme); }
+.extra.plain { cursor: default; }
+.extra.plain:hover { color: #6a665e; }
 </style>

@@ -18,6 +18,12 @@ const year = new Date().getFullYear()
         <router-link :to="{ name: 'protocols' }">{{ t('protocol.title') }}</router-link>
       </div>
       <div class="copy">
+        <!-- 客服联系方式：后台“基础信息”里配了才显示 -->
+        <div v-if="state.config.site?.service_url || state.config.site?.service_phone" class="service">
+          <a v-if="state.config.site.service_url" :href="state.config.site.service_url" target="_blank" rel="noopener" class="service-link">{{ t('service.online') }}</a>
+          <span v-if="state.config.site.service_phone">{{ state.config.site.service_phone }}</span>
+          <span v-if="state.config.site.service_hours">{{ state.config.site.service_hours }}</span>
+        </div>
         <!-- 版权信息、备案号在后台“基础信息”里配置；没配版权信息时显示站点名称 -->
         <span>{{ state.config.site?.copyright || `© ${year} ${state.config.site?.site_name || ''} ${t('pc.footer')}` }}</span>
         <span v-if="state.config.site?.site_icp" class="icp">{{ state.config.site.site_icp }}</span>
@@ -34,4 +40,6 @@ footer { margin-top: 8px; border-top: 1px solid var(--line); background: var(--b
 .links a:hover { color: var(--theme); opacity: 1; }
 .copy { color: var(--sub); font-size: 13px; text-align: right; }
 .icp { margin-left: 16px; }
+.service { margin-bottom: 6px; display: flex; gap: 14px; justify-content: flex-end; }
+.service-link { color: var(--theme); }
 </style>

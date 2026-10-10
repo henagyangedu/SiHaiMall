@@ -3,10 +3,10 @@ import { ref, reactive, computed, watch } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 import { state } from '@/store'
-import { getGoods, addCart, getGoodsReviews } from '@/api'
+import { getGoods, addCart, getGoodsReviews, addFavorite, removeFavorite } from '@/api'
 import { needLogin } from '@/utils/request'
 import { refreshCartCount } from '@/utils/app'
-import { usePageTitle, toast, tab, nav } from '@/utils/page'
+import { usePageTitle, toast, tab, nav, hasService, contactService } from '@/utils/page'
 import ReviewItem from '@/components/ReviewItem.vue'
 
 const { t } = useI18n()
@@ -57,6 +57,19 @@ const price = computed(() => {
 })
 const maxQty = computed(() => Math.max(1, Math.min(sku.value ? sku.value.stock : 999, 999)))
 watch(maxQty, (m) => { if (qty.value > m) qty.value = m })
+
+// 收藏 / 取消收藏：先改界面再发请求，失败了改回去
+function toggleFav() {
+  needLogin(async () => {
+    const g = goods.value
+    g.favorited = !g.favorited
+    try {
+      await (g.favorited ? addFavorite(g.id) : removeFavorite(g.id))
+    } catch (e) {
+      g.favorited = !g.favorited
+    }
+  })
+}
 
 function pick(specId, valueId) {
   picked[specId] = picked[specId] === valueId ? 0 : valueId
@@ -136,6 +149,10 @@ watch(() => [state.lang, state.currency], load)
     </view>
 
     <view class="bar safe-bottom">
+      <view v-if="hasService()" class="mini" @click="contactService"><text class="mini-icon">☏</text><text class="mini-text">{{ t('service.contact') }}</text></view>
+      <view class="mini fav" :class="{ on: goods.favorited }" @click="toggleFav">
+        <text class="mini-icon">{{ goods.favorited ? '♥' : '♡' }}</text><text class="mini-text">{{ t(goods.favorited ? 'fav.added' : 'fav.add') }}</text>
+      </view>
       <view class="cart-link" @click="tab('/pages/cart/index')">
         <image src="/static/tab/cart.png" class="cart-icon" /><text v-if="state.cartCount" class="badge">{{ state.cartCount }}</text>
       </view>
@@ -172,4 +189,8 @@ watch(() => [state.lang, state.currency], load)
 .cart-icon { width: 48rpx; height: 48rpx; }
 .badge { position: absolute; top: -10rpx; right: 0; background: var(--theme); color: #fff; font-size: 20rpx; min-width: 32rpx; height: 32rpx; line-height: 32rpx; border-radius: 16rpx; padding: 0 6rpx; }
 .flex { flex: 1; }
+.mini { display: flex; flex-direction: column; align-items: center; width: 84rpx; flex: none; color: #6a665e; }
+.mini-icon { font-size: 40rpx; line-height: 48rpx; }
+.mini-text { font-size: 20rpx; white-space: nowrap; }
+.mini.on { color: var(--theme); }
 </style>

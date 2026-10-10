@@ -238,6 +238,27 @@ module.exports = async function pcFlow(browser, data) {
     }
     await page.getByRole('button', { name: '加入购物车' }).waitFor();
   });
+  await step('收藏：商品详情点收藏，“我的收藏”里出现，移除后恢复', async () => {
+    await go(`/goods/${data.single.goods_id}`);
+    const fav = page.locator('.extras .fav');
+    await fav.waitFor();
+    // 上一轮如果中途失败可能留着收藏，先取消掉，保证从“未收藏”开始
+    if (await page.locator('.extras .fav.on').count()) { await fav.click(); await page.locator('.extras .fav:not(.on)').waitFor(); }
+    await fav.click();
+    await page.locator('.extras .fav.on', { hasText: '已收藏' }).waitFor();
+    // 从会员中心的菜单进“我的收藏”
+    await go('/user');
+    await page.locator('.menu .item', { hasText: '我的收藏' }).click();
+    await page.waitForURL(/#\/favorites$/);
+    const card = page.locator('.fav', { hasText: title });
+    await card.waitFor();
+    await card.locator('.price').waitFor();
+    await card.locator('.remove').click();
+    await card.waitFor({ state: 'detached' });
+    await go(`/goods/${data.single.goods_id}`);
+    await page.locator('.extras .fav:not(.on)', { hasText: '收藏' }).waitFor();
+  });
+
   await step('清空购物车里测试加的商品', async () => {
     await go('/cart');
     await page.waitForTimeout(800);

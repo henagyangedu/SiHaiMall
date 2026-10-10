@@ -7,7 +7,7 @@ import { getProfile, updateProfile, logoutApi } from '@/api'
 import { toLogin, needLogin } from '@/utils/request'
 import { applyLang } from '@/locale'
 import { refreshCartCount } from '@/utils/app'
-import { usePageTitle, confirm, nav } from '@/utils/page'
+import { usePageTitle, confirm, nav, hasService, contactService } from '@/utils/page'
 
 const { t } = useI18n()
 usePageTitle('user.title')
@@ -68,10 +68,14 @@ onShow(async () => {
 
     <view class="card list">
       <view class="cell" @click="needLogin(() => nav('/pages/refund/list'))"><text>{{ t('userMenu.refunds') }}</text><text class="sub">›</text></view>
+      <view class="cell" @click="needLogin(() => nav('/pages/user/favorites'))"><text>{{ t('fav.title') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="needLogin(() => nav('/pages/user/points'))"><text>{{ t('userMenu.points') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="needLogin(() => nav('/pages/address/list'))"><text>{{ t('user.address') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="needLogin(() => nav('/pages/user/security'))"><text>{{ t('security.title') }}</text><text class="sub">›</text></view>
       <view class="cell" @click="needLogin(() => nav('/pages/distribution/index'))"><text>{{ t('userMenu.distribution') }}</text><text class="sub">›</text></view>
+      <view v-if="hasService()" class="cell" @click="contactService">
+        <text>{{ t('service.contact') }}</text><text class="sub">{{ state.config.site.service_hours }} ›</text>
+      </view>
     </view>
 
     <view class="card list">

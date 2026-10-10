@@ -179,6 +179,25 @@ module.exports = async function uniFlow(browser, data) {
       await page.locator('uni-page-body').waitFor();
     }
   });
+  await step('收藏：商品详情点收藏，个人中心的“我的收藏”里出现，移除后列表为空', async () => {
+    await go(`/pages/goods/detail?id=${data.single.goods_id}`);
+    const fav = page.locator('.bar .fav');
+    await fav.waitFor();
+    // 上一轮如果中途失败可能留着收藏，先取消掉，保证从“未收藏”开始
+    if (await page.locator('.bar .fav.on').count()) { await fav.click(); await page.locator('.bar .fav:not(.on)').waitFor(); }
+    await fav.click();
+    await page.locator('.bar .fav.on', { hasText: '已收藏' }).waitFor();
+    await go('/pages/user/index');
+    await page.locator('.cell', { hasText: '我的收藏' }).click();
+    const row = page.locator('.row', { hasText: data.single.title });
+    await row.waitFor();
+    await row.locator('.price').waitFor();
+    await row.locator('.remove').click();
+    await row.waitFor({ state: 'detached' });
+    await go(`/pages/goods/detail?id=${data.single.goods_id}`);
+    await page.locator('.bar .fav:not(.on)').waitFor();
+  });
+
   await step('清空购物车里测试加的商品', async () => {
     await go('/pages/cart/index');
     await page.waitForTimeout(1000);

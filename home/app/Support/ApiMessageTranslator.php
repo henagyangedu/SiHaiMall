@@ -225,13 +225,13 @@ final class ApiMessageTranslator
         '待确认收货' => 'awaiting receipt', '退款中' => 'refunding', '已拒绝' => 'declined', '已撤销' => 'withdrawn', '未知' => 'unknown',
     ];
 
-    /** 表单字段名：校验提示里的中文字段名会被替换成英文 */
+    /** 表单字段名：校验提示里的中文字段名会被替换成英文（西、法、德、日、俄的在各自语言文件的 attributes 里） */
     private const ATTRIBUTES = [
         '收件人' => 'recipient', '电话' => 'phone', '手机号' => 'phone number', '区号' => 'country code', '国家' => 'country', '详细地址' => 'street address',
         '邮编' => 'postal code', '收货地址' => 'shipping address', '账号' => 'account', '原密码' => 'current password', '新密码' => 'new password',
         '密码' => 'password', '昵称' => 'nickname', '头像' => 'avatar', '性别' => 'gender', '生日' => 'birthday', '邮箱' => 'email',
         '图片用途' => 'image purpose', '图片' => 'image', '验证码用途' => 'verification purpose', '验证码' => 'verification code', '邀请码' => 'invite code', '微信登录凭证' => 'WeChat sign-in code', 'Google 登录凭证' => 'Google credential', '绑定类型' => 'type', '评价商品' => 'item', '评分' => 'rating', '评价内容' => 'review', '追评内容' => 'follow-up review', '匿名' => 'anonymous',
-        '购物车商品' => 'cart items', '商品规格' => 'product option', '商品' => 'items', '数量' => 'quantity', '留言' => 'note', '使用积分' => 'use points',
+        '购物车商品' => 'cart items', '商品规格' => 'product option', '商品' => 'items', '数量' => 'quantity', '留言' => 'note', '使用积分' => 'use points', '优惠券' => 'coupon',
         '支付方式' => 'payment method', '取消原因' => 'reason', '售后商品' => 'item', '售后类型' => 'refund type', '申请原因' => 'reason',
         '凭证图片' => 'photos', '退款金额' => 'refund amount', '快递公司' => 'carrier', '快递单号' => 'tracking number',
         '真实姓名' => 'full name', '申请说明' => 'note', '提现金额' => 'amount', '提现方式' => 'method', '收款信息' => 'payee details',
@@ -305,9 +305,32 @@ final class ApiMessageTranslator
             }
         }
 
-        // 校验提示：句子本身已经是框架的英文，只剩字段名是中文，把字段名换掉（校验提示在所有非中文语言下都是英文）。
-        // 纯中文的未登记提示不做替换，否则会变成中英文混杂的半截话
+        // 校验提示正常在抛出时就由 validation() 处理过了；这里兜底的是没经过它的英文句子（字段名还是中文）。
+        // 纯中文的未登记提示不做替换，否则会变成中英文混杂的半截话；西、法、德、日、俄也不在这里换，
+        // 它们的句子里可能没有英文字母（日语），而且日语的字段名和中文字段名有同形的（“数量”“匿名”）
+        if (self::table($lang)['attributes'] !== []) {
+            return $message;
+        }
+
         return preg_match('/[A-Za-z]{3,}/', $message) ? strtr($message, self::ATTRIBUTES) : $message;
+    }
+
+    /**
+     * 校验提示里的字段名换成买家的语言。句子本身是框架按当前语言从 lang/语言/validation.php 取的
+     * （没有那种语言的就是框架自带的英文），里面的字段名来自 FormRequest::attributes()，是中文。
+     * 自定义的校验提示（FormRequest::messages() 里整句中文的）在这里按普通提示翻译。
+     */
+    public static function validation(string $message, string $lang): string
+    {
+        if ($message === '' || str_starts_with(strtolower($lang), 'zh') || !preg_match('/[\x{4e00}-\x{9fff}]/u', $message)) {
+            return $message;
+        }
+        $table = self::table($lang);
+        if (isset($table['exact'][$message]) || isset(self::EXACT[$message])) {
+            return self::translate($message, $lang);
+        }
+
+        return strtr($message, $table['attributes'] + self::ATTRIBUTES);
     }
 
     /** 这种语言的译文表；没有就是空表（全部用英文） */
@@ -315,7 +338,7 @@ final class ApiMessageTranslator
     {
         $base = strtolower(explode('-', $lang)[0]);
         if (!in_array($base, self::LANGS, true)) {
-            return ['exact' => [], 'patterns' => [], 'status' => []];
+            return ['exact' => [], 'patterns' => [], 'status' => [], 'attributes' => []];
         }
 
         return self::$tables[$base] ??= require __DIR__ . "/ApiMessages/{$base}.php";
@@ -327,6 +350,9 @@ final class ApiMessageTranslator
      */
     public static function english(): array
     {
-        return ['exact' => self::EXACT, 'patterns' => array_map(fn (array $p) => $p[1], self::PATTERNS), 'status' => self::STATUS];
+        return [
+            'exact' => self::EXACT, 'patterns' => array_map(fn (array $p) => $p[1], self::PATTERNS),
+            'status' => self::STATUS, 'attributes' => self::ATTRIBUTES,
+        ];
     }
 }

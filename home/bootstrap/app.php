@@ -51,7 +51,17 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (ValidationException $e, Request $request) {
-            return ApiResponse::fail($e->validator->errors()->first(), 422, $e->errors());
+            $errors = $e->errors();
+            $first = $e->validator->errors()->first();
+            // 买家接口：句子已经是买家语言的（lang/语言/validation.php），这里把里面的中文字段名也换成买家的语言。
+            // 排在后面的 TranslateApiMessages 不会再动它
+            $lang = (string) $request->attributes->get('lang', '');
+            if ($request->is('api/*') && $lang !== '') {
+                $first = ApiMessageTranslator::validation($first, $lang);
+                $errors = array_map(fn (array $list) => array_map(fn ($m) => ApiMessageTranslator::validation((string) $m, $lang), $list), $errors);
+            }
+
+            return ApiResponse::fail($first, 422, $errors);
         });
 
         $exceptions->render(function (AuthenticationException $e, Request $request) {

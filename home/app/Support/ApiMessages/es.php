@@ -235,4 +235,20 @@ return [
         '售后中' => 'en posventa', '已关闭' => 'cerrado', '待审核' => 'en revisión', '待买家退货' => 'pendiente de devolución',
         '待确认收货' => 'esperando recepción', '退款中' => 'reembolsando', '已拒绝' => 'rechazado', '已撤销' => 'retirado', '未知' => 'desconocido',
     ],
+    // 表单字段名（校验提示里的 :attribute）
+    'attributes' => [
+        '收件人' => 'Destinatario', '电话' => 'Teléfono', '手机号' => 'Número de móvil', '区号' => 'Prefijo del país', '国家' => 'País', '详细地址' => 'Dirección',
+        '邮编' => 'Código postal', '收货地址' => 'Dirección de envío', '账号' => 'Cuenta', '原密码' => 'Contraseña actual', '新密码' => 'Nueva contraseña',
+        '密码' => 'Contraseña', '昵称' => 'Nombre visible', '头像' => 'Foto de perfil', '性别' => 'Género', '生日' => 'Fecha de nacimiento', '邮箱' => 'Correo electrónico',
+        '图片用途' => 'Uso de la imagen', '图片' => 'Imagen', '验证码用途' => 'Uso del código', '验证码' => 'Código de verificación', '邀请码' => 'Código de invitación',
+        '微信登录凭证' => 'Código de acceso de WeChat', 'Google 登录凭证' => 'Credencial de Google', '绑定类型' => 'Tipo', '评价商品' => 'Artículo', '评分' => 'Valoración',
+        '评价内容' => 'Reseña', '追评内容' => 'Reseña adicional', '匿名' => 'Anónimo',
+        '购物车商品' => 'Artículos del carrito', '商品规格' => 'Variante', '商品' => 'Artículos', '数量' => 'Cantidad', '留言' => 'Nota', '使用积分' => 'Usar puntos', '优惠券' => 'Cupón',
+        '支付方式' => 'Método de pago', '取消原因' => 'Motivo', '售后商品' => 'Artículo', '售后类型' => 'Tipo de reembolso', '申请原因' => 'Motivo',
+        '凭证图片' => 'Fotos', '退款金额' => 'Importe del reembolso', '快递公司' => 'Transportista', '快递单号' => 'Número de seguimiento',
+        '真实姓名' => 'Nombre completo', '申请说明' => 'Nota', '提现金额' => 'Importe', '提现方式' => 'Método de retiro', '收款信息' => 'Datos del beneficiario',
+        '收款人姓名' => 'Nombre del beneficiario', '收款账号' => 'Cuenta del beneficiario', '开户行' => 'Banco',
+        '抬头类型' => 'Tipo de factura', '发票抬头' => 'Nombre de facturación', '纳税人识别号' => 'NIF', '收票邮箱' => 'Correo electrónico', '开票资料' => 'Datos de la empresa',
+        '注册地址' => 'Domicilio social', '注册电话' => 'Teléfono de la empresa', '开户银行' => 'Banco', '银行账号' => 'Cuenta bancaria',
+    ],
 ];

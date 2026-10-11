@@ -235,4 +235,20 @@ return [
         '售后中' => 'in Reklamation', '已关闭' => 'geschlossen', '待审核' => 'in Prüfung', '待买家退货' => 'Rücksendung erforderlich',
         '待确认收货' => 'warten auf Eingang', '退款中' => 'Erstattung läuft', '已拒绝' => 'abgelehnt', '已撤销' => 'zurückgezogen', '未知' => 'unbekannt',
     ],
+    // 表单字段名（校验提示里的 :attribute）
+    'attributes' => [
+        '收件人' => 'Empfänger', '电话' => 'Telefon', '手机号' => 'Handynummer', '区号' => 'Ländervorwahl', '国家' => 'Land', '详细地址' => 'Adresse',
+        '邮编' => 'Postleitzahl', '收货地址' => 'Lieferadresse', '账号' => 'Konto', '原密码' => 'Aktuelles Passwort', '新密码' => 'Neues Passwort',
+        '密码' => 'Passwort', '昵称' => 'Anzeigename', '头像' => 'Profilbild', '性别' => 'Geschlecht', '生日' => 'Geburtsdatum', '邮箱' => 'E-Mail',
+        '图片用途' => 'Bildzweck', '图片' => 'Bild', '验证码用途' => 'Zweck des Codes', '验证码' => 'Bestätigungscode', '邀请码' => 'Einladungscode',
+        '微信登录凭证' => 'WeChat-Anmeldecode', 'Google 登录凭证' => 'Google-Anmeldedaten', '绑定类型' => 'Typ', '评价商品' => 'Artikel', '评分' => 'Bewertung',
+        '评价内容' => 'Bewertungstext', '追评内容' => 'Nachtrag', '匿名' => 'Anonym',
+        '购物车商品' => 'Artikel im Warenkorb', '商品规格' => 'Variante', '商品' => 'Artikel', '数量' => 'Menge', '留言' => 'Anmerkung', '使用积分' => 'Punkte einlösen', '优惠券' => 'Gutschein',
+        '支付方式' => 'Zahlungsart', '取消原因' => 'Grund', '售后商品' => 'Artikel', '售后类型' => 'Art der Erstattung', '申请原因' => 'Grund',
+        '凭证图片' => 'Fotos', '退款金额' => 'Erstattungsbetrag', '快递公司' => 'Versanddienst', '快递单号' => 'Sendungsnummer',
+        '真实姓名' => 'Vollständiger Name', '申请说明' => 'Anmerkung', '提现金额' => 'Betrag', '提现方式' => 'Auszahlungsart', '收款信息' => 'Empfängerdaten',
+        '收款人姓名' => 'Name des Empfängers', '收款账号' => 'Empfängerkonto', '开户行' => 'Bank',
+        '抬头类型' => 'Rechnungsart', '发票抬头' => 'Rechnungsempfänger', '纳税人识别号' => 'Steuernummer', '收票邮箱' => 'E-Mail', '开票资料' => 'Firmenangaben',
+        '注册地址' => 'Firmenanschrift', '注册电话' => 'Firmentelefon', '开户银行' => 'Bank', '银行账号' => 'Bankkonto',
+    ],
 ];

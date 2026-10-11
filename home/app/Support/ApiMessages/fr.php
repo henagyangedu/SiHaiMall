@@ -235,4 +235,20 @@ return [
         '售后中' => 'SAV en cours', '已关闭' => 'clôturée', '待审核' => 'en cours d’examen', '待买家退货' => 'retour attendu',
         '待确认收货' => 'en attente de réception', '退款中' => 'remboursement en cours', '已拒绝' => 'refusé', '已撤销' => 'retiré', '未知' => 'inconnu',
     ],
+    // 表单字段名（校验提示里的 :attribute）
+    'attributes' => [
+        '收件人' => 'Destinataire', '电话' => 'Téléphone', '手机号' => 'Numéro de mobile', '区号' => 'Indicatif du pays', '国家' => 'Pays', '详细地址' => 'Adresse',
+        '邮编' => 'Code postal', '收货地址' => 'Adresse de livraison', '账号' => 'Compte', '原密码' => 'Mot de passe actuel', '新密码' => 'Nouveau mot de passe',
+        '密码' => 'Mot de passe', '昵称' => 'Pseudo', '头像' => 'Photo de profil', '性别' => 'Genre', '生日' => 'Date de naissance', '邮箱' => 'E-mail',
+        '图片用途' => 'Usage de l’image', '图片' => 'Image', '验证码用途' => 'Usage du code', '验证码' => 'Code de vérification', '邀请码' => 'Code d’invitation',
+        '微信登录凭证' => 'Code de connexion WeChat', 'Google 登录凭证' => 'Identifiant Google', '绑定类型' => 'Type', '评价商品' => 'Article', '评分' => 'Note',
+        '评价内容' => 'Avis', '追评内容' => 'Avis complémentaire', '匿名' => 'Anonyme',
+        '购物车商品' => 'Articles du panier', '商品规格' => 'Variante', '商品' => 'Articles', '数量' => 'Quantité', '留言' => 'Remarque', '使用积分' => 'Utiliser des points', '优惠券' => 'Coupon',
+        '支付方式' => 'Moyen de paiement', '取消原因' => 'Motif', '售后商品' => 'Article', '售后类型' => 'Type de remboursement', '申请原因' => 'Motif',
+        '凭证图片' => 'Photos', '退款金额' => 'Montant du remboursement', '快递公司' => 'Transporteur', '快递单号' => 'Numéro de suivi',
+        '真实姓名' => 'Nom complet', '申请说明' => 'Remarque', '提现金额' => 'Montant', '提现方式' => 'Mode de retrait', '收款信息' => 'Coordonnées du bénéficiaire',
+        '收款人姓名' => 'Nom du bénéficiaire', '收款账号' => 'Compte du bénéficiaire', '开户行' => 'Banque',
+        '抬头类型' => 'Type de facture', '发票抬头' => 'Nom de facturation', '纳税人识别号' => 'Numéro fiscal', '收票邮箱' => 'E-mail', '开票资料' => 'Informations de l’entreprise',
+        '注册地址' => 'Siège social', '注册电话' => 'Téléphone de l’entreprise', '开户银行' => 'Banque', '银行账号' => 'Compte bancaire',
+    ],
 ];

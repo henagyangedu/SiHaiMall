@@ -34,8 +34,16 @@ class ApiMessageTranslatorTest extends TestCase
         // 状态名跟着语言换；嵌在里面的另一条提示也翻译
         $this->assertSame('El estado del pedido ha cambiado (ahora: cancelado). Actualiza e inténtalo de nuevo.', ApiMessageTranslator::translate('订单状态已变化（当前：已取消），请刷新后重试', 'es'));
         $this->assertSame('Este cupón no se puede usar en este pedido: Este cupón ha caducado', ApiMessageTranslator::translate('这张优惠券不能用于本单：这张优惠券已过期', 'es'));
-        // 校验提示在所有非中文语言下都是英文句子，字段名换成英文
-        $this->assertSame('The recipient field is required.', ApiMessageTranslator::translate('The 收件人 field is required.', 'es'));
+        // 校验提示里的字段名换成这种语言的；没有自己译文的语言换成英文
+        $this->assertSame('El campo «Destinatario» es obligatorio.', ApiMessageTranslator::validation('El campo «收件人» es obligatorio.', 'es'));
+        $this->assertSame('数量は整数で入力してください。', ApiMessageTranslator::validation('数量は整数で入力してください。', 'ja'));
+        $this->assertSame('商品の種類を入力してください。', ApiMessageTranslator::validation('商品规格を入力してください。', 'ja'));
+        $this->assertSame('The recipient field is required.', ApiMessageTranslator::validation('The 收件人 field is required.', 'ko'));
+        $this->assertSame('收件人 不能为空。', ApiMessageTranslator::validation('收件人 不能为空。', 'zh-CN'));
+        // 整句自定义的校验提示按普通提示翻译
+        $this->assertSame('Bitte gib den Namen der Bank ein', ApiMessageTranslator::validation('请填写开户行', 'de'));
+        // 已经换好字段名的句子，后面的 translate 不会再动（日语的字段名和中文有同形的）
+        $this->assertSame('数量は1 KB以上にしてください。', ApiMessageTranslator::translate('数量は1 KB以上にしてください。', 'ja'));
         // 没登记的提示保持中文原文
         $this->assertSame('这是一条还没登记翻译的商品提示', ApiMessageTranslator::translate('这是一条还没登记翻译的商品提示', 'ru'));
 
@@ -59,7 +67,7 @@ class ApiMessageTranslatorTest extends TestCase
         $problems = [];
         foreach (ApiMessageTranslator::LANGS as $lang) {
             $table = require dirname(__DIR__, 2)."/app/Support/ApiMessages/{$lang}.php";
-            foreach (['exact', 'patterns', 'status'] as $part) {
+            foreach (['exact', 'patterns', 'status', 'attributes'] as $part) {
                 foreach (array_diff_key($english[$part], $table[$part]) as $key => $_) {
                     $problems[] = "{$lang} 的 {$part} 缺少：{$key}";
                 }
@@ -99,6 +107,51 @@ class ApiMessageTranslatorTest extends TestCase
             ['订单完成已超过 7 天，不能再申请售后', 'This order was completed more than 7 days ago and is no longer eligible for a refund'],
             ['提现金额不能低于 100.00', 'The minimum withdrawal amount is 100.00'],
         ];
+    }
+
+    /** 各语言的校验句子（lang/语言/validation.php）和中文那份一一对应：不漏、不多、不空，:min 这类变量对得上 */
+    public function test_validation_sentences_match_the_chinese_file(): void
+    {
+        $flatten = function (array $rules, string $prefix = '') use (&$flatten): array {
+            $out = [];
+            foreach ($rules as $key => $value) {
+                if ($key === 'attributes') {
+                    continue;
+                }
+                $out += is_array($value) ? $flatten($value, "{$prefix}{$key}.") : ["{$prefix}{$key}" => (string) $value];
+            }
+
+            return $out;
+        };
+        $vars = function (string $text): array {
+            preg_match_all('/:[a-z]+/', $text, $m);
+            $found = array_values(array_unique($m[0]));
+            sort($found);
+
+            return $found;
+        };
+        $dir = dirname(__DIR__, 2).'/lang';
+        $chinese = $flatten(require "{$dir}/zh-CN/validation.php");
+        $problems = [];
+        foreach (ApiMessageTranslator::LANGS as $lang) {
+            $table = $flatten(require "{$dir}/{$lang}/validation.php");
+            foreach (array_diff_key($chinese, $table) as $key => $_) {
+                $problems[] = "{$lang} 缺少：{$key}";
+            }
+            foreach (array_diff_key($table, $chinese) as $key => $_) {
+                $problems[] = "{$lang} 多了中文里没有的：{$key}";
+            }
+            foreach ($table as $key => $text) {
+                if (trim($text) === '') {
+                    $problems[] = "{$lang} 是空的：{$key}";
+                } elseif (isset($chinese[$key]) && $vars($text) !== $vars($chinese[$key])) {
+                    $problems[] = "{$lang} 的 {$key} 变量和中文对不上";
+                } elseif (preg_match('/\p{Han}{2,}/u', $text) && $lang !== 'ja') {
+                    $problems[] = "{$lang} 的 {$key} 里有中文";
+                }
+            }
+        }
+        $this->assertSame([], $problems);
     }
 
     public function test_validation_messages_get_english_field_names(): void

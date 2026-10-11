@@ -2,8 +2,10 @@
 
 return [
     'accepted' => ':attribute 必须接受。',
+    'alpha' => ':attribute 只能包含字母。',
     'alpha_dash' => ':attribute 只能包含字母、数字、短划线和下划线。',
     'array' => ':attribute 必须是数组。',
+    'before' => ':attribute 必须早于 :date。',
     'between' => [
         'array' => ':attribute 必须包含 :min 到 :max 项。',
         'numeric' => ':attribute 必须在 :min 到 :max 之间。',
@@ -50,6 +52,15 @@ return [
     'prohibited' => ':attribute 不允许修改。',
     'regex' => ':attribute 格式不正确。',
     'required' => ':attribute 不能为空。',
+    'required_if' => '当 :other 为 :value 时，:attribute 不能为空。',
+    'required_with' => '填写了 :values 时，:attribute 不能为空。',
+    'required_without' => '没有填写 :values 时，:attribute 不能为空。',
+    'size' => [
+        'array' => ':attribute 必须包含 :size 项。',
+        'file' => ':attribute 必须是 :size KB。',
+        'numeric' => ':attribute 必须是 :size。',
+        'string' => ':attribute 必须是 :size 个字符。',
+    ],
     'string' => ':attribute 必须是字符串。',
     'unique' => ':attribute 已存在。',
     'uploaded' => ':attribute 上传失败，请检查文件大小是否超过服务器限制。',

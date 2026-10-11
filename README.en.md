@@ -82,7 +82,6 @@ Everything below is implemented and has automated tests, but in those tests the 
 Also worth knowing:
 - The WeChat mini program has only been compiled, never run in WeChat DevTools or on a device.
 - The Spanish, French, German, Japanese and Russian translations were produced by AI and have not been reviewed by native speakers.
-- Form validation messages are in English for all non-Chinese languages.
 - There is no native app, and no Apple sign-in yet.
 
 ## Tech stack

@@ -1,8 +1,8 @@
 # 四海商城 SihaiMall
 
-多语言分销商城
+面向国内和出海两种场景的多语言分销商城，源码公开：一套后端，同时支撑管理后台、PC 网站、手机 H5 和微信小程序。支持多语言、多币种、按地区定价和收税、两级分销。
 
-面向国内和出海两种场景的开源商城系统：一套后端，同时支撑管理后台、PC 网站、手机 H5 和微信小程序。支持多语言、多币种、按地区定价和收税、两级分销。
+> **授权方式：非商业用途免费，商业用途需要取得商业授权。** 作者愿意把代码分享出来，同时希望用它经营的使用者付费支持后续的维护和开发。详见[授权说明](docs/授权说明.md)。
 
 > **当前是开发版本。** 核心购物流程在本地经过了自动化测试和浏览器点击测试，但多数第三方对接（支付、短信、物流、登录）还没有用真实账号联调过，见下面的“对接状态”。用于生产前请自行完成联调和验收。
 
@@ -80,7 +80,7 @@
 
 | 部分 | 目录 | 技术 |
 | --- | --- | --- |
-| 后端接口 | `home/` | Laravel 13、PHP 8.3+、MySQL 8 |
+| 后端接口 | `home/` | Laravel 13、PHP 8.4+、MySQL 8 |
 | 管理后台 | `admin-web/` | Vue 3、Element Plus、Vite、Pinia |
 | PC 网站 | `mall-pc/` | Vue 3、Element Plus、Vite |
 | 手机 H5 / 小程序 | `mall-uni/` | uni-app（Vue 3，命令行工程，不依赖 HBuilderX） |
@@ -90,7 +90,7 @@
 
 ## 快速开始（本地开发）
 
-需要：PHP 8.3 以上（含 bcmath、openssl、pdo_mysql、mbstring、fileinfo 扩展）、Composer、MySQL 8、Node.js 20 以上。
+需要：PHP 8.4 以上（含 bcmath、openssl、pdo_mysql、mbstring、fileinfo 扩展）、Composer、MySQL 8、Node.js 20 以上。
 
 ```bash
 # 1. 后端
@@ -103,7 +103,8 @@ php artisan db:seed           # 创建管理员 admin，密码只在终端显示
 php artisan mall:demo-import  # 可选：导入演示商品和内容
 php artisan serve             # http://127.0.0.1:8000
 
-# 2. 三个前端（各开一个终端）。先把各自 .env.development 里的 VITE_API_PROXY 改成后端地址
+# 2. 三个前端（各开一个终端）。它们默认把接口请求转发到 http://127.0.0.1:8000；
+#    后端不在这个地址时，在各自目录建一个 .env.development.local，写上 VITE_API_PROXY=你的后端地址
 cd admin-web && npm install && npm run dev      # 后台   http://127.0.0.1:5173
 cd mall-pc   && npm install && npm run dev      # PC 端  http://127.0.0.1:5190
 cd mall-uni  && npm install && npm run dev:h5   # 手机端 http://127.0.0.1:5180
@@ -129,15 +130,22 @@ cd e2e && npm install && npm run all
 ## 文档
 
 - [部署说明](docs/部署说明.md)
+- [授权说明](docs/授权说明.md)
+- [更新日志](CHANGELOG.md)
 - [演示数据格式](docs/演示数据格式.md)
 - [开发说明](CLAUDE.md)：业务规则、各模块的设计取舍、已知的限制。改代码前建议先读相关章节。
 
 ## 参与开发
 
-欢迎提 Issue 和 Pull Request。提交前请确认：
+欢迎提 Issue 和 Pull Request，约定见 [CONTRIBUTING.md](CONTRIBUTING.md)。因为项目同时提供商业授权，提交代码前需要同意[贡献者协议](docs/贡献者协议.md)。
 
-- `php artisan test` 全部通过；改了界面文案的话 `npm run check:locale` 通过。
-- 新增后台接口挂了权限点并在 `MenuSeeder` 里登记；新增买家可见的提示在 `ApiMessageTranslator` 和各语言文件里登记（漏了测试会失败）。
-- 改数据库结构用新的迁移文件，不要改已有的迁移。
+发现安全问题请不要公开提 Issue，见 [SECURITY.md](SECURITY.md)。
 
-发现安全问题请不要公开提 Issue，先私下联系维护者。
+## 授权
+
+本项目按 [PolyForm Noncommercial License 1.0.0](LICENSE.md) 授权：
+
+- **个人学习、研究、非营利使用**：免费，可以修改和分发，保留 `LICENSE.md` 和 `NOTICE.md` 即可。
+- **商业使用**（用它开店、在经营活动中使用、为客户搭建并收费等）：需要先取得商业授权。
+
+怎么取得商业授权、什么算商业用途，见[授权说明](docs/授权说明.md)。商业授权的收入用于这个项目的维护和后续开发。

@@ -63,6 +63,7 @@ The products shown are the bundled demo data (smart pet supplies), shown here in
 - Dashboards, trends, product rankings
 - Articles, announcements, help center, banners and ad slots
 - Payments, SMS, storage, tracking, shipping labels and translation are all configured in the admin console; secrets are stored encrypted
+- Open API for ERP, accounting and logistics systems: read orders, post shipments, sync stock, pull payment records; one key per system with its own permissions
 
 ## Integration status
 
@@ -141,6 +142,7 @@ cd e2e && npm install && npm run all
 
 - [Licensing](docs/licensing.en.md)
 - [Deployment guide](docs/部署说明.md) (Chinese)
+- [Open API](docs/开放接口.md) (Chinese): for integrating ERP, accounting and logistics systems
 - [Changelog](CHANGELOG.md) (Chinese)
 - [Development notes](CLAUDE.md) (Chinese): business rules, design trade-offs and known limitations of each module
 

@@ -24,7 +24,8 @@
     "waybill": "node run.js waybill",
     "tax": "node run.js tax",
     "i18n": "node run.js i18n",
-    "google": "node run.js google"
+    "google": "node run.js google",
+    "openapi": "node run.js openapi"
   },
   "devDependencies": {
     "playwright-core": "^1.48.0"

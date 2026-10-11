@@ -71,10 +71,14 @@ class OrderShipService
         return ['express_no' => $w['express_no'], 'label_url' => $w['label_url']];
     }
 
-    /** @param array{express_code:string,express_name?:string,express_no:string,item_ids?:int[],waybill_task_id?:string,label_url?:string} $d 后两项只有电子面单发货时才有 */
-    public function ship(int $orderId, array $d, Admin $op): void
+    /**
+     * @param array{express_code:string,express_name?:string,express_no:string,item_ids?:int[],waybill_task_id?:string,label_url?:string} $d 后两项只有电子面单发货时才有
+     * @param string $via 不是管理员在后台操作时，写进订单日志的来源说明（如“开放接口（某某 ERP）”）
+     */
+    public function ship(int $orderId, array $d, Admin $op, string $via = ''): void
     {
-        DB::transaction(function () use ($orderId, $d, $op) {
+        DB::transaction(function () use ($orderId, $d, $op, $via) {
+            $via = $via === '' ? '' : "{$via}：";
             $o = Order::query()->lockForUpdate()->find($orderId) ?? throw new BusinessException('订单不存在');
             // 部分退款后剩余的商品仍可发货；售后进行中的订单状态是“售后中”，要等售后处理完
             if ((int) $o->status !== OrderStatus::TO_SHIP || !in_array((int) $o->pay_status, [OrderStatus::PAY_PAID, OrderStatus::PAY_PART_REFUND], true)) {
@@ -102,15 +106,18 @@ class OrderShipService
             ]);
 
             if (count($pick) === count($pending)) {
-                $this->status->transit($o, [OrderStatus::TO_SHIP], OrderStatus::SHIPPED, OrderStatus::OP_ADMIN, (int) $op->id, "已发货：{$name} {$d['express_no']}", ['shipped_at' => now()]);
+                $this->status->transit($o, [OrderStatus::TO_SHIP], OrderStatus::SHIPPED, OrderStatus::OP_ADMIN, (int) $op->id, "{$via}已发货：{$name} {$d['express_no']}", ['shipped_at' => now()]);
             } else {
-                $this->status->note($o, OrderStatus::OP_ADMIN, (int) $op->id, "部分发货：{$name} {$d['express_no']}（" . count($pick) . ' 件商品行）');
+                // 状态没变，但外部系统按更新时间拉订单，要让它看得到这次发货
+                Order::query()->whereKey($o->id)->update(['updated_at' => now()]);
+                $this->status->note($o, OrderStatus::OP_ADMIN, (int) $op->id, "{$via}部分发货：{$name} {$d['express_no']}（" . count($pick) . ' 件商品行）');
             }
         });
     }
 
-    public function editExpress(int $shippingId, array $d, Admin $op): void
+    public function editExpress(int $shippingId, array $d, Admin $op, string $via = ''): void
     {
+        $via = $via === '' ? '' : "{$via}：";
         $s = Shipping::query()->find($shippingId) ?? throw new BusinessException('发货记录不存在');
         $o = Order::query()->find($s->order_id) ?? throw new BusinessException('订单不存在');
         if (!in_array((int) $o->status, [OrderStatus::SHIPPED, OrderStatus::TO_SHIP, OrderStatus::FINISHED], true)) {
@@ -122,7 +129,8 @@ class OrderShipService
         $changed = $code !== (string) $s->express_code || trim((string) $d['express_no']) !== (string) $s->express_no;
         $s->update(['express_code' => $code, 'express_name' => $name, 'express_no' => trim((string) $d['express_no']), 'track_status' => 0, 'track_data' => null]
             + ($changed ? ['waybill_task_id' => '', 'label_url' => ''] : []));
-        $this->status->note($o, OrderStatus::OP_ADMIN, (int) $op->id, "修改物流单号：{$name} {$d['express_no']}");
+        Order::query()->whereKey($o->id)->update(['updated_at' => now()]);
+        $this->status->note($o, OrderStatus::OP_ADMIN, (int) $op->id, "{$via}修改物流单号：{$name} {$d['express_no']}");
     }
 
     /** 到期自动确认收货：已发货超过 N 天的订单 → 已完成。返回处理数量 */

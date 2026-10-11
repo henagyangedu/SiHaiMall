@@ -132,6 +132,7 @@ class MenuSeeder extends Seeder
                 ['t' => '消息模板', 'path' => '/setting/message', 'perm' => 'setting:message', 'acts' => ['edit', 'test']],
                 ['t' => '协议管理', 'path' => '/setting/protocol', 'perm' => 'setting:protocol', 'acts' => ['edit']],
                 ['t' => '小票配置', 'path' => '/setting/receipt', 'perm' => 'setting:receipt', 'acts' => ['edit']],
+                ['t' => '开放接口', 'path' => '/setting/open-api', 'perm' => 'setting:open_api', 'acts' => ['add', 'edit', 'del', 'reset']],
                 ['t' => '管理权限', 'path' => '/setting/auth', 'children' => [
                     ['t' => '管理员', 'path' => '/setting/admin', 'perm' => 'setting:admin', 'acts' => ['add', 'edit', 'del', 'reset']],
                     ['t' => '角色管理', 'path' => '/setting/role', 'perm' => 'setting:role', 'acts' => ['add', 'edit', 'del']],

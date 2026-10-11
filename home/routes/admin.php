@@ -34,6 +34,7 @@ use App\Http\Controllers\Admin\SaleRegionController;
 use App\Http\Controllers\Admin\ShippingTemplateController;
 use App\Http\Controllers\Admin\StatsController;
 use App\Http\Controllers\Admin\StockLogController;
+use App\Http\Controllers\Admin\OpenAppController;
 use App\Http\Controllers\Admin\TaxRateController;
 use App\Http\Controllers\Admin\TranslateController;
 use App\Http\Controllers\Admin\UploadController;
@@ -107,6 +108,16 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::put('{id}/rate', [CurrencyController::class, 'rate'])->middleware('perm:setting:currency:rate');
         Route::post('{id}/base', [CurrencyController::class, 'setBase'])->middleware('perm:super'); // 影响全部价格口径，仅超管
         Route::delete('{id}', [CurrencyController::class, 'destroy'])->middleware('perm:setting:currency:del');
+    });
+
+    // 开放接口：给外部系统（ERP、财务、物流）发密钥。接口本身在 routes/open.php
+    Route::prefix('open-app')->group(function () {
+        Route::get('list', [OpenAppController::class, 'index'])->middleware('perm:setting:open_api:view');
+        Route::post('/', [OpenAppController::class, 'store'])->middleware('perm:setting:open_api:add');
+        Route::put('{id}', [OpenAppController::class, 'update'])->whereNumber('id')->middleware('perm:setting:open_api:edit');
+        Route::post('{id}/reset-key', [OpenAppController::class, 'resetKey'])->whereNumber('id')->middleware('perm:setting:open_api:reset');
+        Route::delete('{id}', [OpenAppController::class, 'destroy'])->whereNumber('id')->middleware('perm:setting:open_api:del');
+        Route::get('{id}/logs', [OpenAppController::class, 'logs'])->whereNumber('id')->middleware('perm:setting:open_api:view');
     });
 
     // 税率设置：按收货地区的税率规则

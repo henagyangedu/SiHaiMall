@@ -24,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             Route::middleware('api')->prefix('admin-api')->group(base_path('routes/admin.php'));
             Route::prefix('notify')->group(base_path('routes/notify.php'));
+            // 开放接口（ERP、财务、物流等外部系统）：不走买家接口的语言、翻译、时区那一套。每个接口每个 IP 每分钟 300 次
+            Route::middleware('throttle:300,1')->prefix('open-api/v1')->group(base_path('routes/open.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -32,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api.token'  => \App\Http\Middleware\ApiToken::class,
             'perm'       => \App\Http\Middleware\AdminPerm::class,
             'oplog'      => \App\Http\Middleware\OperationLog::class,
+            'open.auth'  => \App\Http\Middleware\OpenAuth::class,
             // 按“接口 + IP”各自计数，见类里的说明
             'throttle'   => \App\Http\Middleware\ThrottlePerRoute::class,
         ]);
@@ -42,7 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('api', \App\Http\Middleware\LocalizeApiTimes::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $isApi = fn (Request $r) => $r->is('api/*', 'admin-api/*', 'notify/*');
+        $isApi = fn (Request $r) => $r->is('api/*', 'admin-api/*', 'notify/*', 'open-api/*');
 
         $exceptions->shouldRenderJsonWhen(fn (Request $r, \Throwable $e) => $isApi($r) || $r->expectsJson());
 
@@ -77,7 +80,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // 接口限流（路由上的 throttle）：和业务错误一样返回 {code,msg}，否则前端拿到的是框架默认的英文报错、弹不出提示。
         // 第三方回调（notify/*）不在此列，保持标准的 HTTP 429 让渠道稍后重试
         $exceptions->render(function (ThrottleRequestsException $e, Request $request) {
-            if ($request->is('api/*', 'admin-api/*')) {
+            if ($request->is('api/*', 'admin-api/*', 'open-api/*')) {
                 $msg = '操作过于频繁，请稍后再试';
                 // 限流中间件排在语言识别和提示翻译之前，这里的应答不会经过 TranslateApiMessages，所以自己按请求头翻译
                 $lang = (string) ($request->attributes->get('lang') ?: $request->header('X-Lang', ''));

@@ -4,6 +4,7 @@ import es from './es'
 import fr from './fr'
 import de from './de'
 import ja from './ja'
+import ru from './ru'
 
 /**
  * 界面文案（手机端和 PC 端共用）。键是后台“设置 → 语言管理”里的语言编码。
@@ -13,4 +14,4 @@ import ja from './ja'
  * 新增一种语言：照 en.js 写一份、在这里登记、PC 端独有的文案加到 mall-pc/src/locale/pc.js，
  * 然后在 mall-uni 下执行 npm run check:locale 检查有没有漏的键和变量。
  */
-export default { 'zh-CN': zhCN, zh: zhCN, en, es, fr, de, ja }
+export default { 'zh-CN': zhCN, zh: zhCN, en, es, fr, de, ja, ru }

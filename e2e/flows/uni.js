@@ -51,7 +51,20 @@ module.exports = async function uniFlow(browser, data) {
   });
   await step('分类页能按分类和排序筛选', async () => {
     await go('/pages/category/index');
-    if ((await page.locator('.side .cat').count()) > 1) await page.locator('.side .cat').nth(1).click();
+    // 左边只有一级分类；选中带下级的一级分类后，二级分类排在右边商品上方，默认选“全部”
+    const tops = page.locator('.side .cat');
+    const names = (await (await fetch(config.uni + '/api/categories')).json()).data;
+    if ((await tops.count()) !== names.length + 1) throw new Error('左边应该只列一级分类（外加“全部商品”）');
+    const withSub = names.findIndex((c) => (c.children || []).length);
+    if (withSub >= 0) {
+      await tops.nth(withSub + 1).click();
+      const chips = page.locator('.subs .chip');
+      await chips.nth(1).waitFor();
+      if ((await chips.count()) !== names[withSub].children.length + 1) throw new Error('二级分类的个数不对');
+      if (!(await page.locator('.subs .chip.on').innerText()).includes('全部')) throw new Error('默认应该选中“全部”');
+      await chips.nth(1).click();
+      await page.locator('.subs .chip.on', { hasText: names[withSub].children[0].name }).waitFor();
+    } else if ((await tops.count()) > 1) await tops.nth(1).click();
     await page.locator('.sort', { hasText: '价格' }).click();
     await page.locator('.sort.on', { hasText: '↑' }).waitFor();
   });

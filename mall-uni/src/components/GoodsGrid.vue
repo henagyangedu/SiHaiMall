@@ -19,9 +19,9 @@ const open = (id) => uni.navigateTo({ url: `/pages/goods/detail?id=${id}` })
         <view class="title ellipsis">{{ g.title }}</view>
         <view class="desc ellipsis">{{ g.subtitle }}</view>
         <view class="row">
-          <view>
+          <view class="left">
             <!-- 多规格商品显示的是最低价 -->
-            <text class="price">{{ g.symbol }}{{ g.price }}</text><text v-if="g.multi_spec" class="from">{{ t('home.priceFrom') }}</text>
+            <view class="price-line"><text class="price">{{ g.symbol }}{{ g.price }}</text><text v-if="g.multi_spec" class="from">{{ t('home.priceFrom') }}</text></view>
             <view class="sub sold">{{ t('home.sold', { n: g.sales }) }}</view>
           </view>
           <view class="add">＋</view>
@@ -42,7 +42,10 @@ const open = (id) => uni.navigateTo({ url: `/pages/goods/detail?id=${id}` })
 .title { font-size: 28rpx; font-weight: 600; }
 .desc { margin-top: 6rpx; min-height: 34rpx; font-size: 22rpx; color: var(--sub); }
 .row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 14rpx; }
-.price { font-size: 34rpx; }
+.left { min-width: 0; flex: 1; }
+/* 价格和后面的“起”不拆成两行（分类页的卡片比较窄） */
+.price-line { white-space: nowrap; }
+.price { font-size: 32rpx; }
 .from { margin-left: 6rpx; font-size: 22rpx; color: var(--theme); }
 .sold { margin-top: 4rpx; font-size: 22rpx; }
 .add { width: 56rpx; height: 56rpx; line-height: 52rpx; text-align: center; border-radius: 50%; background: var(--theme); color: #fff; font-size: 32rpx; flex: none; }

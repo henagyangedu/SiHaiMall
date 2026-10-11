@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * 界面语言点击测试的后端步骤（E2E_STEP）：
- * - 默认：保证语言表里有西班牙语、法语、德语、日语（没有就建，建的时候是禁用的），把它们临时启用，返回各自原来的状态
+ * - 默认：保证语言表里有西班牙语、法语、德语、日语、俄语（没有就建，建的时候是禁用的），把它们临时启用，返回各自原来的状态
  * - restore：按 E2E_VALUE（{"es":0,…}）把状态恢复回去
  * 语言记录留在库里（禁用），想看效果到后台“设置 → 语言管理”里启用就行。
  */
@@ -18,7 +18,7 @@ if (app()->isProduction()) {
 
     return;
 }
-$names = ['es' => 'Español', 'fr' => 'Français', 'de' => 'Deutsch', 'ja' => '日本語'];
+$names = ['es' => 'Español', 'fr' => 'Français', 'de' => 'Deutsch', 'ja' => '日本語', 'ru' => 'Русский'];
 
 if ((string) getenv('E2E_STEP') === 'restore') {
     foreach ((array) json_decode((string) getenv('E2E_VALUE'), true) as $code => $status) {

@@ -7,6 +7,7 @@ import elEs from 'element-plus/es/locale/lang/es'
 import elFr from 'element-plus/es/locale/lang/fr'
 import elDe from 'element-plus/es/locale/lang/de'
 import elJa from 'element-plus/es/locale/lang/ja'
+import elRu from 'element-plus/es/locale/lang/ru'
 import { state } from '@/store'
 import pc from './pc'
 
@@ -25,7 +26,7 @@ export const i18n = createI18n({
 export const t = (key, params) => i18n.global.t(key, params || {})
 
 // 组件库自带的文字（图片预览、空状态、分页等）跟着界面语言走，找的顺序和界面文案一样：完整编码 → 前半段 → 英文
-const EL = { zh: elZhCn, en: elEn, es: elEs, fr: elFr, de: elDe, ja: elJa }
+const EL = { zh: elZhCn, en: elEn, es: elEs, fr: elFr, de: elDe, ja: elJa, ru: elRu }
 export const elLocale = computed(() => EL[String(state.lang).split('-')[0].toLowerCase()] || elEn)
 
 export function applyLang(lang) {

@@ -4,9 +4,9 @@ const { Flow, desktop, mobile, uniGo } = require('../lib/harness');
 
 /**
  * 界面语言（PC 端和手机端，不用登录、不造订单）：
- * 临时启用西班牙语、法语、德语、日语 → PC 端页头的语言下拉里选日语，页头、商品详情的文字变成日文，组件库自带的文字也跟着变
- * → 依次换成另外三种语言 → 接口返回的提示这几种语言还是英文 → 手机端用日语打开，底部导航和个人中心是日文。
- * 结束时把这四种语言恢复成运行前的状态（原来没有的会留在语言表里，禁用）。
+ * 临时启用西班牙语、法语、德语、日语、俄语 → PC 端页头的语言下拉里选日语，页头、商品详情的文字变成日文，组件库自带的文字也跟着变
+ * → 依次换成另外四种语言 → 接口返回的提示这几种语言还是英文 → 手机端用日语打开，底部导航和个人中心是日文。
+ * 结束时把这五种语言恢复成运行前的状态（原来没有的会留在语言表里，禁用）。
  */
 module.exports = async function i18nFlow(browser) {
   const flow = new Flow('i18n');
@@ -27,7 +27,7 @@ module.exports = async function i18nFlow(browser) {
   const htmlLang = () => pc.evaluate(() => document.documentElement.lang);
 
   try {
-    await flow.step('PC：语言下拉里有新加的四种语言；选日语，页头和商品详情变成日文，网页的语言标记也跟着变', pc, async () => {
+    await flow.step('PC：语言下拉里有新加的五种语言；选日语，页头和商品详情变成日文，网页的语言标记也跟着变', pc, async () => {
       await pc.goto(`${config.pc}/#/goods/${goods.id}`);
       await pc.getByRole('button', { name: '加入购物车' }).waitFor();
       await pc.locator('.top .pick').first().click();
@@ -47,9 +47,9 @@ module.exports = async function i18nFlow(browser) {
       await pc.getByText('暮らしのシーンから選ぶ').first().waitFor();
     });
 
-    await flow.step('PC：依次换成西班牙语、法语、德语，商品详情的按钮跟着变', pc, async () => {
+    await flow.step('PC：依次换成西班牙语、法语、俄语、德语，商品详情的按钮跟着变', pc, async () => {
       await pc.goto(`${config.pc}/#/goods/${goods.id}`);
-      for (const [code, text] of [['es', 'Añadir al carrito'], ['fr', 'Ajouter au panier'], ['de', 'In den Warenkorb']]) {
+      for (const [code, text] of [['es', 'Añadir al carrito'], ['fr', 'Ajouter au panier'], ['ru', 'В корзину'], ['de', 'In den Warenkorb']]) {
         await choose(made.names[code]);
         await pc.getByRole('button', { name: text }).waitFor();
         if ((await htmlLang()) !== code) throw new Error(`网页的语言标记应该是 ${code}`);

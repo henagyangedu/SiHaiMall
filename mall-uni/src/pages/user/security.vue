@@ -1,10 +1,13 @@
 <script setup>
-import { reactive, ref, onUnmounted } from 'vue'
+import { reactive, ref, onUnmounted, nextTick } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 import { state, logout } from '@/store'
-import { getProfile, changePassword, bindContact, sendSmsCode, sendEmailCode, cancelCheck, cancelAccount, exportMyData } from '@/api'
+import { getProfile, changePassword, bindContact, bindGoogle, unbindGoogle, sendSmsCode, sendEmailCode, cancelCheck, cancelAccount, exportMyData } from '@/api'
 import { usePageTitle, toast, confirm } from '@/utils/page'
+// #ifdef H5
+import { renderGoogleButton } from '@/utils/google'
+// #endif
 
 const { t } = useI18n()
 usePageTitle('security.title')
@@ -74,6 +77,35 @@ async function saveBind(type) {
     saving.value = false
   }
 }
+
+// #ifdef H5
+// Google 账号：点“绑定”后在这一行下面画出 Google 的按钮，选完账号把凭证交给后端；已绑定的点了是解绑
+async function onGoogle() {
+  if (member.value.google_bound) {
+    if (!(await confirm(t('security.unbindConfirm')))) return
+    fill(await unbindGoogle())
+    return toast(t('security.unbindDone'))
+  }
+  toggle('google')
+  if (open.value !== 'google') return
+  await nextTick()
+  const ok = await renderGoogleButton(document.getElementById('gm-google-bind'), {
+    clientId: state.config.google_client_id, lang: state.lang, width: Math.min(400, window.innerWidth - 96), onCredential: linkGoogle,
+  })
+  if (!ok) { toast(t('auth.googleFail')); open.value = '' }
+}
+async function linkGoogle(credential) {
+  if (saving.value) return
+  saving.value = true
+  try {
+    fill(await bindGoogle({ credential }))
+    toast(t('security.bound'))
+    open.value = ''
+  } finally {
+    saving.value = false
+  }
+}
+// #endif
 
 // 导出我的数据：H5 里存成 JSON 文件；小程序里存不了文件，提示到网页上导出
 const exporting = ref(false)
@@ -163,6 +195,20 @@ onLoad(async () => {
       </view>
     </view>
 
+    <!-- #ifdef H5 -->
+    <!-- 后台启用了 Google 登录才能绑定；之前绑过的，停用后仍然可以在这里解绑 -->
+    <view v-if="state.config.google_client_id || member.google_bound" class="card list">
+      <view class="cell" data-row="google" @click="onGoogle">
+        <text>{{ t('security.google') }}</text>
+        <text class="sub">{{ t(member.google_bound ? 'security.googleLinked' : 'security.unbound') }}　<text class="act">{{ t(member.google_bound ? 'security.unbind' : 'security.bind') }}</text></text>
+      </view>
+      <view v-show="open === 'google'" class="form">
+        <view class="sub google-tip">{{ t('security.googleTip') }}</view>
+        <view id="gm-google-bind" class="google-box" />
+      </view>
+    </view>
+    <!-- #endif -->
+
     <view class="card list">
       <view class="cell" data-row="export" @click="exportData">
         <view class="cell-main"><text>{{ t('privacy.exportTitle') }}</text><text class="sub desc">{{ t('privacy.exportTip') }}</text></view>
@@ -202,6 +248,8 @@ onLoad(async () => {
 .blocker { color: #c0392b; font-size: 26rpx; line-height: 1.8; }
 .danger-btn { background: #c0392b; }
 .form { padding: 0 0 28rpx; border-top: 2rpx solid var(--line); }
+.google-tip { padding: 24rpx 0 20rpx; line-height: 1.6; }
+.google-box { display: flex; justify-content: center; min-height: 88rpx; }
 .input { height: 92rpx; border-bottom: 2rpx solid var(--line); font-size: 28rpx; }
 .code-row { display: flex; align-items: center; gap: 20rpx; }
 .code-btn { color: var(--theme); font-size: 26rpx; white-space: nowrap; }

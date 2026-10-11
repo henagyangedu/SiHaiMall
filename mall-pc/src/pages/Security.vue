@@ -1,10 +1,12 @@
 <script setup>
-import { reactive, ref, onMounted, onUnmounted } from 'vue'
+import { reactive, ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { state, logout } from '@/store'
-import { getProfile, changePassword, bindContact, sendSmsCode, sendEmailCode, cancelCheck, cancelAccount, exportMyData } from '@/api'
+import { confirm } from '@/utils/app'
+import { renderGoogleButton } from '@shared/utils/google'
+import { getProfile, changePassword, bindContact, bindGoogle, unbindGoogle, sendSmsCode, sendEmailCode, cancelCheck, cancelAccount, exportMyData } from '@/api'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -72,6 +74,32 @@ async function saveBind(type) {
   } finally {
     saving.value = false
   }
+}
+
+// Google 账号：点“绑定”后在这一行下面画出 Google 的按钮，选完账号把凭证交给后端
+const googleBox = ref(null)
+async function openGoogle() {
+  toggle('google')
+  if (open.value !== 'google') return
+  await nextTick()
+  const ok = await renderGoogleButton(googleBox.value, { clientId: state.config.google_client_id, lang: state.lang, width: 300, onCredential: linkGoogle })
+  if (!ok) { ElMessage.error(t('auth.googleFail')); open.value = '' }
+}
+async function linkGoogle(credential) {
+  if (saving.value) return
+  saving.value = true
+  try {
+    fill(await bindGoogle({ credential }))
+    ElMessage.success(t('security.bound'))
+    open.value = ''
+  } finally {
+    saving.value = false
+  }
+}
+async function unlinkGoogle() {
+  if (!(await confirm(t('security.unbindConfirm')))) return
+  fill(await unbindGoogle())
+  ElMessage.success(t('security.unbindDone'))
 }
 
 // 导出我的数据：接口给的是一个对象，存成 JSON 文件
@@ -168,6 +196,20 @@ onMounted(async () => {
       </div>
     </div>
 
+    <!-- 后台启用了 Google 登录才能绑定；之前绑过的，停用后仍然可以在这里解绑 -->
+    <div v-if="state.config.google_client_id || member.google_bound" class="row" data-row="google">
+      <div class="head">
+        <span class="name">{{ t('security.google') }}</span>
+        <span class="val" :class="{ sub: !member.google_bound }">{{ t(member.google_bound ? 'security.googleLinked' : 'security.unbound') }}</span>
+        <el-button v-if="member.google_bound" link type="primary" @click="unlinkGoogle">{{ t('security.unbind') }}</el-button>
+        <el-button v-else link type="primary" @click="openGoogle">{{ t('security.bind') }}</el-button>
+      </div>
+      <div v-show="open === 'google'" class="form wide">
+        <div class="sub">{{ t('security.googleTip') }}</div>
+        <div ref="googleBox" class="google-box" />
+      </div>
+    </div>
+
     <div class="row" data-row="export">
       <div class="head">
         <span class="name">{{ t('privacy.exportTitle') }}</span>
@@ -210,6 +252,7 @@ onMounted(async () => {
 .form { display: flex; flex-direction: column; gap: 12px; max-width: 360px; margin: 16px 0 0 120px; }
 .code-row { display: flex; gap: 10px; }
 .form.wide { max-width: 640px; }
+.google-box { min-height: 44px; }
 .warn { line-height: 1.7; color: var(--text); }
 .blockers { margin: 0; padding-left: 20px; line-height: 1.8; color: var(--el-color-danger); }
 </style>

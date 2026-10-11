@@ -111,6 +111,34 @@ module.exports = async function googleFlow(browser) {
       if (await pc.locator('.google-agree').count()) throw new Error('已经注册过的 Google 账号不应该再问协议');
     });
 
+    await flow.step('PC：账号与安全里 Google 账号显示已绑定；没有密码时解绑被拦住，设了密码后能解绑，再点“绑定”选 Google 账号又绑回来', pc, async () => {
+      skipIfReal();
+      await pc.goto(config.pc + '/#/security');
+      const row = pc.locator('[data-row="google"]');
+      await row.getByText('已绑定').waitFor();
+      await row.getByRole('button', { name: '解绑' }).click();
+      await el.boxOk(pc);
+      await el.message(pc, '请先设置登录密码，再解绑 Google 账号');
+
+      const pwd = pc.locator('[data-row="pwd"]');
+      await pwd.getByRole('button', { name: '设置' }).click();
+      await pwd.locator('input').nth(0).fill('e2e-google-pwd');
+      await pwd.locator('input').nth(1).fill('e2e-google-pwd');
+      await pwd.getByRole('button', { name: '保存' }).click();
+      await el.message(pc, '密码已保存');
+
+      await row.getByRole('button', { name: '解绑' }).click();
+      await el.boxOk(pc);
+      await el.message(pc, '已解绑');
+      await row.getByText('未绑定').waitFor();
+
+      await row.getByRole('button', { name: '绑定' }).click();
+      await row.getByText('点下面的按钮，选择要绑定的 Google 账号').waitFor();
+      await row.locator('.fake-google').click();
+      await el.message(pc, '绑定成功');
+      await row.getByText('已绑定').waitFor();
+    });
+
     await flow.step('手机端：登录页同样有 Google 登录按钮，同一个 Google 账号登录后是同一个会员', m, async () => {
       skipIfReal();
       await withFakeGoogle(mctx, credential());
@@ -119,6 +147,9 @@ module.exports = async function googleFlow(browser) {
       await m.locator('uni-toast').first().waitFor();
       await uniGo(m, '/pages/user/index');
       await m.getByText(NAME).first().waitFor();
+      // 账号与安全里也有 Google 账号一行，显示已绑定
+      await uniGo(m, '/pages/user/security');
+      await m.locator('[data-row="google"]', { hasText: '已绑定' }).waitFor();
     });
   } finally {
     if (!made.skip) backend('google', { E2E_STEP: 'restore' });

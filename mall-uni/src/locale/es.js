@@ -115,6 +115,7 @@ export default {
     account: 'Cuenta', phone: 'Teléfono', email: 'Correo', needNickname: 'Introduce un apodo',
   },
   security: {
+    google: 'Cuenta de Google', googleLinked: 'Vinculada', unbind: 'Desvincular', unbindConfirm: 'Ya no podrás iniciar sesión con esta cuenta de Google. ¿Desvincularla?', googleTip: 'Usa el botón de abajo para elegir la cuenta de Google que quieres vincular. Después podrás iniciar sesión con ella.', unbindDone: 'Desvinculada',
     title: 'Cuenta y seguridad', tip: 'Vincula un correo o un teléfono y define una contraseña para iniciar sesión en la web.', password: 'Contraseña', pwdSet: 'Definida', pwdUnset: 'Sin definir',
     set: 'Definir', change: 'Cambiar', bind: 'Vincular', unbound: 'Sin vincular', oldPwd: 'Contraseña actual', againPwd: 'Repite la nueva contraseña', needOld: 'Introduce tu contraseña actual',
     pwdMismatch: 'Las dos contraseñas no coinciden', pwdSaved: 'Contraseña guardada', emailPh: 'Dirección de correo', needEmail: 'Introduce un correo válido', needPhone: 'Introduce un teléfono válido', bound: 'Vinculado',

@@ -28,6 +28,9 @@ export const getProfile = () => get('/member/profile', {}, { auth: false, silent
 export const updateProfile = (data) => put('/member/profile', data)
 export const changePassword = (data) => put('/member/password', data)
 export const bindContact = (data) => post('/member/bind', data)
+// 绑定 / 解绑 Google 账号，都返回最新的个人资料
+export const bindGoogle = (data) => post('/member/google', data)
+export const unbindGoogle = () => del('/member/google')
 // 隐私：注销前的检查、注销账号、导出自己的数据
 export const cancelCheck = () => get('/member/cancel-check')
 export const cancelAccount = (data) => post('/member/cancel', data)

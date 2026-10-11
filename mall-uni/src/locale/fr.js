@@ -115,6 +115,7 @@ export default {
     account: 'Compte', phone: 'Téléphone', email: 'E-mail', needNickname: 'Veuillez saisir un pseudo',
   },
   security: {
+    google: 'Compte Google', googleLinked: 'Associé', unbind: 'Dissocier', unbindConfirm: 'Vous ne pourrez plus vous connecter avec ce compte Google. Le dissocier ?', googleTip: 'Utilisez le bouton ci-dessous pour choisir le compte Google à associer. Vous pourrez ensuite vous connecter avec.', unbindDone: 'Dissocié',
     title: 'Compte et sécurité', tip: 'Associez un e-mail ou un téléphone et définissez un mot de passe pour vous connecter sur le web.', password: 'Mot de passe', pwdSet: 'Défini', pwdUnset: 'Non défini',
     set: 'Définir', change: 'Modifier', bind: 'Associer', unbound: 'Non associé', oldPwd: 'Mot de passe actuel', againPwd: 'Répétez le nouveau mot de passe', needOld: 'Veuillez saisir votre mot de passe actuel',
     pwdMismatch: 'Les deux mots de passe ne correspondent pas', pwdSaved: 'Mot de passe enregistré', emailPh: 'Adresse e-mail', needEmail: 'Veuillez saisir un e-mail valide', needPhone: 'Veuillez saisir un numéro de téléphone valide', bound: 'Associé',

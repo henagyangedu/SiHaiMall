@@ -276,7 +276,7 @@ class MemberAuthService
 
         $email = $identity['email'];
         if ($email !== '' && Member::query()->where(fn ($q) => $q->where('email', $email)->orWhere('account', $email))->exists()) {
-            throw new BusinessException('这个 Google 账号的邮箱已经注册过，请用邮箱和密码登录');
+            throw new BusinessException('这个 Google 账号的邮箱已经注册过。请先用邮箱和密码登录，再到“账号与安全”里绑定 Google');
         }
 
         $parentId = 0;
@@ -313,6 +313,55 @@ class MemberAuthService
         ]);
 
         return [$member, true];
+    }
+
+    /**
+     * 已登录的会员绑定 Google 账号，之后可以用它登录。返回最新的个人资料。
+     * 一个会员只能绑一个 Google 账号；一个 Google 账号也只能绑一个会员。不改会员的邮箱。
+     */
+    public function bindGoogle(Member $m, string $credential): array
+    {
+        $driver = $this->drivers->googleLogin() ?? throw new BusinessException('暂未开通 Google 登录');
+        $identity = $driver->verify($credential);
+
+        // 和 Google 登录用同一把锁：同一个 Google 账号不会一边被绑定、一边注册出新会员
+        $lock = Cache::lock('member_google_login:' . sha1($identity['sub']), 10);
+        if (!$lock->get()) {
+            throw new BusinessException('操作过于频繁，请稍后再试');
+        }
+        try {
+            DB::transaction(function () use ($m, $identity) {
+                if (DB::table('member_auth')->where('platform', 'google')->where('member_id', $m->id)->exists()) {
+                    throw new BusinessException('已经绑定了 Google 账号，如需更换请先解绑');
+                }
+                $bind = DB::table('member_auth')->where('platform', 'google')->where('openid', $identity['sub'])->first();
+                if ($bind) {
+                    if (Member::query()->whereKey($bind->member_id)->exists()) {
+                        throw new BusinessException('这个 Google 账号已经绑定了别的会员');
+                    }
+                    // 原来绑定的会员已经注销
+                    DB::table('member_auth')->where('id', $bind->id)->delete();
+                }
+                DB::table('member_auth')->insert([
+                    'member_id' => $m->id, 'platform' => 'google', 'app_id' => '', 'openid' => $identity['sub'], 'unionid' => '', 'created_at' => now(),
+                ]);
+            });
+        } finally {
+            $lock->release();
+        }
+
+        return $this->profile($m);
+    }
+
+    /** 解绑 Google 账号。没有密码的会员不能解绑——解了就没有别的办法登录了 */
+    public function unbindGoogle(Member $m): array
+    {
+        if ((string) $m->password === '') {
+            throw new BusinessException('请先设置登录密码，再解绑 Google 账号');
+        }
+        DB::table('member_auth')->where('platform', 'google')->where('member_id', $m->id)->delete();
+
+        return $this->profile($m);
     }
 
     /** 短信找回密码：重置后所有设备的登录全部失效 */
@@ -432,6 +481,8 @@ class MemberAuthService
             'lang' => $m->lang, 'currency' => $m->currency,
             // 微信一键登录注册的会员一开始没有密码
             'has_password' => (string) $m->password !== '',
+            // 有没有绑定 Google 账号（绑了就能用 Google 登录）
+            'google_bound' => DB::table('member_auth')->where('platform', 'google')->where('member_id', $m->id)->exists(),
         ];
     }
 

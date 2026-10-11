@@ -114,6 +114,7 @@ export default {
     account: 'Account', phone: 'Phone', email: 'Email', needNickname: 'Please enter a nickname',
   },
   security: {
+    google: 'Google account', googleLinked: 'Linked', unbind: 'Unlink', unbindConfirm: 'You will no longer be able to sign in with this Google account. Unlink it?', googleTip: 'Use the button below to choose the Google account to link. You can then sign in with it.', unbindDone: 'Unlinked',
     title: 'Account & security', tip: 'Link an email or phone number and set a password to sign in on the web.', password: 'Password', pwdSet: 'Set', pwdUnset: 'Not set',
     set: 'Set', change: 'Change', bind: 'Link', unbound: 'Not linked', oldPwd: 'Current password', againPwd: 'Repeat the new password', needOld: 'Please enter your current password',
     pwdMismatch: 'The two passwords do not match', pwdSaved: 'Password saved', emailPh: 'Email address', needEmail: 'Please enter a valid email', needPhone: 'Please enter a valid phone number', bound: 'Linked',

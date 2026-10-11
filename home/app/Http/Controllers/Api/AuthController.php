@@ -134,4 +134,16 @@ class AuthController extends ApiController
     {
         return ApiResponse::ok($this->service->bindContact($this->member($request), $request->validated()));
     }
+
+    /** 绑定 Google 账号，返回最新的个人资料 */
+    public function bindGoogle(GoogleLoginRequest $request)
+    {
+        return ApiResponse::ok($this->service->bindGoogle($this->member($request), (string) $request->validated('credential')));
+    }
+
+    /** 解绑 Google 账号，返回最新的个人资料 */
+    public function unbindGoogle(Request $request)
+    {
+        return ApiResponse::ok($this->service->unbindGoogle($this->member($request)));
+    }
 }

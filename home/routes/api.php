@@ -93,6 +93,9 @@ Route::middleware('api.token')->group(function () {
     Route::put('member/password', [AuthController::class, 'password'])->middleware('throttle:10,1');
     // 绑定邮箱或手机号（验证码用 auth/email-code、auth/sms-code 以 register 用途获取）
     Route::post('member/bind', [AuthController::class, 'bind'])->middleware('throttle:10,1');
+    // 绑定 / 解绑 Google 账号（绑了就能用 Google 登录）
+    Route::post('member/google', [AuthController::class, 'bindGoogle'])->middleware('throttle:10,1');
+    Route::delete('member/google', [AuthController::class, 'unbindGoogle'])->middleware('throttle:10,1');
     // 隐私：注销账号（先查能不能注销）、导出自己的数据
     Route::get('member/cancel-check', [PrivacyController::class, 'cancelCheck']);
     Route::post('member/cancel', [PrivacyController::class, 'cancel'])->middleware('throttle:5,1');

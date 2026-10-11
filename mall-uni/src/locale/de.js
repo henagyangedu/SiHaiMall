@@ -115,6 +115,7 @@ export default {
     account: 'Konto', phone: 'Telefon', email: 'E-Mail', needNickname: 'Bitte einen Spitznamen eingeben',
   },
   security: {
+    google: 'Google-Konto', googleLinked: 'Verknüpft', unbind: 'Trennen', unbindConfirm: 'Du kannst dich dann nicht mehr mit diesem Google-Konto anmelden. Verknüpfung trennen?', googleTip: 'Wähle über die Schaltfläche unten das Google-Konto aus, das du verknüpfen möchtest. Danach kannst du dich damit anmelden.', unbindDone: 'Verknüpfung getrennt',
     title: 'Konto und Sicherheit', tip: 'Verknüpfe eine E-Mail-Adresse oder Telefonnummer und lege ein Passwort fest, um dich im Web anzumelden.', password: 'Passwort', pwdSet: 'Festgelegt', pwdUnset: 'Nicht festgelegt',
     set: 'Festlegen', change: 'Ändern', bind: 'Verknüpfen', unbound: 'Nicht verknüpft', oldPwd: 'Aktuelles Passwort', againPwd: 'Neues Passwort wiederholen', needOld: 'Bitte dein aktuelles Passwort eingeben',
     pwdMismatch: 'Die beiden Passwörter stimmen nicht überein', pwdSaved: 'Passwort gespeichert', emailPh: 'E-Mail-Adresse', needEmail: 'Bitte eine gültige E-Mail-Adresse eingeben', needPhone: 'Bitte eine gültige Telefonnummer eingeben', bound: 'Verknüpft',

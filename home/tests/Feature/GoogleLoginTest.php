@@ -150,7 +150,7 @@ class GoogleLoginTest extends FeatureTestCase
         [$existing] = $this->makeMember();
         $existing->forceFill(['email' => 'buyer@gmail.com'])->save();
 
-        $this->login($this->token())->assertJsonPath('code', 1)->assertJsonPath('msg', '这个 Google 账号的邮箱已经注册过，请用邮箱和密码登录');
+        $this->login($this->token())->assertJsonPath('code', 1)->assertJsonPath('msg', '这个 Google 账号的邮箱已经注册过。请先用邮箱和密码登录，再到“账号与安全”里绑定 Google');
         $this->assertSame(0, DB::table('member_auth')->count());
 
         // Google 没确认过的邮箱不采用：照常注册，只是会员没有邮箱
@@ -193,6 +193,46 @@ class GoogleLoginTest extends FeatureTestCase
         $this->login($this->token(['sub' => '30003', 'email' => 'e@gmail.com']), ['agree' => 1])->assertJsonPath('code', 0);
         $this->assertNotNull(Member::query()->where('email', 'e@gmail.com')->firstOrFail()->agreed_at);
         $this->login($this->token())->assertJsonPath('code', 0);
+    }
+
+    public function test_member_can_link_and_unlink_a_google_account(): void
+    {
+        $this->enable();
+        [$member, $token] = $this->makeMember();
+        $member->forceFill(['email' => 'buyer@gmail.com'])->save();
+        $this->api('GET', '/member/profile', [], $token)->assertJsonPath('data.google_bound', false);
+
+        // 邮箱被占用时直接用 Google 登录会被拒；登录后绑定就可以了，之后能用 Google 登录到这个会员
+        $this->login($this->token())->assertJsonPath('code', 1);
+        $this->api('POST', '/member/google', ['credential' => 'x.y.z'], $token)->assertJsonPath('code', 1)->assertJsonPath('msg', 'Google 登录凭证无效，请重试');
+        $this->api('POST', '/member/google', ['credential' => $this->token()], $token)->assertJsonPath('code', 0)->assertJsonPath('data.google_bound', true);
+        $in = $this->login($this->token());
+        $in->assertJsonPath('code', 0)->assertJsonPath('data.is_new', false);
+        $this->assertSame((int) $member->id, (int) $in->json('data.info.id'));
+
+        // 一个会员只能绑一个；一个 Google 账号只能绑一个会员
+        $this->api('POST', '/member/google', ['credential' => $this->token(['sub' => '40002'])], $token)
+            ->assertJsonPath('code', 1)->assertJsonPath('msg', '已经绑定了 Google 账号，如需更换请先解绑');
+        [, $otherToken] = $this->makeMember();
+        $this->api('POST', '/member/google', ['credential' => $this->token()], $otherToken)
+            ->assertJsonPath('code', 1)->assertJsonPath('msg', '这个 Google 账号已经绑定了别的会员');
+        $this->assertSame(1, DB::table('member_auth')->count());
+
+        // 解绑：有密码才行；解绑后这个 Google 账号可以绑到别的会员上
+        $this->api('DELETE', '/member/google', [], $token)->assertJsonPath('code', 0)->assertJsonPath('data.google_bound', false);
+        $this->api('POST', '/member/google', ['credential' => $this->token()], $otherToken)->assertJsonPath('code', 0);
+
+        // Google 登录注册的会员没有密码，不能解绑（解了就登录不了了）；设了密码之后可以
+        $g = $this->login($this->token(['sub' => '40003', 'email' => 'g@gmail.com']))->json('data.token');
+        $this->api('DELETE', '/member/google', [], $g)->assertJsonPath('code', 1)->assertJsonPath('msg', '请先设置登录密码，再解绑 Google 账号');
+        $this->api('PUT', '/member/password', ['password' => 'secret123'], $g)->assertJsonPath('code', 0);
+        $g = $this->api('POST', '/auth/login', ['account' => 'g@gmail.com', 'password' => 'secret123'])->json('data.token');
+        $this->api('DELETE', '/member/google', [], $g)->assertJsonPath('code', 0);
+
+        // 没登录不能绑定；没启用时也不能
+        $this->api('POST', '/member/google', ['credential' => $this->token()])->assertJsonPath('code', 401);
+        DriverConfig::query()->where('driver', 'google')->update(['is_enabled' => 0]);
+        $this->api('POST', '/member/google', ['credential' => $this->token(['sub' => '40009'])], $token)->assertJsonPath('msg', '暂未开通 Google 登录');
     }
 
     public function test_admin_can_configure_and_test_the_connection(): void

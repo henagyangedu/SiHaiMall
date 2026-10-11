@@ -114,6 +114,7 @@ export default {
     account: '账号', phone: '手机号', email: '邮箱', needNickname: '请填写昵称',
   },
   security: {
+    google: 'Google 账号', googleLinked: '已绑定', unbind: '解绑', unbindConfirm: '解绑后就不能再用这个 Google 账号登录了，确定解绑吗？', googleTip: '点下面的按钮，选择要绑定的 Google 账号。绑定后可以用它登录。', unbindDone: '已解绑',
     title: '账号与安全', tip: '绑定邮箱或手机号并设置密码后，就可以在网页上用它登录。', password: '登录密码', pwdSet: '已设置', pwdUnset: '未设置',
     set: '设置', change: '修改', bind: '绑定', unbound: '未绑定', oldPwd: '原密码', againPwd: '再输入一次新密码', needOld: '请输入原密码',
     pwdMismatch: '两次输入的密码不一致', pwdSaved: '密码已保存', emailPh: '邮箱地址', needEmail: '请输入正确的邮箱', needPhone: '请输入正确的手机号', bound: '绑定成功',

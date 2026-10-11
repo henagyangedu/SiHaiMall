@@ -115,6 +115,7 @@ export default {
     account: 'アカウント', phone: '電話番号', email: 'メールアドレス', needNickname: 'ニックネームを入力してください',
   },
   security: {
+    google: 'Google アカウント', googleLinked: '連携済み', unbind: '連携を解除', unbindConfirm: 'この Google アカウントではログインできなくなります。連携を解除しますか？', googleTip: '下のボタンから連携する Google アカウントを選んでください。連携後はそのアカウントでログインできます。', unbindDone: '連携を解除しました',
     title: 'アカウントとセキュリティ', tip: 'メールアドレスか電話番号を連携し、パスワードを設定すると、ウェブでもログインできます。', password: 'パスワード', pwdSet: '設定済み', pwdUnset: '未設定',
     set: '設定', change: '変更', bind: '連携', unbound: '未連携', oldPwd: '現在のパスワード', againPwd: '新しいパスワードをもう一度', needOld: '現在のパスワードを入力してください',
     pwdMismatch: '2 つのパスワードが一致しません', pwdSaved: 'パスワードを保存しました', emailPh: 'メールアドレス', needEmail: '正しいメールアドレスを入力してください', needPhone: '正しい電話番号を入力してください', bound: '連携しました',

@@ -1,5 +1,11 @@
 # 四海商城 SihaiMall
 
+**简体中文** | [English](README.en.md)
+
+[![检查](https://github.com/henagyangedu/SiHaiMall/actions/workflows/ci.yml/badge.svg)](https://github.com/henagyangedu/SiHaiMall/actions/workflows/ci.yml)
+[![版本](https://img.shields.io/github/v/release/henagyangedu/SiHaiMall?include_prereleases&label=%E7%89%88%E6%9C%AC)](https://github.com/henagyangedu/SiHaiMall/releases)
+[![授权](https://img.shields.io/badge/%E6%8E%88%E6%9D%83-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE.md)
+
 面向国内和出海两种场景的多语言分销商城，源码公开：一套后端，同时支撑管理后台、PC 网站、手机 H5 和微信小程序。支持多语言、多币种、按地区定价和收税、两级分销。
 
 > **授权方式：非商业用途免费，商业用途需要取得商业授权。** 作者愿意把代码分享出来，同时希望用它经营的使用者付费支持后续的维护和开发。详见[授权说明](docs/授权说明.md)。

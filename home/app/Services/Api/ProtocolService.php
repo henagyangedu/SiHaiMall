@@ -5,11 +5,12 @@ namespace App\Services\Api;
 use App\Services\Common\ConfigService;
 use App\Services\Common\LocaleService;
 use App\Support\Exceptions\BusinessException;
+use App\Support\LocalizedTexts;
 
 /** C 端协议与政策：内容在后台“设置 → 协议管理”维护（多语言），缺少当前语言时回退到默认语言 */
 class ProtocolService
 {
-    /** 标题：中文语言用中文，其他语言一律用英文 */
+    /** 标题：中文语言用中文；西、法、德、日、俄在 LocalizedTexts::PROTOCOLS；其他语言用英文 */
     private const TITLES = [
         'user_agreement'         => ['zh' => '用户协议', 'en' => 'Terms of Service'],
         'privacy_policy'         => ['zh' => '隐私政策', 'en' => 'Privacy Policy'],
@@ -56,6 +57,10 @@ class ProtocolService
 
     private function title(string $key, string $lang): string
     {
-        return self::TITLES[$key][str_starts_with(strtolower($lang), 'zh') ? 'zh' : 'en'];
+        if (str_starts_with(strtolower($lang), 'zh')) {
+            return self::TITLES[$key]['zh'];
+        }
+
+        return LocalizedTexts::PROTOCOLS[LocalizedTexts::base($lang) ?? ''][$key] ?? self::TITLES[$key]['en'];
     }
 }

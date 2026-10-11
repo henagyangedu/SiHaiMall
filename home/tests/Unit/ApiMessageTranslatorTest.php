@@ -20,7 +20,65 @@ class ApiMessageTranslatorTest extends TestCase
     public function test_other_languages_get_english(): void
     {
         $this->assertSame('Incorrect account or password', ApiMessageTranslator::translate('账号或密码错误', 'en'));
-        $this->assertSame('Incorrect account or password', ApiMessageTranslator::translate('账号或密码错误', 'ja'));
+        // 没有自己译文的语言用英文
+        $this->assertSame('Incorrect account or password', ApiMessageTranslator::translate('账号或密码错误', 'ko'));
+        $this->assertSame('Not enough stock. Only 3 left.', ApiMessageTranslator::translate('库存不足，仅剩 3 件', 'pt-BR'));
+    }
+
+    public function test_languages_with_their_own_translations(): void
+    {
+        $this->assertSame('Cuenta o contraseña incorrecta', ApiMessageTranslator::translate('账号或密码错误', 'es'));
+        // 带地区的编码按前半段找
+        $this->assertSame('Cuenta o contraseña incorrecta', ApiMessageTranslator::translate('账号或密码错误', 'es-MX'));
+        $this->assertSame('No hay suficiente stock. Solo quedan 3.', ApiMessageTranslator::translate('库存不足，仅剩 3 件', 'es'));
+        // 状态名跟着语言换；嵌在里面的另一条提示也翻译
+        $this->assertSame('El estado del pedido ha cambiado (ahora: cancelado). Actualiza e inténtalo de nuevo.', ApiMessageTranslator::translate('订单状态已变化（当前：已取消），请刷新后重试', 'es'));
+        $this->assertSame('Este cupón no se puede usar en este pedido: Este cupón ha caducado', ApiMessageTranslator::translate('这张优惠券不能用于本单：这张优惠券已过期', 'es'));
+        // 校验提示在所有非中文语言下都是英文句子，字段名换成英文
+        $this->assertSame('The recipient field is required.', ApiMessageTranslator::translate('The 收件人 field is required.', 'es'));
+        // 没登记的提示保持中文原文
+        $this->assertSame('这是一条还没登记翻译的商品提示', ApiMessageTranslator::translate('这是一条还没登记翻译的商品提示', 'ru'));
+
+        foreach (ApiMessageTranslator::LANGS as $lang) {
+            $text = ApiMessageTranslator::translate('账号或密码错误', $lang);
+            $this->assertNotSame('Incorrect account or password', $text, "{$lang} 应该有自己的译文");
+            $this->assertDoesNotMatchRegularExpression('/[\x{4e00}-\x{9fff}]{4,}/u', ApiMessageTranslator::translate('订单不存在', $lang === 'ja' ? 'es' : $lang));
+        }
+    }
+
+    /** 每种语言的译文要和英文一一对应：不能漏、不能多、不能是空的，带变量的模板里变量要一样 */
+    public function test_every_language_file_matches_english(): void
+    {
+        $english = ApiMessageTranslator::english();
+        $tokens = function (string $template): array {
+            preg_match_all('/\{(?:(?:status|t):)?\d\}/', $template, $m);
+            sort($m[0]);
+
+            return $m[0];
+        };
+        $problems = [];
+        foreach (ApiMessageTranslator::LANGS as $lang) {
+            $table = require dirname(__DIR__, 2)."/app/Support/ApiMessages/{$lang}.php";
+            foreach (['exact', 'patterns', 'status'] as $part) {
+                foreach (array_diff_key($english[$part], $table[$part]) as $key => $_) {
+                    $problems[] = "{$lang} 的 {$part} 缺少：{$key}";
+                }
+                foreach (array_diff_key($table[$part], $english[$part]) as $key => $_) {
+                    $problems[] = "{$lang} 的 {$part} 多了英文里没有的：{$key}";
+                }
+                foreach ($table[$part] as $key => $text) {
+                    if (trim((string) $text) === '') {
+                        $problems[] = "{$lang} 的 {$part} 是空的：{$key}";
+                    }
+                }
+            }
+            foreach ($table['patterns'] as $id => $template) {
+                if (isset($english['patterns'][$id]) && $tokens($template) !== $tokens($english['patterns'][$id])) {
+                    $problems[] = "{$lang} 的模板 {$id} 变量和英文对不上";
+                }
+            }
+        }
+        $this->assertSame([], $problems);
     }
 
     #[DataProvider('patternCases')]

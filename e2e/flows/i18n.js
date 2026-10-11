@@ -5,7 +5,7 @@ const { Flow, desktop, mobile, uniGo } = require('../lib/harness');
 /**
  * 界面语言（PC 端和手机端，不用登录、不造订单）：
  * 临时启用西班牙语、法语、德语、日语、俄语 → PC 端页头的语言下拉里选日语，页头、商品详情的文字变成日文，组件库自带的文字也跟着变
- * → 依次换成另外四种语言 → 接口返回的提示这几种语言还是英文 → 手机端用日语打开，底部导航和个人中心是日文。
+ * → 依次换成另外四种语言 → 接口返回的提示也是对应的语言 → 手机端用日语打开，底部导航和个人中心是日文。
  * 结束时把这五种语言恢复成运行前的状态（原来没有的会留在语言表里，禁用）。
  */
 module.exports = async function i18nFlow(browser) {
@@ -56,16 +56,17 @@ module.exports = async function i18nFlow(browser) {
       }
     });
 
-    await flow.step('PC：德语界面下用错的密码登录，表单是德文，接口返回的提示是英文（这几种语言的接口提示还没翻译）', pc, async () => {
+    await flow.step('PC：德语界面下用错的密码登录，表单是德文，接口返回的提示也是德文', pc, async () => {
       await pc.goto(config.pc + '/#/login');
       await pc.getByPlaceholder('E-Mail oder Telefon').fill('nobody-e2e@example.com');
       await pc.getByPlaceholder('Passwort').fill('wrong-password');
       await pc.locator('.submit').click();
-      // 正常是“账号或密码错误”的英文；短时间内跑了很多遍时会是限流的提示，同样应该是英文
+      // 正常是“账号或密码错误”的德文；短时间内跑了很多遍时会是限流的提示，同样应该是德文
       const tip = pc.locator('.el-message').first();
       await tip.waitFor();
       const text = (await tip.innerText()).trim();
-      if (!text || /[一-鿿]/.test(text)) throw new Error('接口提示应该是英文，实际是：' + text);
+      if (!text || /[一-鿿]/.test(text)) throw new Error('接口提示不应该是中文，实际是：' + text);
+      if (!['Konto oder Passwort ist falsch', 'Zu viele Versuche. Bitte später erneut versuchen.'].includes(text) && !text.startsWith('Zu viele fehlgeschlagene Anmeldeversuche')) throw new Error('接口提示应该是德文，实际是：' + text);
     });
 
     await flow.step('手机端：用日语打开，底部导航、首页搜索框、个人中心都是日文', m, async () => {

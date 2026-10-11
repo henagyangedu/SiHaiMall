@@ -3,7 +3,7 @@
 namespace App\Support;
 
 /**
- * 消息通知的场景定义：每个场景有哪些变量、内置的默认模板（中文 / 英文）。
+ * 消息通知的场景定义：每个场景有哪些变量、内置的默认模板（中文 / 英文在这里，西、法、德、日、俄在 LocalizedTexts::SCENES）。
  * 后台“消息模板”里没改过的场景使用这里的默认模板；模板里的变量写成 {变量名}。
  * 新增场景：在这里登记，再在对应业务节点调用 NotifyService::send。
  */
@@ -110,10 +110,18 @@ final class MessageScenes
         return [$type, $key === '' ? '' : (string) ($vars[$key] ?? '')];
     }
 
-    /** 内置默认模板：中文语言用中文，其他语言一律用英文 */
+    /** 内置默认模板：中文语言用中文；西、法、德、日、俄用各自的（LocalizedTexts）；其他语言用英文 */
     public static function default(string $scene, string $field, string $lang): string
     {
-        return self::ALL[$scene][$field][str_starts_with(strtolower($lang), 'zh') ? 'zh' : 'en'] ?? '';
+        if (!isset(self::ALL[$scene][$field])) {
+            return '';
+        }
+        if (str_starts_with(strtolower($lang), 'zh')) {
+            return self::ALL[$scene][$field]['zh'];
+        }
+        $base = LocalizedTexts::base($lang);
+
+        return LocalizedTexts::SCENES[$base ?? ''][$scene][$field === 'title' ? 0 : 1] ?? self::ALL[$scene][$field]['en'];
     }
 
     /** 把模板里的 {变量名} 换成实际值；模板里出现了没提供的变量时原样保留，方便发现写错的变量名 */

@@ -3,10 +3,10 @@
 namespace App\Support;
 
 /**
- * 把返回给买家的中文提示翻译成英文（C 端接口用）。
+ * 把返回给买家的中文提示翻译成买家的语言（C 端接口用）：英文在这个类里，西、法、德、日、俄在 ApiMessages/ 下各一个文件。
  *
  * 业务代码里的提示统一写中文；买家的语言不是中文时，由 TranslateApiMessages 中间件在响应返回前调用这里翻译。
- * 新增买家可见的提示时，在 EXACT（固定文案）或 patterns()（带数字、单号等变量的文案）里补一条英文；
+ * 新增买家可见的提示时，在 EXACT（固定文案）或 PATTERNS（带数字、单号等变量的文案）里补一条英文，并在 ApiMessages/ 下每种语言的文件里补上译文；
  * 没登记的提示会原样返回中文，不会报错。后台管理端的提示不翻译。
  */
 final class ApiMessageTranslator
@@ -240,56 +240,93 @@ final class ApiMessageTranslator
         '注册地址' => 'registered address', '注册电话' => 'registered phone', '开户银行' => 'bank', '银行账号' => 'bank account',
     ];
 
-    /** 需要翻译时返回英文；中文语言或没登记的提示原样返回 */
+    /**
+     * 带变量的文案：编号 => [匹配中文的正则, 英文模板]。
+     * 模板里 {1}、{2} 是正则里对应的括号；{status:1} 表示这个括号里是订单 / 售后单的状态名，要按语言换掉；
+     * {t:1} 表示这个括号里是另一条提示，再翻译一遍。其他语言的模板在 ApiMessages/语言.php 的 patterns 里，按编号对应。
+     */
+    private const PATTERNS = [
+        'login_locked'       => ['/^登录失败次数过多，请 (\d+) 分钟后再试$/u', 'Too many failed sign-in attempts. Please try again in {1} minutes.'],
+        'open_orders'        => ['/^还有 (\d+) 张订单没有完成（待支付、待发货、待收货或售后中）$/u', 'You still have {1} open order(s) (unpaid, to ship, to receive or in after-sales)'],
+        'restock_max'        => ['/^到货提醒最多 (\d+) 个，请先取消一些$/u', 'You can have up to {1} back-in-stock alerts. Please remove some first.'],
+        'address_max'        => ['/^最多保存 (\d+) 个收货地址$/u', 'You can save up to {1} addresses'],
+        'cart_item_max'      => ['/^单个商品最多加入 (\d+) 件$/u', 'You can add at most {1} of each item'],
+        'stock_now'          => ['/^库存不足，当前库存 (\d+) 件$/u', 'Not enough stock. Only {1} available.'],
+        'stock_left'         => ['/^库存不足，仅剩 (\d+) 件$/u', 'Not enough stock. Only {1} left.'],
+        'stock_item'         => ['/^库存不足：(.+)，剩余 (\d+)$/u', 'Not enough stock for {1}. Only {2} left.'],
+        'bad_currency'       => ['/^不支持的币种：(.+)$/u', 'Unsupported currency: {1}'],
+        'coupon_currency'    => ['/^优惠券只能用于(.+)订单$/u', 'Coupons can only be used on {1} orders'],
+        'coupon_short_cur'   => ['/^适用商品还差 (.+) ([A-Z]{3}) 可用$/u', 'Add {2} {1} more of eligible items to use this coupon'],
+        'coupon_short'       => ['/^适用商品还差 (.+) 元可用$/u', 'Add {1} more of eligible items to use this coupon'],
+        'coupon_unusable'    => ['/^这张优惠券不能用于本单：(.+)$/u', 'This coupon cannot be used for this order: {t:1}'],
+        'price_error'        => ['/^商品价格异常，暂时无法下单：(.+)$/u', 'This product cannot be ordered right now: {1}'],
+        'order_changed'      => ['/^订单状态已变化（当前：(.+)），请刷新后重试$/u', 'The order status has changed (now {status:1}). Please refresh and try again.'],
+        'refund_changed'     => ['/^售后单状态已变化（当前：(.+)），请刷新后重试$/u', 'The refund status has changed (now {status:1}). Please refresh and try again.'],
+        'refund_too_late'    => ['/^订单完成已超过 (\d+) 天，不能再申请售后$/u', 'This order was completed more than {1} days ago and is no longer eligible for a refund'],
+        'refund_qty_max'     => ['/^该商品最多还能申请 (\d+) 件$/u', 'You can request a refund for at most {1} more of this item'],
+        'refund_amount_max'  => ['/^退款金额必须大于 0 且不超过 (\S+) (\S+)$/u', 'The refund amount must be greater than 0 and no more than {1} {2}'],
+        'withdraw_min'       => ['/^提现金额不能低于 (\S+)$/u', 'The minimum withdrawal amount is {1}'],
+        'withdraw_short'     => ['/^可提现佣金不足（当前 (\S+)）$/u', 'Not enough available commission (currently {1})'],
+    ];
+
+    /** 除了英文，还有哪些语言有自己的译文（app/Support/ApiMessages/语言.php）。带地区的编码按前半段找：es-MX 用 es */
+    public const LANGS = ['es', 'fr', 'de', 'ja', 'ru'];
+
+    /** @var array<string,array{exact:array<string,string>,patterns:array<string,string>,status:array<string,string>}> */
+    private static array $tables = [];
+
+    /**
+     * 把中文提示换成买家的语言：中文语言原样返回；西、法、德、日、俄用各自的译文，那种语言里没有这一条就用英文；其他语言用英文。
+     * 没登记的提示原样返回中文。
+     */
     public static function translate(string $message, string $lang): string
     {
         if ($message === '' || str_starts_with(strtolower($lang), 'zh') || !preg_match('/[\x{4e00}-\x{9fff}]/u', $message)) {
             return $message;
         }
+        $table = self::table($lang);
+        if (isset($table['exact'][$message])) {
+            return $table['exact'][$message];
+        }
         if (isset(self::EXACT[$message])) {
             return self::EXACT[$message];
         }
-        foreach (self::patterns() as $regex => $build) {
+        foreach (self::PATTERNS as $id => [$regex, $english]) {
             if (preg_match($regex, $message, $m)) {
-                return $build($m);
+                return preg_replace_callback('/\{(?:(status|t):)?(\d)\}/', function (array $x) use ($m, $table, $lang): string {
+                    $value = $m[(int) $x[2]] ?? '';
+
+                    return match ($x[1]) {
+                        'status' => $table['status'][$value] ?? self::STATUS[$value] ?? $value,
+                        't'      => self::translate($value, $lang),
+                        default  => $value,
+                    };
+                }, $table['patterns'][$id] ?? $english);
             }
         }
 
-        // 校验提示：句子本身已经是框架的英文，只剩字段名是中文，把字段名换掉。
+        // 校验提示：句子本身已经是框架的英文，只剩字段名是中文，把字段名换掉（校验提示在所有非中文语言下都是英文）。
         // 纯中文的未登记提示不做替换，否则会变成中英文混杂的半截话
         return preg_match('/[A-Za-z]{3,}/', $message) ? strtr($message, self::ATTRIBUTES) : $message;
     }
 
-    /**
-     * 带变量的文案：正则 => 生成英文的函数。
-     * @return array<string,\Closure(array):string>
-     */
-    private static function patterns(): array
+    /** 这种语言的译文表；没有就是空表（全部用英文） */
+    private static function table(string $lang): array
     {
-        $status = fn (string $zh) => self::STATUS[$zh] ?? $zh;
+        $base = strtolower(explode('-', $lang)[0]);
+        if (!in_array($base, self::LANGS, true)) {
+            return ['exact' => [], 'patterns' => [], 'status' => []];
+        }
 
-        return [
-            '/^登录失败次数过多，请 (\d+) 分钟后再试$/u' => fn ($m) => "Too many failed sign-in attempts. Please try again in {$m[1]} minutes.",
-            '/^还有 (\d+) 张订单没有完成（待支付、待发货、待收货或售后中）$/u' => fn ($m) => "You still have {$m[1]} open order(s) (unpaid, to ship, to receive or in after-sales)",
-            '/^到货提醒最多 (\d+) 个，请先取消一些$/u' => fn ($m) => "You can have up to {$m[1]} back-in-stock alerts. Please remove some first.",
-            '/^最多保存 (\d+) 个收货地址$/u' => fn ($m) => "You can save up to {$m[1]} addresses",
-            '/^单个商品最多加入 (\d+) 件$/u' => fn ($m) => "You can add at most {$m[1]} of each item",
-            '/^库存不足，当前库存 (\d+) 件$/u' => fn ($m) => "Not enough stock. Only {$m[1]} available.",
-            '/^库存不足，仅剩 (\d+) 件$/u' => fn ($m) => "Not enough stock. Only {$m[1]} left.",
-            '/^库存不足：(.+)，剩余 (\d+)$/u' => fn ($m) => "Not enough stock for {$m[1]}. Only {$m[2]} left.",
-            '/^不支持的币种：(.+)$/u' => fn ($m) => "Unsupported currency: {$m[1]}",
-            '/^优惠券只能用于(.+)订单$/u' => fn ($m) => "Coupons can only be used on {$m[1]} orders",
-            '/^适用商品还差 (.+) ([A-Z]{3}) 可用$/u' => fn ($m) => "Add {$m[2]} {$m[1]} more of eligible items to use this coupon",
-            '/^适用商品还差 (.+) 元可用$/u' => fn ($m) => "Add {$m[1]} more of eligible items to use this coupon",
-            '/^这张优惠券不能用于本单：(.+)$/u' => fn ($m) => 'This coupon cannot be used for this order: ' . self::translate($m[1], 'en'),
-            '/^商品价格异常，暂时无法下单：(.+)$/u' => fn ($m) => "This product cannot be ordered right now: {$m[1]}",
-            '/^订单状态已变化（当前：(.+)），请刷新后重试$/u' => fn ($m) => 'The order status has changed (now ' . $status($m[1]) . '). Please refresh and try again.',
-            '/^售后单状态已变化（当前：(.+)），请刷新后重试$/u' => fn ($m) => 'The refund status has changed (now ' . $status($m[1]) . '). Please refresh and try again.',
-            '/^订单完成已超过 (\d+) 天，不能再申请售后$/u' => fn ($m) => "This order was completed more than {$m[1]} days ago and is no longer eligible for a refund",
-            '/^该商品最多还能申请 (\d+) 件$/u' => fn ($m) => "You can request a refund for at most {$m[1]} more of this item",
-            '/^退款金额必须大于 0 且不超过 (\S+) (\S+)$/u' => fn ($m) => "The refund amount must be greater than 0 and no more than {$m[1]} {$m[2]}",
-            '/^提现金额不能低于 (\S+)$/u' => fn ($m) => "The minimum withdrawal amount is {$m[1]}",
-            '/^可提现佣金不足（当前 (\S+)）$/u' => fn ($m) => "Not enough available commission (currently {$m[1]})",
-        ];
+        return self::$tables[$base] ??= require __DIR__ . "/ApiMessages/{$base}.php";
+    }
+
+    /**
+     * 英文的全部条目，给测试核对各语言的译文有没有漏的、多的、变量对不上的。
+     * @return array{exact:array<string,string>,patterns:array<string,string>,status:array<string,string>}
+     */
+    public static function english(): array
+    {
+        return ['exact' => self::EXACT, 'patterns' => array_map(fn (array $p) => $p[1], self::PATTERNS), 'status' => self::STATUS];
     }
 }

@@ -79,6 +79,33 @@ module.exports = async function i18nFlow(browser) {
       await m.locator('.cell .sub', { hasText: made.names.ja }).first().waitFor();
     });
 
+    await flow.step('新访客：浏览器语言是德语（奥地利）的第一次打开就是德文，手机端浏览器是墨西哥西班牙语的显示西班牙文；浏览器语言没启用的用默认语言', pc, async () => {
+      // 没存过语言的全新浏览器环境。de-AT 没有单独的语言，按前半段配到 de
+      const deCtx = await browser.newContext({ ...desktop, locale: 'de-AT' });
+      const esCtx = await browser.newContext({ ...mobile, locale: 'es-MX' });
+      const koCtx = await browser.newContext({ ...desktop, locale: 'ko-KR' });
+      try {
+        const de = flow.watch(await deCtx.newPage(), 'PC 德语访客');
+        await de.goto(`${config.pc}/#/goods/${goods.id}`);
+        await de.getByRole('button', { name: 'In den Warenkorb' }).waitFor();
+        if ((await de.evaluate(() => document.documentElement.lang)) !== 'de') throw new Error('网页的语言标记应该是 de');
+        // 选好的语言记了下来，接口也按它返回（商品没填德语，标题是默认语言的，这里只看请求头）
+        if ((await de.evaluate(() => localStorage.getItem('gm_lang'))) !== 'de') throw new Error('挑出来的语言应该记在本地');
+
+        const es = flow.watch(await esCtx.newPage(), '手机端西语访客');
+        await uniGo(es, '/pages/index/index');
+        await es.locator('.uni-tabbar__label', { hasText: 'Inicio' }).first().waitFor();
+
+        const ko = flow.watch(await koCtx.newPage(), 'PC 韩语访客');
+        await ko.goto(`${config.pc}/#/goods/${goods.id}`);
+        await ko.getByRole('button', { name: '加入购物车' }).waitFor();
+      } finally {
+        await deCtx.close();
+        await esCtx.close();
+        await koCtx.close();
+      }
+    });
+
     await flow.step('PC：换回简体中文，文字恢复', pc, async () => {
       await pc.goto(`${config.pc}/#/goods/${goods.id}`);
       await choose('简体中文');

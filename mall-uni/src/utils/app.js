@@ -1,6 +1,7 @@
 import { state, langSaved, setLang, setCurrency, logout, currencySymbol } from '@/store'
 import { getInit, getProfile, getCart, getUnreadCount } from '@/api'
 import { applyLang, t } from '@/locale'
+import { pickLang } from '@/utils/deviceLang'
 
 /** 应用启动：取启动配置，校正语言和币种，恢复登录态 */
 export async function bootstrap() {
@@ -8,8 +9,15 @@ export async function bootstrap() {
     const cfg = await getInit()
     state.config = cfg
     const langs = cfg.languages.map((l) => l.code)
-    // 第一次来的访客用后台的默认语言；之前选的语言已经被停用时也回到默认语言
-    if (!langSaved || !langs.includes(state.lang)) setLang(cfg.default_lang)
+    const asked = state.lang
+    // 第一次来的访客：按浏览器设置的语言在启用的语言里挑一个，挑不出来用后台的默认语言
+    if (!langSaved) setLang(pickLang(langs) || cfg.default_lang)
+    // 之前选的语言已经被停用时回到默认语言
+    else if (!langs.includes(state.lang)) setLang(cfg.default_lang)
+    // 语言变了：刚才那份配置里的站点名称、客服时间等是按旧语言给的，重新取一次
+    if (state.lang !== asked) {
+      try { state.config = await getInit() } catch (e) { /* 取不到就先用旧语言的那份 */ }
+    }
     const curs = cfg.currencies.map((c) => c.code)
     if (!curs.includes(state.currency)) setCurrency(cfg.base_currency)
   } catch (e) { /* 取不到配置时沿用本地保存的语言和币种 */ }

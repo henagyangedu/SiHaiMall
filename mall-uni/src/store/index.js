@@ -5,6 +5,9 @@ const saved = (key, fallback = '') => {
   try { return uni.getStorageSync(key) || fallback } catch (e) { return fallback }
 }
 
+/** 买家以前有没有在这台设备上用过（存过界面语言）。没有的话，启动时用后台设的默认语言 */
+export const langSaved = !!saved('gm_lang')
+
 export const state = reactive({
   token: saved('gm_token'),
   member: null,

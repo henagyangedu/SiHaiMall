@@ -19,6 +19,10 @@ export default {
 
 <style lang="scss">
 /* 全局样式：主题色和几个通用小部件，页面里的样式各自写 scoped */
+/* #ifdef H5 */
+/* 不指定的话，电脑浏览器里西文（导航栏标题、底部导航、正文）会落到衬线体；手机上本来就是系统字体，不受影响 */
+body { font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+/* #endif */
 page {
   /* “温暖生活方式”配色，和 PC 端一致（mall-pc/src/styles/main.css） */
   --theme: #c56948;        /* 陶土橙：主色 */

@@ -3,6 +3,7 @@ import { watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { state } from '@/store'
+import { elLocale } from '@/locale'
 import SiteHeader from '@/layout/SiteHeader.vue'
 import SiteFooter from '@/layout/SiteFooter.vue'
 import StorageNotice from '@/components/StorageNotice.vue'
@@ -23,13 +24,15 @@ watch(() => state.config.site?.site_favicon, (icon) => {
 </script>
 
 <template>
-  <SiteHeader />
-  <main class="container main">
-    <!-- 切换语言或币种时整页重建，商品名称和价格都重新取 -->
-    <router-view :key="`${route.fullPath}|${state.lang}|${state.currency}`" />
-  </main>
-  <SiteFooter />
-  <StorageNotice />
+  <el-config-provider :locale="elLocale">
+    <SiteHeader />
+    <main class="container main">
+      <!-- 切换语言或币种时整页重建，商品名称和价格都重新取 -->
+      <router-view :key="`${route.fullPath}|${state.lang}|${state.currency}`" />
+    </main>
+    <SiteFooter />
+    <StorageNotice />
+  </el-config-provider>
 </template>
 
 <style scoped>

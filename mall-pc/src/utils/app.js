@@ -1,5 +1,5 @@
 import { ElMessageBox } from 'element-plus'
-import { state, setLang, setCurrency, logout, currencySymbol } from '@/store'
+import { state, langSaved, setLang, setCurrency, logout, currencySymbol } from '@/store'
 import { getInit, getProfile, getCart, getUnreadCount } from '@/api'
 import { applyLang, t } from '@/locale'
 
@@ -9,7 +9,8 @@ export async function bootstrap() {
     const cfg = await getInit()
     state.config = cfg
     const langs = cfg.languages.map((l) => l.code)
-    if (!langs.includes(state.lang)) setLang(cfg.default_lang)
+    // 第一次来的访客用后台的默认语言；之前选的语言已经被停用时也回到默认语言
+    if (!langSaved || !langs.includes(state.lang)) setLang(cfg.default_lang)
     const curs = cfg.currencies.map((c) => c.code)
     if (!curs.includes(state.currency)) setCurrency(cfg.base_currency)
   } catch (e) { /* 取不到配置时沿用本地保存的语言和币种 */ }
@@ -80,7 +81,7 @@ export function couponText(c, valueOnly = false, condOnly = false) {
   const cond = [
     Number(c.threshold) > 0 ? t('coupon.over', { n: n(c.threshold) }) : t('coupon.noThreshold'),
     c.type === 2 && Number(c.max_amount) > 0 ? t('coupon.max', { n: n(c.max_amount) }) : '',
-  ].filter(Boolean).join(state.lang.startsWith('zh') ? '，' : ', ')
+  ].filter(Boolean).join({ zh: '，', ja: '、' }[state.lang.slice(0, 2)] || ', ')
   if (valueOnly) return value
   if (condOnly) return cond
   return `${value} · ${cond}`

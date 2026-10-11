@@ -13,10 +13,33 @@ const LIST = [
   ['AU', '澳大利亚', 'Australia', '61'], ['NZ', '新西兰', 'New Zealand', '64'], ['ZA', '南非', 'South Africa', '27'],
 ]
 
-/** 按界面语言返回 [{ code, name, area }] */
+const cache = {}
+
+/**
+ * 按界面语言返回 [{ code, name, area }]。
+ * 中文、英文用上面写好的名称；其他语言用运行环境自带的国家名称（Intl.DisplayNames），环境不支持（比如小程序）就用英文。
+ */
 export function countries(lang) {
-  const zh = String(lang).toLowerCase().startsWith('zh')
-  return LIST.map(([code, cn, en, area]) => ({ code, name: zh ? cn : en, area }))
+  const key = String(lang)
+  if (cache[key]) return cache[key]
+  const zh = key.toLowerCase().startsWith('zh')
+  let names = null
+  if (!zh && !key.toLowerCase().startsWith('en')) {
+    try {
+      if (typeof Intl !== 'undefined' && Intl.DisplayNames && Intl.DisplayNames.supportedLocalesOf([key]).length) names = new Intl.DisplayNames([key], { type: 'region', style: 'short' })
+    } catch (e) {
+      names = null
+    }
+  }
+  const local = (code, en) => {
+    try {
+      const n = names && names.of(code)
+      return n && n !== code ? n : en
+    } catch (e) {
+      return en
+    }
+  }
+  return (cache[key] = LIST.map(([code, cn, en, area]) => ({ code, name: zh ? cn : local(code, en), area })))
 }
 
 export function countryName(code, lang) {

@@ -69,6 +69,8 @@ onMounted(load)
         <el-button v-perm="'setting:language:add'" type="success" @click="openCreate">新增语言</el-button>
         <span style="margin-left: 12px; color: #909399">启用的语言会出现在商品、分类、协议等所有多语言表单的页签里；已有翻译数据的语言只能禁用，不能删除。</span>
       </div>
+      <el-alert type="info" :closable="false" show-icon style="margin-bottom: 12px"
+        title="商城页面上的按钮、提示这些固定文字已经备好的语言：简体中文（zh-CN）、英语（en）、西班牙语（es）、法语（fr）、德语（de）、日语（ja）。带地区的编码按前半段算（es-MX 用西班牙语）；其他语言的页面文字先显示英文。商品、分类、文章、协议的内容不在此列，要在各自的表单里填写或用 AI 翻译，没填的显示默认语言的。" />
       <el-table v-loading="loading" :data="list" border stripe>
         <el-table-column prop="code" label="语言编码" width="130" />
         <el-table-column prop="name" label="语言名称" min-width="160" />
@@ -91,7 +93,7 @@ onMounted(load)
 
     <el-dialog v-model="dialog" :title="isEdit ? '编辑语言' : '新增语言'" width="460px" destroy-on-close>
       <el-form ref="formRef" :model="form" :rules="rules" label-width="90px">
-        <el-form-item label="语言编码" prop="code"><el-input v-model="form.code" :disabled="isEdit" placeholder="如 zh-CN、en、ja" /></el-form-item>
+        <el-form-item label="语言编码" prop="code"><el-input v-model="form.code" :disabled="isEdit" placeholder="如 zh-CN、en、ja、es、fr、de" /></el-form-item>
         <el-form-item label="语言名称" prop="name"><el-input v-model="form.name" placeholder="如 简体中文、English" /></el-form-item>
         <el-form-item label="排序"><el-input-number v-model="form.sort" :min="0" :max="9999" /></el-form-item>
         <el-form-item label="状态"><el-switch v-model="form.status" :active-value="1" :inactive-value="0" active-text="启用" inactive-text="禁用" /></el-form-item>

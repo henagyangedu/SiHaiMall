@@ -149,6 +149,10 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
     Route::get('driver/app', [DriverController::class, 'index'])->defaults('type', 'app')->middleware('perm:app:mini:view');
     Route::put('driver/app/{driver}', [DriverController::class, 'save'])->defaults('type', 'app')->middleware('perm:app:mini:edit');
     Route::post('driver/app/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'app')->middleware('perm:app:mini:test');
+    // 应用 → 第三方登录（目前只有 Google 登录）
+    Route::get('driver/oauth', [DriverController::class, 'index'])->defaults('type', 'oauth')->middleware('perm:app:oauth:view');
+    Route::put('driver/oauth/{driver}', [DriverController::class, 'save'])->defaults('type', 'oauth')->middleware('perm:app:oauth:edit');
+    Route::post('driver/oauth/{driver}/test', [DriverController::class, 'test'])->defaults('type', 'oauth')->middleware('perm:app:oauth:test');
 
     // 电子面单：服务商的授权信息走通用驱动配置；每家快递的月结账号单独维护。没有“测试连接”（接口没有不产生面单的测试方式）
     Route::get('driver/waybill', [DriverController::class, 'index'])->defaults('type', 'waybill')->middleware('perm:setting:api_waybill:view');

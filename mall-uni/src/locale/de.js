@@ -105,6 +105,7 @@ export default {
   article: { articles: 'Neuigkeiten', notices: 'Hinweise', help: 'Hilfe-Center', views: '{n} Aufrufe', offline: 'Dieser Inhalt ist nicht verfügbar' },
   protocol: { title: 'Bedingungen und Richtlinien' },
   auth: {
+    googleFail: 'Die Anmeldung mit Google war nicht erfolgreich. Bitte erneut versuchen.', googleNew: 'Bei der ersten Anmeldung mit Google wird ein neues Konto erstellt. Bitte lies und akzeptiere vorher:', agreeContinue: 'Zustimmen und fortfahren', orThird: 'oder',
     wechatLogin: 'Weiter mit WeChat', wechatFail: 'Der WeChat-Anmeldecode konnte nicht abgerufen werden. Bitte erneut versuchen.', orAccount: 'oder mit einem Konto anmelden', smsLogin: 'Mit Code anmelden', pwdLogin: 'Mit Passwort anmelden', mobile: 'Telefonnummer', forgot: 'Passwort vergessen?', resetTitle: 'Passwort zurücksetzen', resetAccount: 'E-Mail oder Telefonnummer deiner Registrierung',
     newPassword: 'Neues Passwort (mindestens 6 Zeichen)', resetSubmit: 'Passwort zurücksetzen', resetDone: 'Passwort zurückgesetzt. Bitte melde dich erneut an.', needMobile: 'Bitte deine Telefonnummer eingeben', needCode: 'Bitte den Bestätigungscode eingeben',
     resetUnavailable: 'Für dieses Konto ist das Zurücksetzen nicht selbst möglich. Bitte wende dich an den Kundenservice.',

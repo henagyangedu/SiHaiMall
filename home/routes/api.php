@@ -58,6 +58,8 @@ Route::prefix('auth')->group(function () {
     Route::post('reset-password', [AuthController::class, 'resetPassword'])->middleware('throttle:10,1');
     // 微信小程序一键登录（第一次登录自动注册）
     Route::post('login-wechat-mini', [AuthController::class, 'loginWechatMini'])->middleware('throttle:20,1');
+    // Google 登录（第一次登录自动注册）
+    Route::post('login-google', [AuthController::class, 'loginGoogle'])->middleware('throttle:20,1');
     // 邮箱验证码：获取（另有按邮箱、按 IP 的发送限制）、邮箱找回密码
     Route::post('email-code', [AuthController::class, 'emailCode'])->middleware('throttle:10,1');
     Route::post('reset-password-email', [AuthController::class, 'resetPasswordEmail'])->middleware('throttle:10,1');

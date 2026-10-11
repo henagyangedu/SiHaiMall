@@ -82,6 +82,8 @@ export const confirmPay = (tradeNo) => get(`/pay/${tradeNo}/confirm`)
 
 // ---- 短信登录、找回密码
 export const loginBySms = (data) => post('/auth/login-sms', data, { auth: false })
+// Google 登录：自己处理错误（第一次登录要先同意协议时后端返回 428），所以不让请求层弹提示
+export const loginByGoogle = (data) => post('/auth/login-google', data, { auth: false, silent: true })
 export const loginByWechatMini = (data) => post('/auth/login-wechat-mini', data, { auth: false })
 export const resetPasswordBySms = (data) => post('/auth/reset-password', data, { auth: false })
 export const resetPasswordByEmail = (data) => post('/auth/reset-password-email', data, { auth: false })

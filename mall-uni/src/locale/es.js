@@ -105,6 +105,7 @@ export default {
   article: { articles: 'Noticias', notices: 'Avisos', help: 'Centro de ayuda', views: '{n} visitas', offline: 'Este contenido no está disponible' },
   protocol: { title: 'Condiciones y políticas' },
   auth: {
+    googleFail: 'No se pudo iniciar sesión con Google. Inténtalo de nuevo.', googleNew: 'La primera vez que inicias sesión con Google se crea una cuenta nueva. Antes de continuar, lee y acepta:', agreeContinue: 'Aceptar y continuar', orThird: 'o',
     wechatLogin: 'Continuar con WeChat', wechatFail: 'No se pudo obtener el código de acceso de WeChat. Inténtalo de nuevo.', orAccount: 'o inicia sesión con una cuenta', smsLogin: 'Entrar con código', pwdLogin: 'Entrar con contraseña', mobile: 'Número de teléfono', forgot: '¿Has olvidado la contraseña?', resetTitle: 'Restablecer contraseña', resetAccount: 'El correo o teléfono con el que te registraste',
     newPassword: 'Nueva contraseña (6 caracteres o más)', resetSubmit: 'Restablecer contraseña', resetDone: 'Contraseña restablecida. Vuelve a iniciar sesión.', needMobile: 'Introduce tu número de teléfono', needCode: 'Introduce el código de verificación',
     resetUnavailable: 'Esta cuenta no puede restablecer la contraseña por sí misma. Contacta con atención al cliente.',

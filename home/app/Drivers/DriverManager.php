@@ -2,6 +2,7 @@
 
 namespace App\Drivers;
 
+use App\Drivers\App\GoogleLoginDriver;
 use App\Drivers\App\WechatMiniDriver;
 use App\Drivers\Contracts\ExpressDriver;
 use App\Drivers\Contracts\PayDriver;
@@ -174,6 +175,25 @@ class DriverManager
         }
 
         return new WechatMiniDriver($config);
+    }
+
+    /** 已启用的 Google 登录配置；没启用时返回 null */
+    public function googleLogin(): ?GoogleLoginDriver
+    {
+        $row = DriverConfig::query()->where('type', 'oauth')->where('driver', 'google')->where('is_enabled', 1)->first();
+
+        return $row ? $this->googleLoginFromConfig($row->config ?? []) : null;
+    }
+
+    /** 按指定配置创建 Google 登录驱动（后台“测试连接”用） */
+    public function googleLoginFromConfig(array $config): GoogleLoginDriver
+    {
+        $def = DriverRegistry::driver('oauth', 'google');
+        foreach ($def['fields'] as $key => $f) {
+            $config[$key] ??= $f['default'];
+        }
+
+        return new GoogleLoginDriver($config);
     }
 
     /** 已启用的电子面单驱动；没启用时返回 null */

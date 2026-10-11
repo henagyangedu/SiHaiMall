@@ -105,6 +105,7 @@ export default {
   article: { articles: 'ニュース', notices: 'お知らせ', help: 'ヘルプセンター', views: '閲覧 {n} 回', offline: 'このコンテンツは現在ご覧いただけません' },
   protocol: { title: '規約とポリシー' },
   auth: {
+    googleFail: 'Google でのログインに失敗しました。もう一度お試しください。', googleNew: 'Google で初めてログインすると、新しいアカウントが作成されます。続ける前に次の内容を読み、同意してください：', agreeContinue: '同意して続ける', orThird: 'または',
     wechatLogin: 'WeChat で続ける', wechatFail: 'WeChat のログインコードを取得できませんでした。もう一度お試しください。', orAccount: 'またはアカウントでログイン', smsLogin: '認証コードでログイン', pwdLogin: 'パスワードでログイン', mobile: '電話番号', forgot: 'パスワードをお忘れですか？', resetTitle: 'パスワードの再設定', resetAccount: '登録時のメールアドレスまたは電話番号',
     newPassword: '新しいパスワード（6 文字以上）', resetSubmit: 'パスワードを再設定', resetDone: 'パスワードを再設定しました。もう一度ログインしてください。', needMobile: '電話番号を入力してください', needCode: '認証コードを入力してください',
     resetUnavailable: 'このアカウントはご自身で再設定できません。カスタマーサポートへお問い合わせください。',

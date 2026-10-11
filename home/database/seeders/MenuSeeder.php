@@ -119,6 +119,7 @@ class MenuSeeder extends Seeder
             ]],
             ['t' => '应用', 'path' => '/app', 'icon' => 'Iphone', 'children' => [
                 ['t' => '小程序', 'path' => '/app/mini', 'perm' => 'app:mini', 'acts' => ['edit', 'test']],
+                ['t' => '第三方登录', 'path' => '/app/oauth', 'perm' => 'app:oauth', 'acts' => ['edit', 'test']],
             ]],
             ['t' => '设置', 'path' => '/setting', 'icon' => 'Setting', 'children' => [
                 ['t' => '系统设置', 'path' => '/setting/system', 'children' => [

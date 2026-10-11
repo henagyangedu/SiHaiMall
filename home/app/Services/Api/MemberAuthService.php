@@ -24,6 +24,7 @@ use Illuminate\Support\Str;
  * 未启用短信时不校验。
  * 邮箱注册：基础设置里开启“邮箱注册需要验证码”后必须带邮箱验证码；未开启时不校验。
  * 微信小程序登录：后台“应用 → 小程序”启用后可用，绑定关系存 gm_member_auth（platform = wechat_mini）。
+ * Google 登录：后台“应用 → 第三方登录”启用后可用，绑定关系同样存 gm_member_auth（platform = google）。
  * 同意协议：后台填了用户协议或隐私政策时，注册（含微信一键登录的首次登录）必须带 agree，同意的时间记在 agreed_at。
  */
 class MemberAuthService
@@ -213,6 +214,105 @@ class MemberAuthService
         ]);
 
         return [$member, $isNew];
+    }
+
+    /**
+     * Google 登录。这个 Google 账号登录过就直接登录；没登录过就自动注册一个会员并绑定（绑定关系存 gm_member_auth，platform = google）。
+     * 第一次登录（要新建会员）时同样要同意协议；邀请码只在新注册时生效，无效的邀请码不拦登录。
+     *
+     * 新会员的邮箱用 Google 确认过的那个邮箱。**这个邮箱已经被别的会员用了，就拒绝、让他用原来的方式登录**，不自动并到那个会员上：
+     * 商城的邮箱注册不一定验证过邮箱，别人可以抢先用受害者的邮箱注册一个自己知道密码的账号，自动合并等于把受害者的 Google 登录接到那个账号上。
+     * @param array{invite_code?:string,lang?:string,currency?:string,agree?:mixed} $d
+     */
+    public function loginByGoogle(string $credential, array $d, string $source, string $ip, string $ua): array
+    {
+        $driver = $this->drivers->googleLogin() ?? throw new BusinessException('暂未开通 Google 登录');
+        $identity = $driver->verify($credential);
+
+        // 同一个 Google 账号并发登录：串行化，避免第一次登录时注册出两个会员
+        $lock = Cache::lock('member_google_login:' . sha1($identity['sub']), 10);
+        if (!$lock->get()) {
+            throw new BusinessException('操作过于频繁，请稍后再试');
+        }
+        // 和注册、绑定邮箱用同一把锁：同一个邮箱不会同时被注册和用于 Google 登录
+        $emailLock = $identity['email'] !== '' ? Cache::lock('member_register:' . $identity['email'], 10) : null;
+        try {
+            if ($emailLock && !$emailLock->get()) {
+                $emailLock = null;
+                throw new BusinessException('操作过于频繁，请稍后再试');
+            }
+            [$member, $isNew] = DB::transaction(fn () => $this->memberForGoogle($identity, $d, $source));
+        } finally {
+            $emailLock?->release();
+            $lock->release();
+        }
+        if ((int) $member->status !== 1) {
+            throw new BusinessException('账号已被禁用，请联系客服');
+        }
+        if ($isNew) {
+            $this->rewards->onRegister($member);
+        }
+        $member->forceFill(['last_login_at' => now(), 'last_login_ip' => $ip])->save();
+
+        return $this->issue($member, $source, $ip, $ua) + ['is_new' => $isNew];
+    }
+
+    /**
+     * 找到这个 Google 账号对应的会员，没有就新建。
+     * Google 的用户标识（sub）对一个 Google 账号是固定的，和客户端 ID 无关，所以绑定表里的 app_id 留空——以后换了客户端 ID，老会员照样能登录。
+     * @param array{sub:string,email:string,name:string} $identity
+     * @return array{0:Member,1:bool} 会员、是否新注册
+     */
+    private function memberForGoogle(array $identity, array $d, string $source): array
+    {
+        $bind = DB::table('member_auth')->where('platform', 'google')->where('openid', $identity['sub'])->first();
+        if ($bind) {
+            if ($member = Member::query()->find($bind->member_id)) {
+                return [$member, false];
+            }
+            // 原来绑定的会员已经注销：解除旧绑定，当成新用户
+            DB::table('member_auth')->where('id', $bind->id)->delete();
+        }
+
+        $email = $identity['email'];
+        if ($email !== '' && Member::query()->where(fn ($q) => $q->where('email', $email)->orWhere('account', $email))->exists()) {
+            throw new BusinessException('这个 Google 账号的邮箱已经注册过，请用邮箱和密码登录');
+        }
+
+        $parentId = 0;
+        if (trim((string) ($d['invite_code'] ?? '')) !== '') {
+            try {
+                $parentId = $this->distribution->parentIdFromInvite((string) $d['invite_code']);
+            } catch (BusinessException $e) {
+                $parentId = 0;
+            }
+        }
+        $lang = in_array($d['lang'] ?? '', $this->locale->codes(), true) ? $d['lang'] : $this->locale->defaultLang();
+        try {
+            $agreedAt = $this->privacy->agreedAt($d['agree'] ?? null, $lang);
+        } catch (BusinessException $e) {
+            // 页面事先不知道这个 Google 账号是不是第一次来，所以用一个专门的错误码告诉它：先让买家同意协议，再带着 agree 重新提交
+            throw new BusinessException($e->getMessage(), 428);
+        }
+        // 账号是随机的、密码为空（不能用密码登录）；之后可以在“账号与安全”里设置密码，再用邮箱和密码登录
+        $member = Member::query()->create([
+            'agreed_at'       => $agreedAt,
+            'account'         => 'gg_' . Str::lower(Str::random(12)),
+            'email'           => $email,
+            'password'        => '',
+            'nickname'        => mb_substr($identity['name'] !== '' ? $identity['name'] : 'Google User ' . Str::lower(Str::random(4)), 0, 60),
+            'lang'            => $lang,
+            'currency'        => in_array($d['currency'] ?? '', $this->locale->currencyCodes(), true) ? $d['currency'] : $this->locale->baseCurrency(),
+            'register_source' => $source,
+            'parent_id'       => $parentId,
+            'level_id'        => 1,
+            'status'          => 1,
+        ]);
+        DB::table('member_auth')->insert([
+            'member_id' => $member->id, 'platform' => 'google', 'app_id' => '', 'openid' => $identity['sub'], 'unionid' => '', 'created_at' => now(),
+        ]);
+
+        return [$member, true];
     }
 
     /** 短信找回密码：重置后所有设备的登录全部失效 */

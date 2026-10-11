@@ -2,6 +2,7 @@
 
 namespace App\Services\Api;
 
+use App\Drivers\DriverManager;
 use App\Models\DriverConfig;
 use App\Services\Common\ConfigService;
 use App\Services\Common\EmailCodeService;
@@ -12,7 +13,7 @@ use App\Services\Common\SmsCodeService;
 class InitService
 {
     public function __construct(private LocaleService $locale, private ConfigService $config, private SmsCodeService $sms, private EmailCodeService $emailCodes,
-        private MemberPrivacyService $privacy) {}
+        private MemberPrivacyService $privacy, private DriverManager $drivers) {}
 
     public function init(string $lang): array
     {
@@ -31,6 +32,8 @@ class InitService
             'agree_required' => $this->privacy->agreeRequired($lang),
             // 为 true 时：小程序里可以用微信一键登录
             'wechat_login_enabled' => DriverConfig::query()->where('type', 'app')->where('driver', 'wechat_mini')->where('is_enabled', 1)->exists(),
+            // 不为空时：电脑端和手机浏览器的登录页显示 Google 登录按钮（这是公开的客户端 ID，不是密钥）
+            'google_client_id' => (string) $this->drivers->googleLogin()?->clientId(),
         ];
     }
 }

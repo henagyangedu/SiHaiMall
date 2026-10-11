@@ -1,10 +1,11 @@
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { state, setToken } from '@/store'
-import { login, register, loginBySms, sendSmsCode, sendEmailCode, getProtocols } from '@/api'
+import { login, register, loginBySms, loginByGoogle, sendSmsCode, sendEmailCode, getProtocols } from '@/api'
+import { renderGoogleButton } from '@shared/utils/google'
 import { refreshCartCount } from '@/utils/app'
 
 const { t } = useI18n()
@@ -86,8 +87,39 @@ async function submit() {
   }
 }
 
+// Google 登录：后台启用后才有。按钮由 Google 的脚本画；脚本加载不了时这一块不显示
+const googleBox = ref(null)
+const googleReady = ref(false)
+// 第一次用 Google 登录（要新建会员）而后台要求同意协议时，先把凭证留着，等买家点“同意并继续”
+const googlePending = ref('')
+async function googleLogin(credential, agree = false) {
+  if (submitting.value) return
+  submitting.value = true
+  try {
+    const data = await loginByGoogle({
+      credential, ...(agree ? { agree: 1 } : {}),
+      ...(form.invite_code.trim() ? { invite_code: form.invite_code.trim() } : {}),
+    })
+    googlePending.value = ''
+    setToken(data.token, data.info)
+    refreshCartCount()
+    ElMessage.success(t('login.welcome'))
+    router.replace(backTo())
+  } catch (e) {
+    if (e && e.code === 428) googlePending.value = credential
+    else ElMessage.error((e && e.msg) || t('auth.googleFail'))
+  } finally {
+    submitting.value = false
+  }
+}
+
 onMounted(() => {
   if (state.token) return router.replace(backTo())
+  if (state.config.google_client_id) {
+    nextTick(async () => {
+      googleReady.value = await renderGoogleButton(googleBox.value, { clientId: state.config.google_client_id, lang: state.lang, width: 348, onCredential: (c) => googleLogin(c) })
+    })
+  }
   // 通过邀请链接进来：直接进注册并带上邀请码
   if (route.query.invite) { mode.value = 'register'; form.invite_code = String(route.query.invite) }
   // 没有填写协议时不显示“注册即表示同意”
@@ -135,6 +167,20 @@ onMounted(() => {
       <router-link v-for="p in protocols" :key="p.key" :to="{ name: 'protocols', params: { key: p.key } }" target="_blank" class="link"> {{ p.title }}</router-link>
     </div>
 
+    <div v-if="state.config.google_client_id" v-show="googleReady" class="third">
+      <div class="or sub"><span>{{ t('auth.orThird') }}</span></div>
+      <div ref="googleBox" class="google" />
+      <div v-if="googlePending" class="google-agree">
+        <div class="sub">{{ t('auth.googleNew') }}
+          <router-link v-for="p in protocols" :key="p.key" :to="{ name: 'protocols', params: { key: p.key } }" target="_blank" class="link"> {{ p.title }}</router-link>
+        </div>
+        <div class="google-agree-btns">
+          <el-button @click="googlePending = ''">{{ t('common.cancel') }}</el-button>
+          <el-button type="primary" :loading="submitting" @click="googleLogin(googlePending, true)">{{ t('auth.agreeContinue') }}</el-button>
+        </div>
+      </div>
+    </div>
+
     <div class="switch">
       <a class="link" @click="switchMode(mode === 'login' ? 'register' : 'login')">{{ t(mode === 'login' ? 'login.toRegister' : 'login.toLogin') }}</a>
     </div>
@@ -148,6 +194,13 @@ onMounted(() => {
 .agree { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 8px; margin-top: 14px; }
 .submit { width: 100%; }
 .switch { text-align: center; margin-top: 18px; font-size: 13px; }
+.third { margin-top: 20px; }
+.or { display: flex; align-items: center; gap: 12px; font-size: 13px; margin-bottom: 16px; }
+.or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.google { display: flex; justify-content: center; min-height: 44px; }
+.google-agree { margin-top: 14px; padding: 14px 16px; border-radius: var(--radius); background: var(--el-color-primary-light-9); font-size: 13px; line-height: 1.7; }
+.google-agree .link { margin-left: 8px; }
+.google-agree-btns { display: flex; justify-content: flex-end; margin-top: 10px; }
 .agree-box { margin-right: 0; vertical-align: middle; height: auto; }
 .agree-box :deep(.el-checkbox__label) { font-size: 13px; color: var(--sub); }
 </style>

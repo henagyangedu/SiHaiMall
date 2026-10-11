@@ -105,6 +105,7 @@ export default {
   article: { articles: 'Actualités', notices: 'Annonces', help: 'Centre d’aide', views: '{n} vues', offline: 'Ce contenu n’est pas disponible' },
   protocol: { title: 'Conditions et politiques' },
   auth: {
+    googleFail: 'La connexion avec Google n’a pas abouti. Veuillez réessayer.', googleNew: 'Votre première connexion avec Google crée un nouveau compte. Avant de continuer, veuillez lire et accepter :', agreeContinue: 'Accepter et continuer', orThird: 'ou',
     wechatLogin: 'Continuer avec WeChat', wechatFail: 'Impossible d’obtenir le code de connexion WeChat. Veuillez réessayer.', orAccount: 'ou connectez-vous avec un compte', smsLogin: 'Connexion par code', pwdLogin: 'Connexion par mot de passe', mobile: 'Numéro de téléphone', forgot: 'Mot de passe oublié ?', resetTitle: 'Réinitialiser le mot de passe', resetAccount: 'L’e-mail ou le téléphone utilisé à l’inscription',
     newPassword: 'Nouveau mot de passe (6 caractères ou plus)', resetSubmit: 'Réinitialiser le mot de passe', resetDone: 'Mot de passe réinitialisé. Veuillez vous reconnecter.', needMobile: 'Saisissez votre numéro de téléphone', needCode: 'Saisissez le code de vérification',
     resetUnavailable: 'La réinitialisation en libre-service n’est pas disponible pour ce compte. Veuillez contacter le service client.',

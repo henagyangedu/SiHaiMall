@@ -25,6 +25,8 @@ export const appendReview = (orderNo, data) => post(`/orders/${orderNo}/reviews/
 export const login = (data) => post('/auth/login', data, { auth: false })
 export const register = (data) => post('/auth/register', data, { auth: false })
 export const loginBySms = (data) => post('/auth/login-sms', data, { auth: false })
+// Google 登录：自己处理错误（第一次登录要先同意协议时后端返回 428），所以不让请求层弹提示
+export const loginByGoogle = (data) => post('/auth/login-google', data, { auth: false, silent: true })
 export const sendSmsCode = (data) => post('/auth/sms-code', data, { auth: false })
 export const sendEmailCode = (data) => post('/auth/email-code', data, { auth: false })
 export const logoutApi = () => post('/auth/logout', {}, { auth: false, silent: true })

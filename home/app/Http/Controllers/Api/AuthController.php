@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Requests\Api\BindContactRequest;
 use App\Http\Requests\Api\EmailCodeRequest;
 use App\Http\Requests\Api\EmailResetPasswordRequest;
+use App\Http\Requests\Api\GoogleLoginRequest;
 use App\Http\Requests\Api\LoginRequest;
 use App\Http\Requests\Api\PasswordRequest;
 use App\Http\Requests\Api\ProfileRequest;
@@ -61,6 +62,16 @@ class AuthController extends ApiController
     {
         return ApiResponse::ok($this->service->loginByWechatMini(
             (string) $request->validated('code'),
+            ['invite_code' => (string) ($request->validated('invite_code') ?? ''), 'agree' => $request->validated('agree'), 'lang' => $this->lang($request), 'currency' => $this->currency($request)],
+            $this->source($request), (string) $request->ip(), (string) $request->userAgent()
+        ));
+    }
+
+    /** Google 登录：credential 是页面上 Google 登录按钮给出的身份凭证 */
+    public function loginGoogle(GoogleLoginRequest $request)
+    {
+        return ApiResponse::ok($this->service->loginByGoogle(
+            (string) $request->validated('credential'),
             ['invite_code' => (string) ($request->validated('invite_code') ?? ''), 'agree' => $request->validated('agree'), 'lang' => $this->lang($request), 'currency' => $this->currency($request)],
             $this->source($request), (string) $request->ip(), (string) $request->userAgent()
         ));

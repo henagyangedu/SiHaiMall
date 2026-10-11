@@ -22,7 +22,8 @@
     "bundle": "node run.js bundle",
     "waybill": "node run.js waybill",
     "tax": "node run.js tax",
-    "i18n": "node run.js i18n"
+    "i18n": "node run.js i18n",
+    "google": "node run.js google"
   },
   "devDependencies": {
     "playwright-core": "^1.48.0"

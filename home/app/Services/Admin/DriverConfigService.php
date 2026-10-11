@@ -106,7 +106,7 @@ class DriverConfigService
     /** 存储类型的连通性测试：写入一个小文件、确认存在、再删除。使用已保存的配置。 */
     public function test(string $type, string $driver): array
     {
-        if (!in_array($type, ['storage', 'translate', 'pay', 'sms', 'express', 'app'], true)) {
+        if (!in_array($type, ['storage', 'translate', 'pay', 'sms', 'express', 'app', 'oauth'], true)) {
             throw new BusinessException('该类型暂不支持测试');
         }
         $def = DriverRegistry::driver($type, $driver);
@@ -133,6 +133,15 @@ class DriverConfigService
         if ($type === 'app') {
             try {
                 return $this->drivers->wechatMiniFromConfig($merged)->ping();
+            } catch (BusinessException $e) {
+                throw $e;
+            } catch (\Throwable $e) {
+                throw new BusinessException('测试失败：' . Str::limit($e->getMessage(), 300));
+            }
+        }
+        if ($type === 'oauth') {
+            try {
+                return $this->drivers->googleLoginFromConfig($merged)->ping();
             } catch (BusinessException $e) {
                 throw $e;
             } catch (\Throwable $e) {

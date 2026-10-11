@@ -197,6 +197,21 @@ class DriverRegistry
                     ],
                 ],
             ],
+            'oauth' => [
+                'label'   => '第三方登录',
+                'drivers' => [
+                    'google' => [
+                        'name'   => 'Google 登录',
+                        'desc'   => '启用后，买家在电脑端和手机浏览器的登录页可以用 Google 账号登录（第一次登录自动注册会员）。客户端 ID 在 Google Cloud Console →「API 和服务」→「凭据」里创建，类型选“Web 应用”，并把商城前端的网址（电脑端和手机端各一个，带 https://，不带路径）填进“已获授权的 JavaScript 来源”。不需要客户端密钥。',
+                        'fields' => [
+                            'client_id' => ['label' => '客户端 ID', 'type' => 'text', 'required' => true, 'default' => '', 'hint' => '形如 1234567890-xxxxxxxx.apps.googleusercontent.com'],
+                            'certs_url' => ['label' => '公钥地址', 'type' => 'text', 'required' => false, 'default' => 'https://www.googleapis.com/oauth2/v3/certs', 'hint' => '一般不用改'],
+                            'timeout'   => ['label' => '超时（秒）', 'type' => 'text', 'required' => false, 'default' => '10', 'hint' => ''],
+                            'proxy'     => ['label' => '代理', 'type' => 'text', 'required' => false, 'default' => '', 'hint' => '可选。服务器在国内、直连 Google 不通时填写，如 http://127.0.0.1:7890'],
+                        ],
+                    ],
+                ],
+            ],
             'translate' => [
                 'label'   => 'AI 翻译',
                 'drivers' => [

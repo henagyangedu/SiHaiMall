@@ -1,9 +1,12 @@
 <script setup>
-import { ref, reactive, computed, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useI18n } from 'vue-i18n'
 import { state, setToken } from '@/store'
-import { login, register, loginBySms, loginByWechatMini, sendSmsCode, sendEmailCode, getProtocols } from '@/api'
+import { login, register, loginBySms, loginByWechatMini, loginByGoogle, sendSmsCode, sendEmailCode, getProtocols } from '@/api'
+// #ifdef H5
+import { renderGoogleButton } from '@/utils/google'
+// #endif
 import { refreshCartCount } from '@/utils/app'
 import { usePageTitle, toast, nav } from '@/utils/page'
 
@@ -100,6 +103,39 @@ async function wechatLogin() {
 }
 // #endif
 
+// #ifdef H5
+// Google 登录：后台启用后才有。按钮由 Google 的脚本画；脚本加载不了时这一块不显示
+const googleReady = ref(false)
+// 第一次用 Google 登录（要新建会员）而后台要求同意协议时，先把凭证留着，等买家点“同意并继续”
+const googlePending = ref('')
+async function googleLogin(credential, agree = false) {
+  if (submitting.value) return
+  submitting.value = true
+  try {
+    const data = await loginByGoogle({
+      credential, ...(agree ? { agree: 1 } : {}),
+      ...(form.invite_code.trim() ? { invite_code: form.invite_code.trim() } : {}),
+    })
+    googlePending.value = ''
+    afterLogin(data)
+  } catch (e) {
+    if (e && e.code === 428) googlePending.value = credential
+    else toast((e && e.msg) || t('auth.googleFail'))
+  } finally {
+    submitting.value = false
+  }
+}
+async function showGoogle() {
+  if (!state.config.google_client_id || googleReady.value) return
+  const el = document.getElementById('gm-google-btn')
+  if (!el) return
+  googleReady.value = await renderGoogleButton(el, { clientId: state.config.google_client_id, lang: state.lang, width: Math.min(400, window.innerWidth - 48), onCredential: (c) => googleLogin(c) })
+}
+// 启动配置可能比页面晚到，所以两个时机都试一次
+onMounted(showGoogle)
+watch(() => state.config.google_client_id, () => nextTick(showGoogle))
+// #endif
+
 onLoad(async (q) => {
   // 通过邀请链接进来：直接进注册并带上邀请码
   if (q.invite) { mode.value = 'register'; form.invite_code = q.invite }
@@ -154,6 +190,22 @@ onLoad(async (q) => {
       </view>
       <view class="switch" @click="switchMode(mode === 'login' ? 'register' : 'login')">{{ t(mode === 'login' ? 'login.toRegister' : 'login.toLogin') }}</view>
     </view>
+
+    <!-- #ifdef H5 -->
+    <view v-if="state.config.google_client_id" v-show="googleReady" class="third">
+      <view class="or">{{ t('auth.orThird') }}</view>
+      <view id="gm-google-btn" class="google" />
+      <view v-if="googlePending" class="google-agree">
+        <view>{{ t('auth.googleNew') }}
+          <text v-for="p in protocols" :key="p.key" class="link" @click.stop="nav(`/pages/protocol/index?key=${p.key}`)"> {{ p.title }}</text>
+        </view>
+        <view class="google-agree-btns">
+          <view class="mini" @click="googlePending = ''">{{ t('common.cancel') }}</view>
+          <view class="mini on" @click="googleLogin(googlePending, true)">{{ t('auth.agreeContinue') }}</view>
+        </view>
+      </view>
+    </view>
+    <!-- #endif -->
   </view>
 </template>
 
@@ -175,4 +227,12 @@ onLoad(async (q) => {
 .tick { display: inline-block; width: 30rpx; height: 30rpx; line-height: 28rpx; border: 2rpx solid #cfc7b8; border-radius: 8rpx; margin-right: 12rpx; vertical-align: -6rpx; font-size: 22rpx; color: #fff; box-sizing: border-box; }
 .tick.on { background: var(--theme); border-color: var(--theme); }
 .switch { text-align: center; color: var(--sub); margin-top: 32rpx; font-size: 26rpx; }
+.third { margin-top: 48rpx; }
+.or { display: flex; align-items: center; gap: 24rpx; color: var(--sub); font-size: 24rpx; margin-bottom: 32rpx; }
+.or::before, .or::after { content: ''; flex: 1; height: 2rpx; background: var(--line); }
+.google { display: flex; justify-content: center; min-height: 88rpx; }
+.google-agree { margin-top: 28rpx; padding: 24rpx 28rpx; border-radius: 20rpx; background: var(--bg); color: #6a665e; font-size: 26rpx; line-height: 1.7; }
+.google-agree-btns { display: flex; justify-content: flex-end; gap: 20rpx; margin-top: 20rpx; }
+.mini { padding: 12rpx 32rpx; border-radius: 999rpx; background: var(--cream-deep); color: #6a665e; font-size: 26rpx; }
+.mini.on { background: var(--theme); color: #fff; }
 </style>

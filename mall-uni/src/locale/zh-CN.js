@@ -104,6 +104,7 @@ export default {
   article: { articles: '资讯', notices: '公告', help: '帮助中心', views: '{n} 次浏览', offline: '内容不存在或已下线' },
   protocol: { title: '协议与政策' },
   auth: {
+    googleFail: 'Google 登录没有成功，请重试', googleNew: '第一次用 Google 登录会为你创建一个新账号。继续之前请阅读并同意：', agreeContinue: '同意并继续', orThird: '或',
     wechatLogin: '微信一键登录', wechatFail: '没有拿到微信登录凭证，请重试', orAccount: '或使用账号登录', smsLogin: '验证码登录', pwdLogin: '密码登录', mobile: '手机号', forgot: '忘记密码？', resetTitle: '找回密码', resetAccount: '注册时用的邮箱或手机号',
     newPassword: '新密码（至少 6 位）', resetSubmit: '重置密码', resetDone: '密码已重置，请重新登录', needMobile: '请输入手机号', needCode: '请输入验证码',
     resetUnavailable: '该账号类型暂不支持自助找回密码，请联系客服',

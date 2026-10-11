@@ -1,5 +1,5 @@
 {
-  "name": "gm-mall-e2e",
+  "name": "sihaimall-e2e",
   "private": true,
   "version": "0.1.0",
   "description": "浏览器点击测试：用本机的 Edge 真实操作后台、PC 端、手机端 H5",

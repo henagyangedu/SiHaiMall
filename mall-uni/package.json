@@ -1,5 +1,5 @@
 {
-  "name": "uni-preset-vue",
+  "name": "sihaimall-uni",
   "version": "0.0.0",
   "scripts": {
     "check:locale": "node scripts/check-locale.mjs",

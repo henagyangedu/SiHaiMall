@@ -1,4 +1,6 @@
-# gmmall 多语言分销商城（交接文档，供 Claude Code 本地继续开发）
+# 四海商城 SihaiMall（多语言分销商城。开发说明，也供 Claude Code 本地继续开发时阅读）
+
+项目原来的名字是 gmmall，所以数据表前缀是 `gm_`、数据库默认叫 `gmmall`、浏览器本地存储的键以 `gm_` 开头，这些都沿用不改。
 
 ## 目录
 - `home/`：后端 API（Laravel 13 + PHP 8.5 + MySQL 8）

@@ -5,6 +5,7 @@ use App\Models\AdminToken;
 use App\Models\Member;
 use App\Models\OpenApp;
 use App\Models\OpenLog;
+use App\Models\OpenWebhook;
 use App\Models\Order;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,7 @@ use Illuminate\Support\Str;
 /**
  * 开放接口点击测试的后端步骤，用环境变量 E2E_STEP 选：
  *  - 不带：删掉上一轮没清干净的测试应用，给测试会员造一张已付款订单，给一个临时管理员令牌；
- *  - cleanup：删掉测试在页面上建的应用（名称以“点击测试”开头）和它的调用记录。
+ *  - cleanup：删掉测试在页面上建的应用（名称以“点击测试”开头）和它的调用记录、推送记录。
  * 订单和发货记录（单号是测试编的）留在库里。
  */
 $out = function (array $data): void {
@@ -27,6 +28,7 @@ if (app()->isProduction()) {
 $clean = function (): void {
     $ids = OpenApp::query()->where('name', 'like', '点击测试%')->pluck('id');
     OpenLog::query()->whereIn('app_id', $ids)->delete();
+    OpenWebhook::query()->whereIn('app_id', $ids)->delete();
     OpenApp::query()->whereIn('id', $ids)->delete();
 };
 $clean();

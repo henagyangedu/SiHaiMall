@@ -17,7 +17,7 @@ class MenuSeeder extends Seeder
         'remark' => '备注', 'price' => '改价', 'cancel' => '取消订单', 'do' => '发货', 'print' => '打印',
         'audit' => '审核', 'confirm' => '确认收货', 'pay' => '执行退款', 'retry' => '重新处理',
         'status' => '禁用/启用', 'balance' => '调整余额', 'points' => '调整积分', 'sale' => '上下架',
-        'stock' => '修改库存', 'rate' => '更新汇率', 'test' => '测试', 'reset' => '重置密码', 'paid' => '登记打款', 'apply' => '发起售后', 'reply' => '回复', 'grant' => '发放', 'revoke' => '撤回', 'issue' => '开票', 'reject' => '驳回', 'void' => '作废',
+        'stock' => '修改库存', 'rate' => '更新汇率', 'test' => '测试', 'reset' => '重置密码', 'paid' => '登记打款', 'apply' => '发起售后', 'reply' => '回复', 'grant' => '发放', 'revoke' => '撤回', 'issue' => '开票', 'reject' => '驳回', 'void' => '作废', 'resend' => '重发推送',
     ];
 
     /**
@@ -132,7 +132,7 @@ class MenuSeeder extends Seeder
                 ['t' => '消息模板', 'path' => '/setting/message', 'perm' => 'setting:message', 'acts' => ['edit', 'test']],
                 ['t' => '协议管理', 'path' => '/setting/protocol', 'perm' => 'setting:protocol', 'acts' => ['edit']],
                 ['t' => '小票配置', 'path' => '/setting/receipt', 'perm' => 'setting:receipt', 'acts' => ['edit']],
-                ['t' => '开放接口', 'path' => '/setting/open-api', 'perm' => 'setting:open_api', 'acts' => ['add', 'edit', 'del', 'reset']],
+                ['t' => '开放接口', 'path' => '/setting/open-api', 'perm' => 'setting:open_api', 'acts' => ['add', 'edit', 'del', 'reset', 'resend']],
                 ['t' => '管理权限', 'path' => '/setting/auth', 'children' => [
                     ['t' => '管理员', 'path' => '/setting/admin', 'perm' => 'setting:admin', 'acts' => ['add', 'edit', 'del', 'reset']],
                     ['t' => '角色管理', 'path' => '/setting/role', 'perm' => 'setting:role', 'acts' => ['add', 'edit', 'del']],

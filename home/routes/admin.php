@@ -118,6 +118,11 @@ Route::middleware(['admin.auth', 'oplog'])->group(function () {
         Route::post('{id}/reset-key', [OpenAppController::class, 'resetKey'])->whereNumber('id')->middleware('perm:setting:open_api:reset');
         Route::delete('{id}', [OpenAppController::class, 'destroy'])->whereNumber('id')->middleware('perm:setting:open_api:del');
         Route::get('{id}/logs', [OpenAppController::class, 'logs'])->whereNumber('id')->middleware('perm:setting:open_api:view');
+        // 主动推送（Webhook）
+        Route::post('{id}/webhook-secret', [OpenAppController::class, 'resetWebhookSecret'])->whereNumber('id')->middleware('perm:setting:open_api:reset');
+        Route::get('{id}/webhooks', [OpenAppController::class, 'webhooks'])->whereNumber('id')->middleware('perm:setting:open_api:view');
+        Route::post('{id}/webhooks/{webhook_id}/resend', [OpenAppController::class, 'resendWebhook'])->whereNumber(['id', 'webhook_id'])->middleware('perm:setting:open_api:resend');
+        Route::post('{id}/webhook-test', [OpenAppController::class, 'testWebhook'])->whereNumber('id')->middleware('perm:setting:open_api:resend');
     });
 
     // 税率设置：按收货地区的税率规则

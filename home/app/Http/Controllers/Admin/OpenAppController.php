@@ -14,7 +14,7 @@ class OpenAppController extends BaseAdminController
 
     public function index()
     {
-        return ApiResponse::ok(['list' => $this->service->list(), 'scopes' => $this->service->scopeOptions()]);
+        return ApiResponse::ok(['list' => $this->service->list(), 'scopes' => $this->service->scopeOptions(), 'events' => $this->service->eventOptions()]);
     }
 
     public function store(OpenAppRequest $request)
@@ -24,9 +24,27 @@ class OpenAppController extends BaseAdminController
 
     public function update(OpenAppRequest $request)
     {
-        $this->service->update((int) $request->route('id'), $request->validated());
+        return ApiResponse::ok($this->service->update((int) $request->route('id'), $request->validated()));
+    }
 
-        return ApiResponse::ok();
+    public function resetWebhookSecret(Request $request)
+    {
+        return ApiResponse::ok($this->service->resetWebhookSecret((int) $request->route('id')));
+    }
+
+    public function webhooks(Request $request)
+    {
+        return ApiResponse::ok($this->service->webhooks((int) $request->route('id'), (int) $request->query('page', 1), (int) $request->query('size', 20)));
+    }
+
+    public function resendWebhook(Request $request)
+    {
+        return ApiResponse::ok($this->service->resend((int) $request->route('id'), (int) $request->route('webhook_id')));
+    }
+
+    public function testWebhook(Request $request)
+    {
+        return ApiResponse::ok($this->service->testWebhook((int) $request->route('id')));
     }
 
     public function resetKey(Request $request)

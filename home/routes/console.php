@@ -11,6 +11,7 @@ Artisan::command('inspire', function () {
 // 定时任务。服务器上需要每分钟执行一次调度器：* * * * * php /站点路径/home/artisan schedule:run
 Schedule::command('mall:close-expired-orders')->everyMinute()->withoutOverlapping();
 Schedule::command('mall:message-broadcast')->everyMinute()->withoutOverlapping();
+Schedule::command('mall:webhook-deliver')->everyMinute()->withoutOverlapping();
 Schedule::command('mall:pay-compensate')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('mall:restock-notify')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('mall:refund-compensate')->everyTenMinutes()->withoutOverlapping();

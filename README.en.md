@@ -63,7 +63,7 @@ The products shown are the bundled demo data (smart pet supplies), shown here in
 - Dashboards, trends, product rankings
 - Articles, announcements, help center, banners and ad slots
 - Payments, SMS, storage, tracking, shipping labels and translation are all configured in the admin console; secrets are stored encrypted
-- Open API for ERP, accounting and logistics systems: read orders, post shipments, sync stock, pull payment records; one key per system with its own permissions
+- Open API for ERP, accounting and logistics systems: read orders, post shipments, sync stock, pull payment records; one key per system with its own permissions; optional signed webhooks when an order is paid, shipped or refunded
 
 ## Integration status
 

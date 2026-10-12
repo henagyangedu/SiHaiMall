@@ -7,11 +7,11 @@ class OpenApp extends BaseModel
 {
     protected $table = 'open_app';
 
-    protected $hidden = ['key_hash'];
+    protected $hidden = ['key_hash', 'webhook_secret'];
 
     protected function casts(): array
     {
-        return ['scopes' => 'array', 'last_used_at' => 'datetime'];
+        return ['scopes' => 'array', 'last_used_at' => 'datetime', 'webhook_events' => 'array', 'webhook_secret' => 'encrypted'];
     }
 
     public function can(string $scope): bool

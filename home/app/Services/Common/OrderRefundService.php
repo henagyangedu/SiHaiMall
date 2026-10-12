@@ -10,6 +10,7 @@ use App\Models\OrderRefund;
 use App\Models\PayTrade;
 use App\Support\Exceptions\BusinessException;
 use App\Support\Money;
+use App\Support\OpenEvents;
 use App\Support\OrderStatus;
 use Illuminate\Support\Facades\DB;
 
@@ -40,6 +41,7 @@ class OrderRefundService
         private OrderPointsService $points,
         private DistributionService $distribution,
         private NotifyService $notify,
+        private OpenWebhookService $webhooks,
     ) {}
 
     // ------------------------------------------------------------------ 可退信息
@@ -139,6 +141,7 @@ class OrderRefundService
             } else {
                 $this->status->note($order, $opType, $opId, $remark);
             }
+            $this->webhooks->refund(OpenEvents::REFUND_CREATED, $refund, $order);
 
             return $refund;
         });
@@ -389,6 +392,7 @@ class OrderRefundService
             ]);
 
             $this->restoreOrder($order, $adminId > 0 ? OrderStatus::OP_ADMIN : OrderStatus::OP_SYSTEM, $adminId, "售后 {$refund->refund_no} 退款完成：{$refund->refund_amount} {$refund->currency}，{$remark}");
+            $this->webhooks->refund(OpenEvents::REFUND_COMPLETED, $refund->refresh(), $order);
         });
     }
 

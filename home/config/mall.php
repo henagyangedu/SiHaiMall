@@ -14,4 +14,10 @@ return [
      * 否则发起支付会被拒绝。本地开发用 127.0.0.1 访问前端时填 127.0.0.1。
      */
     'pay_return_hosts' => env('PAY_RETURN_HOSTS', ''),
+
+    /*
+     * 开放接口的主动推送（Webhook）能不能发到内网、本机的地址，以及能不能用 http。
+     * 不设置时：生产环境不允许（防止有人借后台配置探测内网），其他环境允许（方便本地联调）。
+     */
+    'webhook_allow_private' => env('OPEN_WEBHOOK_ALLOW_PRIVATE'),
 ];

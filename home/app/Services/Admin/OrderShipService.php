@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\Shipping;
 use App\Services\Common\ExpressTrackService;
 use App\Services\Common\NotifyService;
+use App\Services\Common\OpenWebhookService;
 use App\Services\Common\OrderStatusService;
 use App\Support\Exceptions\BusinessException;
 use App\Support\OrderStatus;
@@ -25,7 +26,7 @@ class OrderShipService
         'OTHER' => '其它',
     ];
 
-    public function __construct(private OrderStatusService $status, private NotifyService $notify, private ExpressTrackService $tracks, private WaybillService $waybills) {}
+    public function __construct(private OrderStatusService $status, private NotifyService $notify, private ExpressTrackService $tracks, private WaybillService $waybills, private OpenWebhookService $webhooks) {}
 
     /** 一个包裹的物流轨迹；$refresh 为 true 时重新向服务商查询（有最短间隔限制） */
     public function track(int $shippingId, bool $refresh): array
@@ -95,7 +96,7 @@ class OrderShipService
             }
 
             [$code, $name] = $this->express($d);
-            Shipping::query()->create([
+            $shipment = Shipping::query()->create([
                 'order_id' => $orderId, 'express_code' => $code, 'express_name' => $name, 'express_no' => trim((string) $d['express_no']),
                 'waybill_task_id' => (string) ($d['waybill_task_id'] ?? ''), 'label_url' => (string) ($d['label_url'] ?? ''),
                 'item_ids' => implode(',', $pick), 'shipped_at' => now(), 'created_at' => now(),
@@ -112,6 +113,7 @@ class OrderShipService
                 Order::query()->whereKey($o->id)->update(['updated_at' => now()]);
                 $this->status->note($o, OrderStatus::OP_ADMIN, (int) $op->id, "{$via}部分发货：{$name} {$d['express_no']}（" . count($pick) . ' 件商品行）');
             }
+            $this->webhooks->shipped($o, $shipment);
         });
     }
 

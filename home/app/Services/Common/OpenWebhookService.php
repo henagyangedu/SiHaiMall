@@ -200,7 +200,8 @@ class OpenWebhookService
     {
         $set = config('mall.webhook_allow_private');
 
-        return $set === null ? !app()->environment('production') : filter_var($set, FILTER_VALIDATE_BOOL);
+        // .env 里留空（OPEN_WEBHOOK_ALLOW_PRIVATE=）读出来是空字符串，同样算没设置
+        return $set === null || $set === '' ? !app()->environment('production') : filter_var($set, FILTER_VALIDATE_BOOL);
     }
 
     /** 真正发出去，并把结果记到这条通知上 */

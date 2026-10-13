@@ -185,6 +185,10 @@ class OpenWebhookTest extends FeatureTestCase
             $this->adminApi('POST', '/open-app', $base + ['webhook_url' => $url])->assertJsonPath('code', 1);
         }
         $this->adminApi('POST', '/open-app', $base + ['webhook_url' => 'https://8.8.8.8/hook'])->assertJsonPath('code', 0);
+
+        // .env 里留空（OPEN_WEBHOOK_ALLOW_PRIVATE=）读出来是空字符串，等于没设置：非生产环境允许
+        config(['mall.webhook_allow_private' => '']);
+        $this->adminApi('POST', '/open-app', $base + ['webhook_url' => 'http://127.0.0.1:9000/hook'])->assertJsonPath('code', 0);
     }
 
     public function test_secret_appears_once_and_can_be_regenerated(): void
